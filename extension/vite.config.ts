@@ -1,0 +1,43 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    {
+      name: 'copy-extension-files',
+      closeBundle() {
+        // Ensure dist exists
+        if (!existsSync('dist')) {
+          mkdirSync('dist', { recursive: true });
+        }
+
+        // Copy manifest.json
+        copyFileSync('manifest.json', 'dist/manifest.json');
+
+        // Copy background.js
+        copyFileSync('background.js', 'dist/background.js');
+
+        console.log('✅ Extension files copied to dist/');
+      }
+    }
+  ],
+  resolve: {
+    alias: {
+      '@components': resolve(__dirname, 'src/components'),
+      '@services': resolve(__dirname, 'src/services'),
+      '@types': resolve(__dirname, 'src/types'),
+      '@utils': resolve(__dirname, 'src/utils'),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: {
+        popup: resolve(__dirname, 'popup.html'),
+      },
+    }
+  }
+});

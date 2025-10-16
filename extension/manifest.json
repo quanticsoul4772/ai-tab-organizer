@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "AI Tab Organizer",
+  "version": "0.1.0",
+  "description": "AI-powered tab organization and management",
+  "permissions": ["tabs", "storage"],
+  "host_permissions": ["https://api.anthropic.com/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
