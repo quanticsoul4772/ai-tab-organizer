@@ -273,28 +273,6 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Roadmap
-
-### Completed
-- [x] Jira/Confluence grouping
-- [x] Ticket search with patterns
-- [x] Status indicators
-- [x] Performance optimization (1000+ tabs)
-- [x] Duplicate detection
-- [x] Tab content extraction
-
-### Planned
-- [ ] Custom category creation
-- [ ] Tab grouping integration
-- [ ] Keyboard shortcuts
-- [ ] Export/import tab sessions
-- [ ] Filtering options
-- [ ] Jira API integration (fetch ticket details)
-- [ ] Sprint-based grouping
-- [ ] Multi-language support
-- [ ] Firefox support
-- [ ] Safari support
-
 ## License
 
 MIT License - feel free to use this project for personal or commercial use.
