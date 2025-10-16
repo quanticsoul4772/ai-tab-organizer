@@ -2,20 +2,45 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import './popup.css';
 
-import type { Tab, CategorizedTabs, CategoryResponse } from './types';
+import type {
+  Tab,
+  CategorizedTabs,
+  CategoryResponse,
+  TabSummary,
+  CategorySummary,
+  SummarySettings,
+  JiraSettings,
+} from './types';
 import { storage } from './utils/storage';
 import { tabManager } from './services/tabManager';
 import { claudeApi } from './services/claudeApi';
+import { summaryService } from './services/summaryService';
 import { SettingsPanel } from './components/SettingsPanel';
 import { CategoryView } from './components/CategoryView';
+import { TabSearch } from './components/TabSearch';
+import { DuplicateDetection } from './components/DuplicateDetection';
+import { JiraView } from './components/JiraView';
+import './components/TabSearch.css';
+import './components/DuplicateDetection.css';
+import './components/JiraView.css';
+
+type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'settings';
 
 function Popup() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [categorized, setCategorized] = useState<CategorizedTabs>({});
   const [loading, setLoading] = useState(true);
   const [apiKey, setApiKey] = useState('');
+  const [activeView, setActiveView] = useState<View>('categories');
   const [showSettings, setShowSettings] = useState(false);
   const [error, setError] = useState('');
+  const [summarySettings, setSummarySettings] = useState<SummarySettings>({
+    enabled: true,
+    cacheDuration: 24,
+  });
+  const [jiraSettings, setJiraSettings] = useState<JiraSettings>({
+    smartMode: true,
+  });
 
   useEffect(() => {
     initializeApp();
@@ -27,6 +52,8 @@ function Popup() {
   const initializeApp = async () => {
     await loadTabs();
     await loadApiKey();
+    await loadSummarySettings();
+    await loadJiraSettings();
   };
 
   /**
@@ -40,14 +67,40 @@ function Popup() {
   };
 
   /**
-   * Save API key to storage and trigger categorization
+   * Load summary settings from storage
    */
-  const saveApiKey = async () => {
+  const loadSummarySettings = async () => {
+    const settings = await storage.getSummarySettings();
+    setSummarySettings(settings);
+  };
+
+  /**
+   * Load Jira settings from storage
+   */
+  const loadJiraSettings = async () => {
+    const settings = await storage.getJiraSettings();
+    setJiraSettings(settings);
+  };
+
+  /**
+   * Save settings to storage and trigger categorization
+   */
+  const saveSettings = async () => {
     await storage.setApiKey(apiKey);
+    await storage.setSummarySettings(summarySettings);
+    await storage.setJiraSettings(jiraSettings);
     setShowSettings(false);
     if (tabs.length > 0) {
       categorizeTabs(tabs);
     }
+  };
+
+  /**
+   * Clear summary cache
+   */
+  const handleClearCache = async () => {
+    await storage.clearSummaryCache();
+    alert('Summary cache cleared successfully!');
   };
 
   /**
@@ -126,36 +179,110 @@ function Popup() {
     });
   };
 
+  /**
+   * Request a summary for a tab
+   */
+  const handleTabSummaryRequest = async (tab: Tab): Promise<TabSummary> => {
+    const key = await storage.getApiKey();
+    if (!key) {
+      throw new Error('API key not configured');
+    }
+    return await summaryService.summarizeTab(tab, key);
+  };
+
+  /**
+   * Request a summary for a category
+   */
+  const handleCategorySummaryRequest = async (
+    category: string,
+    tabs: Tab[]
+  ): Promise<CategorySummary> => {
+    const key = await storage.getApiKey();
+    if (!key) {
+      throw new Error('API key not configured');
+    }
+    return await summaryService.summarizeCategory(category, tabs, key);
+  };
+
   // Render settings panel if shown
   if (showSettings) {
     return (
-      <SettingsPanel apiKey={apiKey} onApiKeyChange={setApiKey} onSave={saveApiKey} />
+      <SettingsPanel
+        apiKey={apiKey}
+        onApiKeyChange={setApiKey}
+        summarySettings={summarySettings}
+        onSummarySettingsChange={setSummarySettings}
+        jiraSettings={jiraSettings}
+        onJiraSettingsChange={setJiraSettings}
+        onSave={saveSettings}
+        onClearCache={handleClearCache}
+      />
     );
   }
 
   // Render loading state
   if (loading) {
-    return <div className="loading">🤖 AI is organizing your tabs...</div>;
+    return <div className="loading">AI is organizing your tabs...</div>;
   }
 
-  // Render main popup with categorized tabs
+  // Render main popup with navigation
   return (
     <div className="popup">
       <div className="header">
-        <h1>🗂️ AI Tab Organizer</h1>
+        <h1>AI Tab Organizer</h1>
         <button onClick={() => setShowSettings(true)} className="settings-btn">
-          ⚙️
+          Settings
         </button>
       </div>
-      <div className="stats">{tabs.length} tabs open</div>
 
-      {error && <div className="error">{error}</div>}
+      {/* Navigation */}
+      <nav className="popup-nav">
+        <button
+          onClick={() => setActiveView('search')}
+          className={activeView === 'search' ? 'nav-btn active' : 'nav-btn'}
+        >
+          Search
+        </button>
+        <button
+          onClick={() => setActiveView('categories')}
+          className={activeView === 'categories' ? 'nav-btn active' : 'nav-btn'}
+        >
+          Categories
+        </button>
+        <button
+          onClick={() => setActiveView('jira')}
+          className={activeView === 'jira' ? 'nav-btn active' : 'nav-btn'}
+        >
+          Jira
+        </button>
+        <button
+          onClick={() => setActiveView('duplicates')}
+          className={activeView === 'duplicates' ? 'nav-btn active' : 'nav-btn'}
+        >
+          Duplicates
+        </button>
+      </nav>
 
-      <CategoryView
-        categorizedTabs={categorized}
-        onTabClick={handleTabClick}
-        onTabClose={handleTabClose}
-      />
+      {activeView === 'categories' && (
+        <>
+          <div className="stats">{tabs.length} tabs open</div>
+          {error && <div className="error">{error}</div>}
+          <CategoryView
+            categorizedTabs={categorized}
+            onTabClick={handleTabClick}
+            onTabClose={handleTabClose}
+            onTabSummaryRequest={handleTabSummaryRequest}
+            onCategorySummaryRequest={handleCategorySummaryRequest}
+            summariesEnabled={summarySettings.enabled}
+          />
+        </>
+      )}
+
+      {activeView === 'search' && <TabSearch />}
+
+      {activeView === 'jira' && <JiraView />}
+
+      {activeView === 'duplicates' && <DuplicateDetection />}
     </div>
   );
 }

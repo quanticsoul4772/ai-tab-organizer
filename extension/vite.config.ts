@@ -20,6 +20,9 @@ export default defineConfig({
         // Copy background.js
         copyFileSync('background.js', 'dist/background.js');
 
+        // Copy content-extractor.js
+        copyFileSync('content-extractor.js', 'dist/content-extractor.js');
+
         console.log('✅ Extension files copied to dist/');
       }
     }

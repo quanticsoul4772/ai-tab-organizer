@@ -281,14 +281,14 @@ Add screenshots of UI changes.
 
 - **Delete your branch** (optional)
 - **Pull latest main** to stay updated
-- **Celebrate!** 🎉
+- **Celebrate!**
 
 ## Coding Standards
 
 ### TypeScript
 
 ```typescript
-// ✅ Good
+// Good
 interface TabProps {
   tabs: Tab[];
   onTabClick: (tabId: number) => void;
@@ -298,7 +298,7 @@ export function TabComponent({ tabs, onTabClick }: TabProps): JSX.Element {
   return <div>{/* ... */}</div>;
 }
 
-// ❌ Avoid
+// Avoid
 export function TabComponent(props: any) {
   return <div>{/* ... */}</div>;
 }
@@ -307,7 +307,7 @@ export function TabComponent(props: any) {
 ### React Components
 
 ```typescript
-// ✅ Good - Functional component with proper types
+// Good - Functional component with proper types
 import React from 'react';
 import type { Tab } from '@types';
 
@@ -328,7 +328,7 @@ export function TabList({ tabs, onTabClick }: TabListProps) {
   );
 }
 
-// ❌ Avoid - Class components, missing types
+// Avoid - Class components, missing types
 export class TabList extends React.Component {
   render() {
     return <div>{/* ... */}</div>;
@@ -352,22 +352,22 @@ const MAX_RETRIES = 3;
 interface CategoryResponse {}
 
 // Files: Match component name
-// ✅ SettingsPanel.tsx
-// ✅ claudeApi.ts
-// ❌ settings_panel.tsx
+// Good: SettingsPanel.tsx
+// Good: claudeApi.ts
+// Avoid: settings_panel.tsx
 ```
 
 ### Code Organization
 
 ```typescript
-// ✅ Good - Organized imports
+// Good - Organized imports
 import React, { useState, useEffect } from 'react';
 import type { Tab } from '@types';
 import { storage } from '@utils/storage';
 import { TabList } from '@components/TabList';
 import './styles.css';
 
-// ❌ Avoid - Messy imports
+// Avoid - Messy imports
 import './styles.css';
 import { TabList } from '../components/TabList';
 import React from 'react';
@@ -377,11 +377,11 @@ import { storage } from '../utils/storage';
 ### Comments
 
 ```typescript
-// ✅ Good - Explain why, not what
+// Good - Explain why, not what
 // Retry with exponential backoff to handle transient API errors
 await sleep(RETRY_DELAY_MS * attempt);
 
-// ❌ Avoid - Obvious comments
+// Avoid - Obvious comments
 // Sleep for some time
 await sleep(1000);
 ```
@@ -389,7 +389,7 @@ await sleep(1000);
 ### Error Handling
 
 ```typescript
-// ✅ Good - Specific error handling
+// Good - Specific error handling
 try {
   const categories = await claudeApi.categorizeTabs(tabs, apiKey);
   setCategorized(categories);
@@ -401,7 +401,7 @@ try {
   console.error('Categorization error:', error);
 }
 
-// ❌ Avoid - Silent failures
+// Avoid - Silent failures
 try {
   await claudeApi.categorizeTabs(tabs, apiKey);
 } catch (error) {
@@ -513,10 +513,10 @@ If you have questions about contributing:
 3. Create a new discussion
 4. Contact maintainers
 
-## Thank You!
+## Thank You
 
-Your contributions make this project better for everyone. We appreciate your time and effort! 🙏
+Your contributions make this project better for everyone. We appreciate your time and effort.
 
 ---
 
-Happy contributing! 🚀
+Happy contributing!

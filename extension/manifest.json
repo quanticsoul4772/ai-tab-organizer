@@ -3,8 +3,8 @@
   "name": "AI Tab Organizer",
   "version": "0.1.0",
   "description": "AI-powered tab organization and management",
-  "permissions": ["tabs", "storage"],
-  "host_permissions": ["https://api.anthropic.com/*"],
+  "permissions": ["tabs", "storage", "scripting", "activeTab"],
+  "host_permissions": ["https://api.anthropic.com/*", "<all_urls>"],
   "action": {
     "default_popup": "popup.html"
   },

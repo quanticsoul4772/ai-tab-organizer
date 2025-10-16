@@ -28,3 +28,34 @@ export interface BackgroundResponse {
   data?: CategoryResponse;
   error?: string;
 }
+
+export interface TabSummary {
+  tabId: number;
+  url: string;
+  title: string;
+  summary: string;
+  timestamp: number;
+  tokens: number;
+}
+
+export interface CategorySummary {
+  category: string;
+  summary: string;
+  tabCount: number;
+  timestamp: number;
+  tokens: number;
+}
+
+export interface SummaryCache {
+  tabs: { [tabId: number]: TabSummary };
+  categories: { [category: string]: CategorySummary };
+}
+
+export interface SummarySettings {
+  enabled: boolean;
+  cacheDuration: number; // in hours
+}
+
+export interface JiraSettings {
+  smartMode: boolean; // Enable Jira Smart Mode (auto-group by project)
+}

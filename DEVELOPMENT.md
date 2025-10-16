@@ -89,7 +89,7 @@ This starts Vite in watch mode. Changes to source files will trigger rebuilds, b
 After making changes:
 
 1. Go to `chrome://extensions/`
-2. Click the reload icon (🔄) on your extension card
+2. Click the reload icon on your extension card
 3. Or use keyboard shortcut: `Ctrl+R` (Windows/Linux) or `Cmd+R` (Mac) while focused on extensions page
 
 ### Quick Reload Workflow
@@ -126,13 +126,13 @@ extension/
 Use path aliases for cleaner imports:
 
 ```typescript
-// ✅ Good (with path aliases)
+// Good (with path aliases)
 import { Tab } from '@types';
 import { storage } from '@utils/storage';
 import { claudeApi } from '@services/claudeApi';
 import { TabList } from '@components/TabList';
 
-// ❌ Avoid (relative paths)
+// Avoid (relative paths)
 import { Tab } from '../types';
 import { storage } from '../utils/storage';
 ```
@@ -151,7 +151,7 @@ Path aliases are configured in:
 - Avoid `any` type
 
 ```typescript
-// ✅ Good
+// Good
 interface TabProps {
   tabs: Tab[];
   onTabClick: (tabId: number) => void;
@@ -161,7 +161,7 @@ function handleTab(tab: Tab): void {
   console.log(tab.title);
 }
 
-// ❌ Avoid
+// Avoid
 function handleTab(tab: any) {
   console.log(tab.title);
 }
@@ -225,8 +225,8 @@ export function SettingsPanel({
    - Enter API key (first time)
    - Verify tabs are categorized correctly
    - Test tab switching (click tab)
-   - Test tab closing (click ✕)
-   - Test settings (click ⚙️)
+   - Test tab closing (click X)
+   - Test settings (click settings icon)
 
 3. **Error scenarios:**
    - Invalid API key
@@ -590,4 +590,4 @@ If you encounter issues:
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
 - Check [GitHub Issues](https://github.com/yourusername/ai-tab-organizer/issues) for tasks to work on
 
-Happy coding! 🚀
+Happy coding!

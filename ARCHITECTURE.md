@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI Tab Organizer is a Chrome extension built with React, TypeScript, and Vite that uses Claude AI to categorize browser tabs. The architecture follows a modular design with clear separation of concerns.
+AI Tab Organizer is a Chrome extension built with React, TypeScript, and Vite that uses Claude AI to intelligently categorize browser tabs. The extension includes specialized Jira/Confluence integration for developers working with Atlassian tools.
 
 ## System Architecture
 
@@ -15,9 +15,10 @@ AI Tab Organizer is a Chrome extension built with React, TypeScript, and Vite th
 │  │   Popup UI      │         │  Background Worker │    │
 │  │   (React App)   │◄───────►│  (Service Worker)  │    │
 │  │                 │         │                    │    │
-│  │  - Components   │ Message │  - API Handler     │    │
-│  │  - Services     │ Passing │  - Retry Logic     │    │
-│  │  - State Mgmt   │         │  - Error Handling  │    │
+│  │  - Categories   │ Message │  - API Handler     │    │
+│  │  - Search       │ Passing │  - Retry Logic     │    │
+│  │  - Jira View    │         │  - Error Handling  │    │
+│  │  - Duplicates   │         │                    │    │
 │  └─────────────────┘         └────────────────────┘    │
 │         ▲                              │                 │
 │         │                              │                 │
@@ -32,22 +33,51 @@ AI Tab Organizer is a Chrome extension built with React, TypeScript, and Vite th
 └─────────────────────────────────────────────────────────┘
 ```
 
+## High-Level Architecture
+
+### Extension Components
+
+1. **Popup UI (React)** - Main user interface with multiple views
+2. **Background Worker** - Service worker for API communication
+3. **Chrome APIs** - Tab management and storage
+4. **Anthropic API** - AI-powered categorization
+
+### Key Features
+
+- **AI Categorization**: Claude API categorizes tabs into Work, Research, Shopping, etc.
+- **Jira Integration**: Detection and grouping of Jira tickets by project
+- **Pattern Search**: Search with Jira pattern matching (ENG-123, eng 123)
+- **Duplicate Detection**: Content-based duplicate finding
+- **Content Extraction**: Title and URL extraction from tabs
+
 ## Directory Structure
 
 ```
 extension/
 ├── src/
 │   ├── components/              # React UI Components
-│   │   ├── CategoryView.tsx     # Displays categorized tabs
-│   │   ├── SettingsPanel.tsx    # API key configuration
-│   │   └── TabList.tsx          # Individual tab rendering
+│   │   ├── CategoryView.tsx     # Main tab categorization view
+│   │   ├── SettingsPanel.tsx    # Settings and configuration
+│   │   ├── TabSearch.tsx        # Search interface
+│   │   ├── DuplicateDetection.tsx  # Duplicate finder
+│   │   └── JiraView.tsx         # Jira-specific view
 │   │
 │   ├── services/                # Business Logic Layer
 │   │   ├── claudeApi.ts         # Claude API communication
-│   │   └── tabManager.ts        # Tab operations wrapper
+│   │   ├── tabManager.ts        # Tab operations
+│   │   ├── searchService.ts     # Search functionality
+│   │   ├── duplicateService.ts  # Duplicate detection
+│   │   ├── summaryService.ts    # Tab summarization
+│   │   └── jira/                # Jira-specific services
+│   │       ├── urlParser.ts           # Parse Jira URLs
+│   │       ├── titleParser.ts         # Extract ticket info from titles
+│   │       ├── jiraSearchEnhancer.ts  # Enhanced Jira search
+│   │       └── atlassianDetectionService.ts  # Detect/group Jira tabs
 │   │
-│   ├── types/                   # TypeScript Type Definitions
-│   │   └── index.ts             # Shared interfaces
+│   ├── types/                   # TypeScript Definitions
+│   │   ├── index.ts             # Core types
+│   │   ├── search.ts            # Search types
+│   │   └── jira.ts              # Jira types
 │   │
 │   ├── utils/                   # Utility Functions
 │   │   └── storage.ts           # Chrome storage wrapper
@@ -58,64 +88,7 @@ extension/
 ├── background.js                # Background service worker
 ├── manifest.json                # Chrome extension manifest
 ├── popup.html                   # Extension popup HTML
-├── vite.config.ts              # Build configuration
-└── tsconfig.json               # TypeScript configuration
-```
-
-## Component Architecture
-
-### 1. Popup UI (React Application)
-
-The main UI is a React application that runs in the extension popup.
-
-#### Component Hierarchy
-
-```
-Popup (Main Component)
-├── SettingsPanel (Conditional)
-│   ├── Input (API Key)
-│   └── Button (Save)
-│
-└── CategoryView
-    └── [Category Groups]
-        └── TabList
-            └── [Tab Items]
-                ├── Favicon
-                ├── Tab Info (Click to switch)
-                └── Close Button
-```
-
-#### State Management
-
-```typescript
-// Main application state
-interface PopupState {
-  tabs: Tab[];              // All browser tabs
-  categorized: CategorizedTabs;  // Tabs grouped by category
-  loading: boolean;         // Loading state
-  apiKey: string;          // User's API key
-  showSettings: boolean;   // Settings panel visibility
-  error: string;           // Error messages
-}
-```
-
-### 2. Background Service Worker
-
-The background worker handles all API communication and implements robust error handling.
-
-```javascript
-// Request Flow
-chrome.runtime.onMessage
-  ↓
-categorizeTabs()
-  ↓
-Retry Loop (0-2 attempts)
-  ↓
-fetchWithTimeout() → Anthropic API
-  ↓
-parseApiResponse()
-  ↓
-Return categories or throw error
+└── vite.config.ts              # Build configuration
 ```
 
 ## Data Flow
@@ -127,199 +100,101 @@ Return categories or throw error
    ↓
 2. Popup queries all tabs (chrome.tabs.query)
    ↓
-3. Popup checks for API key (chrome.storage.local)
+3. Check for API key (chrome.storage.local)
    ↓
 4. If API key exists:
-   ├─→ Send message to background worker
+   ├─→ Check if Jira Smart Mode enabled
+   │   ├─→ Extract Jira/Confluence tabs
+   │   └─→ Group by project/space
+   ↓
+   ├─→ Send remaining tabs to background worker
    │   ↓
    │   Background worker calls Claude API
    │   ↓
    │   Claude returns category mapping
    │   ↓
-   │   Background sends response to popup
-   │   ↓
    └─→ Popup renders categorized tabs
-
-5. If no API key:
-   └─→ Show settings panel
 ```
 
-### API Communication Flow
+### Jira Search Flow
 
 ```
-Popup                Background Worker           Anthropic API
-  │                         │                         │
-  ├─ sendMessage() ────────►│                         │
-  │  {action, tabs, key}    │                         │
-  │                         │                         │
-  │                         ├─ POST /v1/messages ────►│
-  │                         │  {model, messages}      │
-  │                         │                         │
-  │                         │◄────── Response ────────┤
-  │                         │  {content: [{text}]}    │
-  │                         │                         │
-  │◄─── sendResponse() ────┤                         │
-  │  {success, data}        │                         │
-  │                         │                         │
+User enters search query
+   ↓
+Check if query matches Jira pattern:
+   ├─→ "ENG-123" → Exact ticket search
+   ├─→ "ENG" → Project filter
+   └─→ "login bug" → Text search
+   ↓
+Search through open tabs (client-side, no API calls)
+   ↓
+Return scored results instantly (<50ms for 100 tabs)
 ```
 
-## Module Details
+## Key Modules
 
-### Components Layer
+### Jira Integration
 
-#### CategoryView.tsx
-- **Purpose**: Renders categorized tabs in expandable groups
-- **Props**: `categorizedTabs`, `onTabClick`, `onTabClose`
-- **Responsibilities**: Layout and organization of tab categories
+The Jira integration provides specialized handling for Atlassian products:
 
-#### TabList.tsx
-- **Purpose**: Renders individual tabs with favicon and actions
-- **Props**: `tabs`, `onTabClick`, `onTabClose`
-- **Responsibilities**: Individual tab display and interaction
+#### URL Parser (`urlParser.ts`)
+- Detects Jira Cloud, Server, and Data Center URLs
+- Extracts project key and ticket number
+- Supports Confluence space detection
 
-#### SettingsPanel.tsx
-- **Purpose**: API key configuration interface
-- **Props**: `apiKey`, `onApiKeyChange`, `onSave`
-- **Responsibilities**: API key input and persistence
+#### Title Parser (`titleParser.ts`)
+- Parses ticket numbers from titles
+- Extracts ticket summary
+- Detects status (To Do, In Progress, In Review, Done, Blocked)
 
-### Services Layer
+#### Search Enhancer (`jiraSearchEnhancer.ts`)
+- Pattern matching for ticket formats
+- Project filtering
+- Text search in summaries
+- Performance: <1ms for 100 tabs
 
-#### claudeApi.ts
-```typescript
-export const claudeApi = {
-  async categorizeTabs(tabs: Tab[], apiKey: string): Promise<CategoryResponse>
-}
-```
-- **Purpose**: Abstraction layer for Claude API communication
-- **Handles**: Message passing to background worker
-- **Returns**: Parsed category mappings
+#### Detection Service (`atlassianDetectionService.ts`)
+- Groups tickets by project
+- Sorts tickets by number
+- Calculates project statistics
 
-#### tabManager.ts
-```typescript
-export const tabManager = {
-  async getAllTabs(): Promise<Tab[]>
-  async switchToTab(tabId: number): Promise<void>
-  async closeTab(tabId: number): Promise<void>
-}
-```
-- **Purpose**: Wrapper for Chrome tabs API
-- **Handles**: All tab-related operations
+### Search Service
 
-### Utils Layer
+Hybrid search approach:
 
-#### storage.ts
-```typescript
-export const storage = {
-  async getApiKey(): Promise<string | null>
-  async setApiKey(apiKey: string): Promise<void>
-  async clearApiKey(): Promise<void>
-}
-```
-- **Purpose**: Abstraction for Chrome storage API
-- **Handles**: Persistent API key storage
+1. **Jira Pattern Detection**: Check for ticket patterns first
+2. **Client-Side Search**: Results for Jira queries
+3. **AI Ranking**: Fall back to Claude API for complex queries
+4. **Caching**: Results cached to reduce API calls
 
-### Types Layer
+### Duplicate Detection
 
-#### index.ts
-```typescript
-export interface Tab { id, title, url, favIconUrl? }
-export interface CategorizedTabs { [category: string]: Tab[] }
-export interface CategoryResponse { [category: string]: number[] }
-export interface BackgroundMessage { action, tabs, apiKey }
-export interface BackgroundResponse { success, data?, error? }
-```
+Content-based duplicate detection:
 
-## Background Worker Details
+- Extracts meaningful content from URLs
+- Fuzzy title matching
+- Groups similar tabs
+- Handles query parameters intelligently
 
-### API Configuration
+## Performance
 
-```javascript
-const API_CONFIG = {
-  BASE_URL: 'https://api.anthropic.com/v1/messages',
-  MODEL: 'claude-3-5-sonnet-20241022',
-  MAX_TOKENS: 1024,
-  VERSION: '2023-06-01',
-  TIMEOUT_MS: 30000,      // 30 seconds
-  MAX_RETRIES: 2,         // Up to 3 total attempts
-  RETRY_DELAY_MS: 1000,   // Initial delay, increases exponentially
-};
-```
+### Benchmarks
 
-### Error Handling Strategy
+| Operation | Tab Count | Time | Memory |
+|-----------|-----------|------|--------|
+| Jira Detection | 100 | <1ms | minimal |
+| Jira Grouping | 100 | <1ms | minimal |
+| Jira Search (exact) | 100 | <1ms | minimal |
+| Jira Search (project) | 200 | <1ms | minimal |
+| All Operations | 1000 | <4ms | <1MB |
 
-1. **Timeout Handling**: 30-second timeout using AbortController
-2. **Retry Logic**: Exponential backoff (1s, 2s delays)
-3. **Auth Errors**: No retry on 401/403
-4. **Rate Limits**: Retry on 429/5xx errors
-5. **Validation**: Response structure validation before parsing
+### Optimization Strategies
 
-### Retry Flow
-
-```javascript
-for (attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-  try {
-    if (attempt > 0) {
-      await sleep(RETRY_DELAY_MS * attempt);  // Exponential backoff
-    }
-
-    response = await fetchWithTimeout(url, options, TIMEOUT_MS);
-
-    if (!response.ok) {
-      if (isAuthError(response.status)) {
-        throw error;  // Don't retry auth errors
-      }
-      continue;  // Retry other errors
-    }
-
-    return parseApiResponse(response);
-  } catch (error) {
-    if (attempt === MAX_RETRIES) {
-      throw error;  // Final attempt failed
-    }
-  }
-}
-```
-
-## Build System
-
-### Vite Configuration
-
-```typescript
-export default defineConfig({
-  plugins: [
-    react(),                    // React support
-    copyExtensionFilesPlugin()  // Copy manifest & background.js
-  ],
-  resolve: {
-    alias: {                    // Path aliases
-      '@components': './src/components',
-      '@services': './src/services',
-      '@types': './src/types',
-      '@utils': './src/utils',
-    },
-  },
-  build: {
-    outDir: 'dist',            // Output to dist/
-    rollupOptions: {
-      input: {
-        popup: './popup.html'   // Entry point
-      },
-    }
-  }
-});
-```
-
-### Build Output
-
-```
-dist/
-├── popup.html              # Extension popup
-├── manifest.json           # Extension manifest (copied)
-├── background.js           # Service worker (copied)
-└── assets/
-    ├── popup-[hash].js     # Bundled React app
-    └── popup-[hash].css    # Bundled styles
-```
+1. **Client-Side Jira Search**: No API calls for Jira patterns
+2. **Lazy Loading**: Components loaded on demand
+3. **React Memoization**: Prevent unnecessary re-renders
+4. **Efficient Algorithms**: Linear time complexity for searches
+5. **Caching**: Search and summary results cached
 
 ## Extension Manifest
 
@@ -330,153 +205,85 @@ dist/
   "version": "0.1.0",
   "permissions": [
     "tabs",      // Read tab information
-    "storage"    // Store API key locally
+    "storage"    // Store settings locally
   ],
   "host_permissions": [
     "https://api.anthropic.com/*"  // Call Claude API
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
-  }
+  ]
 }
 ```
 
-## Security Considerations
+## Build System
+
+### Vite Configuration
+
+- **React Plugin**: JSX transformation
+- **TypeScript**: Type checking and compilation
+- **Path Aliases**: Clean imports with @ prefix
+- **Custom Plugin**: Copies manifest and background worker
+
+### Build Output
+
+```
+dist/
+├── popup.html              # Extension popup
+├── manifest.json           # Extension manifest (copied)
+├── background.js           # Service worker (copied)
+└── assets/
+    ├── popup-[hash].js     # Bundled React app (~193 KB)
+    └── popup-[hash].css    # Bundled styles (~17 KB)
+```
+
+## Testing
+
+### Test Suite
+
+- **Unit Tests**: 123 tests across 5 test files
+- **Performance Tests**: Stress testing with 1000+ tabs
+- **Edge Case Tests**: Null/undefined handling, missing data
+
+### Test Files
+
+```
+src/services/jira/__tests__/
+├── urlParser.test.ts               # URL parsing (24 tests)
+├── titleParser.test.ts             # Title parsing (41 tests)
+├── jiraSearchEnhancer.test.ts      # Search (30 tests)
+├── atlassianDetectionService.test.ts  # Detection (20 tests)
+└── performance.test.ts             # Performance (8 tests)
+```
+
+## Security
 
 ### API Key Storage
 - Stored in `chrome.storage.local` (encrypted by Chrome)
 - Never transmitted except to Anthropic API
 - No server-side storage
 
-### Content Security Policy
-- Extension manifest v3 enforces strict CSP
-- No eval() or inline scripts
-- External API calls require host_permissions
-
 ### Data Privacy
-- Tab titles/URLs sent only to Anthropic API
+- Tab data sent only to Anthropic API (opt-in)
+- Jira search runs client-side (no external calls)
 - No analytics or telemetry
 - No third-party data sharing
 
-## Performance Considerations
+## Future Considerations
 
-### Optimization Strategies
+### Planned Features
 
-1. **Lazy Loading**: Components loaded on demand
-2. **React Memoization**: Prevent unnecessary re-renders
-3. **Efficient State Updates**: Batch state changes
-4. **API Optimization**:
-   - Send only tab index, title, URL (not full objects)
-   - Request JSON-only responses
-   - Timeout after 30 seconds
-
-### Bundle Size
-
-- **Popup JS**: ~146 KB (~47 KB gzipped)
-- **Popup CSS**: ~3 KB (~1 KB gzipped)
-- **Total**: ~149 KB (~48 KB gzipped)
-
-## Extension Lifecycle
-
-```
-Installation
-  ↓
-Background worker initialized
-  ↓
-User clicks extension icon
-  ↓
-Popup opens (popup.html)
-  ↓
-React app mounts
-  ↓
-Load tabs & API key
-  ↓
-If API key exists: categorize tabs
-  ↓
-Display categorized tabs
-  ↓
-User interacts (switch/close tabs)
-  ↓
-Popup closes (state lost)
-  ↓
-Next click: Repeat from "Popup opens"
-```
-
-## Future Architecture Considerations
+1. **Custom Categories**: User-defined categorization rules
+2. **Jira API Integration**: Fetch real-time ticket data
+3. **Sprint Grouping**: Group by active sprints
+4. **Export/Import**: Tab session management
+5. **Keyboard Shortcuts**: Quick navigation
 
 ### Scalability
 
-1. **Tab Caching**: Cache categorizations to reduce API calls
-2. **Incremental Updates**: Only categorize new tabs
-3. **Background Sync**: Periodic re-categorization
-4. **Custom Categories**: User-defined category rules
-
-### Extension Points
-
-1. **Plugin System**: Custom categorization rules
-2. **Export/Import**: Tab session management
-3. **Sync Service**: Multi-device synchronization
-4. **Analytics Dashboard**: Tab usage insights
-
-## Testing Strategy
-
-### Unit Tests
-- Component rendering tests (React Testing Library)
-- Service layer tests (Jest)
-- Utility function tests
-
-### Integration Tests
-- Popup ↔ Background worker communication
-- Chrome API mocking
-- End-to-end tab categorization flow
-
-### Manual Testing
-- Load extension in Chrome
-- Test with various tab counts (5, 50, 100+)
-- Test error scenarios (invalid API key, network failure)
-- Test edge cases (no tabs, duplicate tabs)
-
-## Debugging
-
-### Chrome DevTools
-
-1. **Popup Console**: Right-click popup → Inspect
-2. **Background Worker Console**: chrome://extensions → "Inspect" link
-3. **Network Tab**: Monitor API calls
-4. **Storage Tab**: View chrome.storage.local
-
-### Logging Strategy
-
-```javascript
-// Background worker
-console.log('[BG] API call started');
-console.error('[BG] API error:', error);
-
-// Popup
-console.log('[Popup] Categorization complete');
-console.error('[Popup] Failed to load tabs:', error);
-```
-
-## Dependencies
-
-### Runtime Dependencies
-- `react@18.x` - UI framework
-- `react-dom@18.x` - React DOM renderer
-
-### Build Dependencies
-- `vite@5.x` - Build tool
-- `@vitejs/plugin-react` - Vite React plugin
-- `typescript@5.x` - Type checking
-- `@types/chrome` - Chrome API types
-
-### Chrome APIs Used
-- `chrome.tabs` - Tab management
-- `chrome.storage.local` - Persistent storage
-- `chrome.runtime` - Message passing
+- Tab caching for reduced API calls
+- Incremental updates for changed tabs only
+- Background sync for periodic re-categorization
+- Web Worker for heavy computations
 
 ---
 
-For implementation details, see the source code. For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
+For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
+For contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
