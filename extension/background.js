@@ -861,12 +861,14 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 function countDuplicates(tab, allTabs) {
   if (!tab.url) return 1;
 
-  const normalizedUrl = tab.url.split('#')[0].split('?')[0]; // Remove hash and query
+  // Only remove hash fragment (# and after) for comparison
+  // Keep query params because they often change content
+  const normalizedUrl = tab.url.split('#')[0];
   let count = 0;
 
   for (const otherTab of allTabs) {
     if (otherTab.url) {
-      const otherNormalized = otherTab.url.split('#')[0].split('?')[0];
+      const otherNormalized = otherTab.url.split('#')[0];
       if (normalizedUrl === otherNormalized) {
         count++;
       }
