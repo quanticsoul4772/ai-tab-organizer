@@ -46,20 +46,10 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
 
   // Jira status badge
   if (metadata.jiraStatus) {
-    const statusEmoji: Record<string, string> = {
-      'Blocked': '🔴',
-      'In Progress': '🟡',
-      'In Review': '🟣',
-      'Done': '🟢',
-      'To Do': '⚪'
-    };
-
-    const emoji = statusEmoji[metadata.jiraStatus] || '⚪';
-
     badges.push({
       type: 'jira-status',
-      value: '',
-      icon: emoji
+      value: metadata.jiraStatus,
+      icon: ''
     });
   }
 

@@ -50,6 +50,48 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     return true; // Keep channel open for async response
   }
+
+  if (request.action === 'getTabMetadata') {
+    const { tabId } = request;
+
+    // Get tab info and all tabs for duplicate detection
+    chrome.tabs.get(tabId, async (tab) => {
+      if (chrome.runtime.lastError) {
+        console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+
+      // Get all tabs for duplicate detection
+      const allTabs = await chrome.tabs.query({});
+
+      // Build full metadata object
+      const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
+      const idleTime = Date.now() - lastAccessed;
+      const idleMinutes = Math.round(idleTime / (60 * 1000));
+
+      console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
+
+      // Extract Jira status from page content
+      console.log(`📞 About to call extractJiraStatus for tab ${tabId}, url: ${tab.url}`);
+      const jiraStatus = await extractJiraStatus(tabId, tab.url || '');
+      console.log(`📞 extractJiraStatus returned: ${jiraStatus}`);
+
+      const metadata = {
+        lastAccessed: lastAccessed,
+        isSuspended: tab.discarded || false,
+        duplicateCount: countDuplicates(tab, allTabs),
+        jiraStatus: jiraStatus,
+        // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
+      };
+
+      console.log(`✅ Tab ${tabId} metadata complete: jiraStatus=${jiraStatus}`);
+
+      sendResponse({ success: true, data: metadata });
+    });
+
+    return true; // Keep channel open for async response
+  }
 });
 
 /**
@@ -885,14 +927,20 @@ function countDuplicates(tab, allTabs) {
  * @returns {Promise<string|undefined>} Jira status or undefined
  */
 async function extractJiraStatus(tabId, url) {
+  console.log(`🔬 extractJiraStatus called for tab ${tabId}, url: ${url}`);
+
   if (!url || (!url.includes('jira') && !url.includes('atlassian'))) {
+    console.log(`⏭️ Skipping tab ${tabId}: URL doesn't contain 'jira' or 'atlassian'`);
     return undefined;
   }
 
   // Only try to extract from Jira issue pages (with /browse/)
   if (!url.includes('/browse/')) {
+    console.log(`⏭️ Skipping tab ${tabId}: URL doesn't contain '/browse/'`);
     return undefined;
   }
+
+  console.log(`🔎 Attempting Jira status extraction for tab ${tabId}: ${url}`);
 
   try {
     const results = await chrome.scripting.executeScript({
@@ -900,55 +948,24 @@ async function extractJiraStatus(tabId, url) {
       files: ['jira-content-extractor.js']
     });
 
-    if (results && results[0] && results[0].result && results[0].result.success) {
-      return results[0].result.status || undefined;
+    console.log(`📦 Injection result for tab ${tabId}:`, results);
+
+    if (results && results[0] && results[0].result) {
+      console.log(`📊 Extraction result for tab ${tabId}:`, results[0].result);
+
+      if (results[0].result.success) {
+        const status = results[0].result.status || undefined;
+        console.log(`✅ Jira status extracted for tab ${tabId}: ${status}`);
+        return status;
+      } else {
+        console.warn(`❌ Extraction failed for tab ${tabId}:`, results[0].result.error);
+      }
+    } else {
+      console.warn(`❌ No result from injection for tab ${tabId}`);
     }
   } catch (error) {
-    console.warn(`Failed to extract Jira status from tab ${tabId}:`, error.message);
+    console.error(`💥 Failed to inject Jira extractor into tab ${tabId}:`, error.message, error);
   }
 
   return undefined;
 }
-
-// Add message listener for getting tab metadata
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getTabMetadata') {
-    const { tabId } = request;
-
-    // Get tab info and all tabs for duplicate detection
-    chrome.tabs.get(tabId, async (tab) => {
-      if (chrome.runtime.lastError) {
-        console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
-        sendResponse({ success: false, error: chrome.runtime.lastError.message });
-        return;
-      }
-
-      // Get all tabs for duplicate detection
-      const allTabs = await chrome.tabs.query({});
-
-      // Build full metadata object
-      const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
-      const idleTime = Date.now() - lastAccessed;
-      const idleMinutes = Math.round(idleTime / (60 * 1000));
-
-      console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
-
-      // Extract Jira status from page content
-      const jiraStatus = await extractJiraStatus(tabId, tab.url || '');
-
-      const metadata = {
-        lastAccessed: lastAccessed,
-        isSuspended: tab.discarded || false,
-        duplicateCount: countDuplicates(tab, allTabs),
-        jiraStatus: jiraStatus,
-        // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
-      };
-
-      console.log(`✅ Tab ${tabId} metadata complete: jiraStatus=${jiraStatus}`);
-
-      sendResponse({ success: true, data: metadata });
-    });
-
-    return true; // Keep channel open for async response
-  }
-});

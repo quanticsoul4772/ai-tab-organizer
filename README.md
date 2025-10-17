@@ -35,7 +35,7 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Badge overlays for additional context
   - Pinned indicator for pinned tabs
   - Duplicate count for multiple instances
-  - Jira status badges (Blocked, In Progress, In Review, Done, To Do)
+  - Jira status badges showing ticket state as plain text (e.g., "Closed", "In Progress", "To Do")
 - Persistent activity tracking across browser sessions
 - Real-time updates as tabs are accessed
 
@@ -43,7 +43,8 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Auto-grouping of Jira tickets by project
 - Confluence pages grouped by space
 - Smart search patterns (ENG-123, eng 123, or just 123)
-- Visual status badges for ticket states
+- Plain text status badges extracted from Jira pages (Blocked, In Progress, Closed, To Do, etc.)
+- Automatic status extraction from Jira Cloud, Server, and Data Center
 - Ticket sorting by number
 - Works with Cloud, Server, and Data Center versions
 - High performance (100 tabs in under 100ms)

@@ -52,8 +52,14 @@ export const TabItem = memo(function TabItem({
 
   // Calculate indicators using the proper function
   const indicators = useMemo(() => {
-    return getTabIndicators(metadata);
-  }, [metadata]);
+    const result = getTabIndicators(metadata);
+    console.log('TabItem indicators for', tab.title?.substring(0, 30), ':', {
+      metadata,
+      badges: result.badges,
+      badgeCount: result.badges.length
+    });
+    return result;
+  }, [metadata, tab.title]);
 
   // Debug logging
   if (!densityConfig) {

@@ -3,7 +3,10 @@
   try {
     // Try multiple selectors for different Jira versions
     const selectors = [
-      // Jira Cloud
+      // Jira Cloud (newer UI)
+      'button[data-testid="issue-field-status.ui.status-view.status-button.status-button"] span:first-child',
+      'button[data-testid*="status-button"] span:first-child',
+      // Jira Cloud (older UI)
       '[data-test-id="issue.views.field.status.status-field"]',
       '[data-testid="issue.views.field.status.status-field"]',
       'span[data-testid="issue.views.field.status.status-field"] span',
