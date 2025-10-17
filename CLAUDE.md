@@ -79,7 +79,7 @@ Health check: `http://localhost:3000/health`
 
 **1. Popup UI** (`popup.html` + `popup.tsx`):
 - React 18 application with TypeScript
-- Five view modes: Categories, Search, Jira, Duplicates, Settings
+- Five view modes: Search, Categories, Jira, Duplicates, Sessions
 - Communicates with background worker via `chrome.runtime.sendMessage()`
 - Cannot make fetch() requests directly (Chrome security restriction)
 
@@ -165,6 +165,7 @@ All business logic is in `extension/src/services/`:
 **Core Services**:
 - `claudeApi.ts` - API wrapper, sends messages to background worker
 - `tabManager.ts` - Tab operations (`getAllTabs`, `switchToTab`, `closeTab`)
+- `sessionManager.ts` - Session save/restore with workspace detection
 - `summaryService.ts` - Content summarization with TTL caching
 - `searchService.ts` - Full-text search in indexed tabs
 - `duplicateDetectionService.ts` - URL/content/semantic duplicate detection
@@ -192,10 +193,81 @@ All business logic is in `extension/src/services/`:
 - `TabSearch.tsx` - Search interface with Jira pattern support
 - `DuplicateDetection.tsx` - Find duplicate tabs (URL/content/semantic)
 - `JiraView.tsx` - Jira-specific organization by project
+- `SessionsView.tsx` - Session management with workspace filtering
 - `SettingsPanel.tsx` - Configuration UI (API key, Jira mode)
 - `CategorySummaryCard.tsx` - Category-level summaries
 - `SummaryCard.tsx` - Individual tab summaries
 - `TabList.tsx` - Reusable tab list renderer
+
+## Session Management Architecture
+
+**Purpose**: Save and restore browser sessions with workspace-aware organization
+
+**Key Components**:
+- `sessionManager.ts` (`extension/src/services/sessionManager.ts:1-331`)
+- `SessionsView.tsx` (`extension/src/components/SessionsView.tsx`)
+- `session.ts` types (`extension/src/types/session.ts`)
+
+**Core Functionality**:
+
+1. **Session Save** (`saveCurrentSession`):
+   - Captures all open tabs via `chrome.tabs.query({})`
+   - Converts to `SessionTab` objects (URL, title, pinned, groupId)
+   - Uses `AtlassianDetectionService` to detect Jira tickets
+   - Extracts workspace categories (Jira project keys)
+   - Stores in `chrome.storage.local` with metadata
+
+2. **Session Restore** (`restoreSession`):
+   - Retrieves session from storage by ID
+   - Optional: Closes existing tabs (keeps pinned)
+   - Opens all session tabs via `chrome.tabs.create()`
+   - Updates last modified timestamp
+
+3. **Workspace Detection**:
+   - Uses existing Jira detection service
+   - Extracts unique Jira ticket keys (e.g., "ENG-123", "APPS-456")
+   - Groups by project key (e.g., "ENG", "APPS")
+   - Stores as `categories` array in session metadata
+
+4. **Import/Export**:
+   - Export format: JSON with version, timestamp, session data
+   - Import: Validates format, generates new IDs to avoid conflicts
+   - File naming: `session-name-timestamp.json` or `sessions-backup-timestamp.json`
+
+**Storage Schema**:
+```typescript
+{
+  sessions: {
+    "session_123_abc": {
+      id: string,
+      name: string,
+      description?: string,
+      created: number,
+      lastModified: number,
+      tabs: SessionTab[],
+      metadata: {
+        tabCount: number,
+        jiraTickets?: string[],
+        categories?: string[]
+      }
+    }
+  }
+}
+```
+
+**UI Features** (`SessionsView.tsx`):
+- Workspace filter pills (e.g., "APPS (3)", "ENG (5)")
+- Session cards with workspace badges
+- Import/Export buttons
+- Keyboard shortcuts (⌘S, ⌘E, ⌘I)
+- Restore modes (add to current / replace all)
+- Inline rename and delete
+
+**Keyboard Shortcuts**:
+- `Cmd/Ctrl + S`: Save current session
+- `Cmd/Ctrl + E`: Export all sessions
+- `Cmd/Ctrl + I`: Import sessions
+- `Escape`: Close dialogs
 
 ## Data Flow for Tab Categorization
 

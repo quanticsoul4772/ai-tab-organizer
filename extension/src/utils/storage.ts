@@ -1,6 +1,7 @@
 import type { SummaryCache, TabSummary, CategorySummary, SummarySettings, JiraSettings } from '../types';
 import type { DensityMode } from '../types/density';
 import type { GroupStates } from '../types/groupState';
+import type { Session, SessionListItem } from '../types/session';
 
 const STORAGE_KEYS = {
   API_KEY: 'anthropicApiKey',
@@ -9,6 +10,7 @@ const STORAGE_KEYS = {
   JIRA_SETTINGS: 'jiraSettings',
   DENSITY_MODE: 'densityMode',
   GROUP_STATES: 'groupStates',
+  SESSIONS: 'sessions',
 } as const;
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -197,5 +199,72 @@ export const storage = {
    */
   async clearGroupStates(): Promise<void> {
     await chrome.storage.local.remove(STORAGE_KEYS.GROUP_STATES);
+  },
+
+  /**
+   * Get all sessions (returns list items only, not full session data)
+   */
+  async getAllSessions(): Promise<SessionListItem[]> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
+    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    return Object.values(sessions).map((session: Session) => ({
+      id: session.id,
+      name: session.name,
+      description: session.description,
+      created: session.created,
+      lastModified: session.lastModified,
+      tabCount: session.metadata.tabCount,
+      preview: session.tabs.slice(0, 3).map(t => t.title).join(', '),
+      categories: session.metadata.categories,
+      jiraTickets: session.metadata.jiraTickets,
+    }));
+  },
+
+  /**
+   * Get a specific session by ID
+   */
+  async getSession(sessionId: string): Promise<Session | null> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
+    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    return sessions[sessionId] || null;
+  },
+
+  /**
+   * Save a session
+   */
+  async saveSession(session: Session): Promise<void> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
+    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    sessions[session.id] = session;
+    await chrome.storage.local.set({ [STORAGE_KEYS.SESSIONS]: sessions });
+  },
+
+  /**
+   * Delete a session
+   */
+  async deleteSession(sessionId: string): Promise<void> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
+    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    delete sessions[sessionId];
+    await chrome.storage.local.set({ [STORAGE_KEYS.SESSIONS]: sessions });
+  },
+
+  /**
+   * Update session metadata (name, description, etc.)
+   */
+  async updateSessionMetadata(
+    sessionId: string,
+    updates: Partial<Pick<Session, 'name' | 'description'>>
+  ): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) return;
+
+    const updatedSession: Session = {
+      ...session,
+      ...updates,
+      lastModified: Date.now(),
+    };
+
+    await this.saveSession(updatedSession);
   },
 };

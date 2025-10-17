@@ -20,6 +20,7 @@ import { CategoryView } from './components/CategoryView';
 import { TabSearch } from './components/TabSearch';
 import { DuplicateDetection } from './components/DuplicateDetection';
 import { JiraView } from './components/JiraView';
+import { SessionsView } from './components/SessionsView';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { DensityToggle } from './components/DensityToggle';
 import './components/TabSearch.css';
@@ -28,7 +29,7 @@ import './components/JiraView.css';
 import type { DensityMode } from './types/density';
 import { getAutoSelectedDensity } from './types/density';
 
-type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'settings';
+type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'sessions' | 'settings';
 
 function Popup() {
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -293,6 +294,12 @@ function Popup() {
         >
           Duplicates
         </button>
+        <button
+          onClick={() => setActiveView('sessions')}
+          className={activeView === 'sessions' ? 'nav-btn active' : 'nav-btn'}
+        >
+          Sessions
+        </button>
       </nav>
 
       {activeView === 'categories' && (
@@ -328,6 +335,12 @@ function Popup() {
       {activeView === 'duplicates' && (
         <ErrorBoundary fallback={<div className="error">Duplicate detection failed to load. Try refreshing.</div>}>
           <DuplicateDetection />
+        </ErrorBoundary>
+      )}
+
+      {activeView === 'sessions' && (
+        <ErrorBoundary fallback={<div className="error">Sessions view failed to load. Try refreshing.</div>}>
+          <SessionsView onError={setError} />
         </ErrorBoundary>
       )}
     </div>

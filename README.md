@@ -18,6 +18,7 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 ### Core Capabilities
 - Automatic tab categorization using Claude AI
+- Session management with workspace awareness
 - Collapsible category groups with smart defaults
 - Visual status indicators with activity tracking
 - Visual density modes (compact, normal, spacious)
@@ -49,6 +50,23 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Ticket sorting by number
 - Works with Cloud, Server, and Data Center versions
 - High performance (100 tabs in under 100ms)
+
+### Session Management
+- **Save and restore** - Capture browser state as named sessions
+- **Workspace awareness** - Auto-detects Jira projects in sessions
+- **Workspace filtering** - Filter sessions by project (e.g., "APPS", "ENG")
+- **Import/Export** - Backup sessions to JSON files
+- **Keyboard shortcuts**:
+  - `Cmd/Ctrl + S` - Save current session
+  - `Cmd/Ctrl + E` - Export all sessions
+  - `Cmd/Ctrl + I` - Import sessions
+- **Session actions**:
+  - Restore (adds to current tabs)
+  - Replace (closes current tabs first)
+  - Export individual sessions
+  - Rename and delete sessions
+- **Metadata tracking** - Tab count, Jira tickets, workspace badges
+- **Persistent storage** - Sessions saved in chrome.storage.local
 
 ### Category Group Management
 - **Collapsible groups** - Click headers to collapse/expand categories
@@ -127,11 +145,12 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 ### Navigation Modes
 
-Four view modes available:
-- **Categories**: AI-organized groups
+Five view modes available:
 - **Search**: Find tabs by content
+- **Categories**: AI-organized groups
 - **Jira**: Project-based ticket grouping
 - **Duplicates**: Identify and manage duplicates
+- **Sessions**: Save and restore browser sessions
 
 ### Density Modes
 
@@ -162,10 +181,12 @@ ai-tab-organizer/
 │   │   │   ├── CategoryView.tsx
 │   │   │   ├── TabSearch.tsx
 │   │   │   ├── JiraView.tsx
+│   │   │   ├── SessionsView.tsx
 │   │   │   └── DuplicateDetection.tsx
 │   │   ├── services/         # Business logic
 │   │   │   ├── claudeApi.ts
 │   │   │   ├── tabManager.ts
+│   │   │   ├── sessionManager.ts
 │   │   │   ├── searchService.ts
 │   │   │   ├── summaryService.ts
 │   │   │   └── jira/         # Jira-specific services
@@ -193,7 +214,7 @@ The extension uses a three-component architecture:
 
 ### 1. Popup UI (popup.tsx)
 - React application with TypeScript
-- Multiple view modes (categories, search, Jira, duplicates)
+- Five view modes (search, categories, Jira, duplicates, sessions)
 - Communicates with background worker via `chrome.runtime.sendMessage()`
 - Cannot make fetch requests directly (Chrome security)
 
@@ -298,6 +319,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 - Tab index: 24-hour expiration
 - Activity tracking: Persistent across sessions
 - Group collapse states: Persistent across sessions
+- Sessions: Stored in `chrome.storage.local` with metadata
 
 ## Privacy and Security
 
