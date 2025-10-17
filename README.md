@@ -292,8 +292,6 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 - Opera
 - Other Chromium-based browsers
 
-Note: Side panel mode requires Chrome 114+ (planned for version 0.2.0)
-
 ## Troubleshooting
 
 ### Extension not loading
