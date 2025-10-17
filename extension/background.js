@@ -852,18 +852,74 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   await saveAccessTimes();
 });
 
+/**
+ * Count duplicates for a tab by URL
+ * @param {chrome.tabs.Tab} tab - Tab to check
+ * @param {Array<chrome.tabs.Tab>} allTabs - All open tabs
+ * @returns {number} Number of tabs with same URL
+ */
+function countDuplicates(tab, allTabs) {
+  if (!tab.url) return 1;
+
+  const normalizedUrl = tab.url.split('#')[0].split('?')[0]; // Remove hash and query
+  let count = 0;
+
+  for (const otherTab of allTabs) {
+    if (otherTab.url) {
+      const otherNormalized = otherTab.url.split('#')[0].split('?')[0];
+      if (normalizedUrl === otherNormalized) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+}
+
+/**
+ * Parse Jira status from tab title
+ * @param {string} title - Tab title
+ * @param {string} url - Tab URL
+ * @returns {string|undefined} Jira status or undefined
+ */
+function parseJiraStatus(title, url) {
+  if (!url || (!url.includes('jira') && !url.includes('atlassian'))) {
+    return undefined;
+  }
+
+  // Common Jira status indicators in titles
+  const statusPatterns = {
+    'Blocked': /\[Blocked\]|blocked|blocker/i,
+    'In Progress': /\[In Progress\]|in progress|doing/i,
+    'In Review': /\[In Review\]|in review|reviewing|code review/i,
+    'Done': /\[Done\]|done|resolved|closed|completed/i,
+    'To Do': /\[To Do\]|to do|todo|open/i
+  };
+
+  for (const [status, pattern] of Object.entries(statusPatterns)) {
+    if (pattern.test(title)) {
+      return status;
+    }
+  }
+
+  return undefined;
+}
+
 // Add message listener for getting tab metadata
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getTabMetadata') {
     const { tabId } = request;
 
-    // Get tab info to check if suspended/discarded
-    chrome.tabs.get(tabId, (tab) => {
+    // Get tab info and all tabs for duplicate detection
+    chrome.tabs.get(tabId, async (tab) => {
       if (chrome.runtime.lastError) {
         console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
         return;
       }
+
+      // Get all tabs for duplicate detection
+      const allTabs = await chrome.tabs.query({});
 
       // Build full metadata object
       const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
@@ -872,12 +928,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
 
+      // Get memory usage if processes API is available
+      let memoryUsage = undefined;
+      try {
+        const processes = await chrome.processes.getProcessInfo([], true);
+
+        // Find the process for this tab
+        for (const [processId, process] of Object.entries(processes)) {
+          if (process.tabs && process.tabs.includes(tabId)) {
+            memoryUsage = process.privateMemory; // Bytes
+            break;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to get memory usage:', error);
+      }
+
       const metadata = {
         lastAccessed: lastAccessed,
-        isSuspended: tab.discarded || false, // Chrome suspends tabs to save memory
-        duplicateCount: 1,  // TODO: Integrate with duplicate detection service
-        // memoryUsage: undefined, // TODO: Use chrome.processes API if available
-        // jiraStatus: undefined, // TODO: Parse from tab title or URL
+        isSuspended: tab.discarded || false,
+        duplicateCount: countDuplicates(tab, allTabs),
+        jiraStatus: parseJiraStatus(tab.title || '', tab.url || ''),
+        memoryUsage: memoryUsage,
       };
 
       sendResponse({ success: true, data: metadata });
