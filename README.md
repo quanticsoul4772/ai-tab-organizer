@@ -35,7 +35,6 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Badge overlays for additional context
   - Pinned indicator for pinned tabs
   - Duplicate count for multiple instances
-  - Memory usage display for high-memory tabs
   - Jira status badges (Blocked, In Progress, In Review, Done, To Do)
 - Persistent activity tracking across browser sessions
 - Real-time updates as tabs are accessed

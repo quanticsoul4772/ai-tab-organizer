@@ -928,28 +928,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
 
-      // Get memory usage if processes API is available
-      let memoryUsage = undefined;
-      try {
-        const processes = await chrome.processes.getProcessInfo([], true);
-
-        // Find the process for this tab
-        for (const [processId, process] of Object.entries(processes)) {
-          if (process.tabs && process.tabs.includes(tabId)) {
-            memoryUsage = process.privateMemory; // Bytes
-            break;
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to get memory usage:', error);
-      }
-
       const metadata = {
         lastAccessed: lastAccessed,
         isSuspended: tab.discarded || false,
         duplicateCount: countDuplicates(tab, allTabs),
         jiraStatus: parseJiraStatus(tab.title || '', tab.url || ''),
-        memoryUsage: memoryUsage,
+        // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
       };
 
       sendResponse({ success: true, data: metadata });
