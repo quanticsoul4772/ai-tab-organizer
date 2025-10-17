@@ -20,9 +20,13 @@ import { CategoryView } from './components/CategoryView';
 import { TabSearch } from './components/TabSearch';
 import { DuplicateDetection } from './components/DuplicateDetection';
 import { JiraView } from './components/JiraView';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { DensityToggle } from './components/DensityToggle';
 import './components/TabSearch.css';
 import './components/DuplicateDetection.css';
 import './components/JiraView.css';
+import type { DensityMode } from './types/density';
+import { getAutoSelectedDensity } from './types/density';
 
 type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'settings';
 
@@ -41,6 +45,7 @@ function Popup() {
   const [jiraSettings, setJiraSettings] = useState<JiraSettings>({
     smartMode: true,
   });
+  const [densityMode, setDensityMode] = useState<DensityMode>('normal');
 
   useEffect(() => {
     initializeApp();
@@ -54,6 +59,7 @@ function Popup() {
     await loadApiKey();
     await loadSummarySettings();
     await loadJiraSettings();
+    await loadDensityMode();
   };
 
   /**
@@ -80,6 +86,31 @@ function Popup() {
   const loadJiraSettings = async () => {
     const settings = await storage.getJiraSettings();
     setJiraSettings(settings);
+  };
+
+  /**
+   * Load density mode from storage or auto-select based on tab count
+   */
+  const loadDensityMode = async () => {
+    const storedMode = await storage.getDensityMode();
+    if (storedMode) {
+      setDensityMode(storedMode);
+    } else {
+      // Auto-select based on tab count
+      const autoMode = getAutoSelectedDensity(tabs.length);
+      setDensityMode(autoMode);
+      await storage.setDensityMode(autoMode);
+    }
+  };
+
+  /**
+   * Handle density mode change
+   */
+  const handleDensityChange = async (mode: DensityMode) => {
+    console.log('handleDensityChange called with mode:', mode);
+    setDensityMode(mode);
+    await storage.setDensityMode(mode);
+    console.log('Density mode saved to storage:', mode);
   };
 
   /**
@@ -230,8 +261,9 @@ function Popup() {
     <div className="popup">
       <div className="header">
         <h1>AI Tab Organizer</h1>
-        <button onClick={() => setShowSettings(true)} className="settings-btn">
-          Settings
+        <DensityToggle currentMode={densityMode} onChange={handleDensityChange} />
+        <button onClick={() => setShowSettings(true)} className="settings-btn" title="Settings">
+          ⚙️
         </button>
       </div>
 
@@ -264,25 +296,40 @@ function Popup() {
       </nav>
 
       {activeView === 'categories' && (
-        <>
-          <div className="stats">{tabs.length} tabs open</div>
-          {error && <div className="error">{error}</div>}
-          <CategoryView
-            categorizedTabs={categorized}
-            onTabClick={handleTabClick}
-            onTabClose={handleTabClose}
-            onTabSummaryRequest={handleTabSummaryRequest}
-            onCategorySummaryRequest={handleCategorySummaryRequest}
-            summariesEnabled={summarySettings.enabled}
-          />
-        </>
+        <ErrorBoundary fallback={<div className="error">Failed to load categories view. Try refreshing.</div>}>
+          <>
+            <div className="stats">{tabs.length} tabs open</div>
+            {error && <div className="error">{error}</div>}
+            <CategoryView
+              categorizedTabs={categorized}
+              onTabClick={handleTabClick}
+              onTabClose={handleTabClose}
+              onTabSummaryRequest={handleTabSummaryRequest}
+              onCategorySummaryRequest={handleCategorySummaryRequest}
+              summariesEnabled={summarySettings.enabled}
+              densityMode={densityMode}
+            />
+          </>
+        </ErrorBoundary>
       )}
 
-      {activeView === 'search' && <TabSearch />}
+      {activeView === 'search' && (
+        <ErrorBoundary fallback={<div className="error">Search failed to load. Try refreshing.</div>}>
+          <TabSearch />
+        </ErrorBoundary>
+      )}
 
-      {activeView === 'jira' && <JiraView />}
+      {activeView === 'jira' && (
+        <ErrorBoundary fallback={<div className="error">Jira view failed to load. Try refreshing.</div>}>
+          <JiraView />
+        </ErrorBoundary>
+      )}
 
-      {activeView === 'duplicates' && <DuplicateDetection />}
+      {activeView === 'duplicates' && (
+        <ErrorBoundary fallback={<div className="error">Duplicate detection failed to load. Try refreshing.</div>}>
+          <DuplicateDetection />
+        </ErrorBoundary>
+      )}
     </div>
   );
 }

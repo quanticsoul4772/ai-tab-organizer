@@ -1,9 +1,10 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { SearchResult } from '../types/search';
 import { searchTabs, switchToTab, closeTab } from '../services/searchService';
 import { storage } from '../utils/storage';
 import { JiraSearchEnhancer } from '../services/jira/jiraSearchEnhancer';
 import { JiraTitleParser } from '../services/jira/titleParser';
+import { useDebounce } from '../hooks/useDebounce';
 
 export const TabSearch: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -11,8 +12,11 @@ export const TabSearch: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = useCallback(async () => {
-    if (!query.trim()) {
+  // Debounce the query to avoid excessive searches while typing
+  const debouncedQuery = useDebounce(query, 500); // 500ms delay
+
+  const handleSearch = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
       setResults([]);
       return;
     }
@@ -26,7 +30,7 @@ export const TabSearch: React.FC = () => {
         throw new Error('API key not configured. Please add your key in settings.');
       }
 
-      const searchResults = await searchTabs(query, apiKey);
+      const searchResults = await searchTabs(searchQuery, apiKey);
       setResults(searchResults);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
@@ -34,12 +38,17 @@ export const TabSearch: React.FC = () => {
     } finally {
       setIsSearching(false);
     }
-  }, [query]);
+  }, []);
 
-  // Search on Enter key
+  // Auto-search when debounced query changes
+  useEffect(() => {
+    handleSearch(debouncedQuery);
+  }, [debouncedQuery, handleSearch]);
+
+  // Search immediately on Enter key (bypass debounce)
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
+    if (e.key === 'Enter' && query.trim()) {
+      handleSearch(query);
     }
   };
 
@@ -69,7 +78,7 @@ export const TabSearch: React.FC = () => {
           autoFocus
         />
         <button
-          onClick={handleSearch}
+          onClick={() => handleSearch(query)}
           disabled={isSearching || !query.trim()}
           className="search-button"
         >

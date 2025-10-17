@@ -110,14 +110,28 @@ export class SemanticAnalyzer {
       const data = await response.json();
       const resultText = data.content[0].text;
 
-      // Extract JSON from response (handle markdown code blocks)
-      const jsonMatch = resultText.match(/```json\n?([\s\S]*?)\n?```/) || resultText.match(/\[[\s\S]*\]/);
-      const jsonText = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : resultText;
+      // Clean up the response text
+      let jsonText = resultText;
+      
+      // Remove markdown code blocks
+      jsonText = jsonText.replace(/```json\s*|```\s*/g, '');
+      
+      // Find JSON array
+      const arrayMatch = jsonText.match(/\[[\s\S]*\]/);
+      if (arrayMatch) {
+        jsonText = arrayMatch[0];
+      }
+      
+      // Clean up common JSON issues
+      jsonText = jsonText.trim();
 
       const results: SemanticAnalysisResponse[] = JSON.parse(jsonText);
       return results;
     } catch (error) {
       console.error('Semantic analysis failed:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
       // Return no duplicates on error
       return pairs.map(() => ({
         areDuplicates: false,
@@ -153,8 +167,11 @@ NOT duplicates if:
 - Sequential pages (part 1 vs part 2)
 - Related but distinct content
 
-Respond with ONLY valid JSON array, no other text:
+CRITICAL: Respond with ONLY a valid JSON array. Use double quotes for all strings. No comments, no trailing commas, no extra text.
 
-${JSON.stringify(requests, null, 2)}`;
+Tab pairs to analyze:
+${JSON.stringify(requests, null, 2)}
+
+Your response (valid JSON array only):`;
   }
 }

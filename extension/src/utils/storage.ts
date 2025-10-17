@@ -1,10 +1,12 @@
 import type { SummaryCache, TabSummary, CategorySummary, SummarySettings, JiraSettings } from '../types';
+import type { DensityMode } from '../types/density';
 
 const STORAGE_KEYS = {
   API_KEY: 'anthropicApiKey',
   SUMMARY_CACHE: 'summaryCache',
   SUMMARY_SETTINGS: 'summarySettings',
   JIRA_SETTINGS: 'jiraSettings',
+  DENSITY_MODE: 'densityMode',
 } as const;
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -154,5 +156,20 @@ export const storage = {
    */
   async setJiraSettings(settings: JiraSettings): Promise<void> {
     await chrome.storage.local.set({ [STORAGE_KEYS.JIRA_SETTINGS]: settings });
+  },
+
+  /**
+   * Get density mode preference
+   */
+  async getDensityMode(): Promise<DensityMode | null> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.DENSITY_MODE]);
+    return result[STORAGE_KEYS.DENSITY_MODE] || null;
+  },
+
+  /**
+   * Save density mode preference
+   */
+  async setDensityMode(mode: DensityMode): Promise<void> {
+    await chrome.storage.local.set({ [STORAGE_KEYS.DENSITY_MODE]: mode });
   },
 };

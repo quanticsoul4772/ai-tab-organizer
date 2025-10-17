@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { Tab, TabSummary } from '../types';
 import { SummaryCard } from './SummaryCard';
+import { VirtualTabList } from './shared/VirtualTabList';
+import type { DensityMode } from '../types/density';
 
 interface TabListProps {
   tabs: Tab[];
@@ -8,6 +10,8 @@ interface TabListProps {
   onTabClose: (tabId: number) => void;
   onSummaryRequest?: (tab: Tab) => Promise<TabSummary>;
   summariesEnabled?: boolean;
+  useVirtualScrolling?: boolean;
+  densityMode?: DensityMode;
 }
 
 /**
@@ -18,14 +22,18 @@ export function TabList({
   onTabClick,
   onTabClose,
   onSummaryRequest,
-  summariesEnabled = true
+  summariesEnabled = true,
+  useVirtualScrolling = true,
+  densityMode = 'normal'
 }: TabListProps) {
+  console.log('TabList rendered with densityMode:', densityMode, 'tabs:', tabs.length);
+
   const [activeSummary, setActiveSummary] = useState<TabSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState<number | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
   const handleSummaryClick = async (tab: Tab, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent tab switching
+    event.stopPropagation();
 
     if (!onSummaryRequest) return;
 
@@ -48,6 +56,38 @@ export function TabList({
     setSummaryError(null);
   };
 
+  const handleTabClickWrapper = (tab: chrome.tabs.Tab) => {
+    if (tab.id) {
+      onTabClick(tab.id);
+    }
+  };
+
+  // Always use virtual scrolling when enabled to support density modes
+  if (useVirtualScrolling) {
+    return (
+      <div>
+        <VirtualTabList
+          tabs={tabs}
+          densityMode={densityMode}
+          onTabClick={handleTabClickWrapper}
+          onTabClose={onTabClose}
+        />
+        {activeSummary && (
+          <SummaryCard summary={activeSummary} onClose={handleCloseSummary} />
+        )}
+        {summaryError && (
+          <div className="summary-error">
+            {summaryError}
+            <button onClick={() => setSummaryError(null)} className="error-close-btn">
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Original rendering for small lists
   return (
     <div className="tabs">
       {tabs.map((tab) => (

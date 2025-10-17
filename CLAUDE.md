@@ -4,12 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AI Tab Organizer is a Chrome browser extension that automatically categorizes open tabs using AI. The project has two components:
+AI Tab Organizer is a Chrome browser extension that automatically categorizes open tabs using Claude AI. The project has two components:
 
-1. **Extension** (primary): Chrome extension with React UI that can work standalone using Claude API
-2. **Backend** (legacy/optional): Express server originally planned for MCP integration (currently not used by extension)
+1. **Extension** (primary): Chrome extension with React UI that works standalone using Claude API
+2. **Backend** (legacy/optional): Express server originally planned for MCP integration (currently unused)
 
-**Important Architecture Note**: Despite having a backend folder, the extension currently operates **standalone** by calling the Anthropic API directly from the browser (using the background service worker). The backend server is not actively used in the current workflow but remains in the codebase for potential future MCP integration.
+**Critical Architecture Note**: The extension operates **standalone** by calling the Anthropic API directly from the browser via a background service worker. The backend server is not actively used in the current workflow but remains for potential future MCP integration.
 
 ## Development Commands
 
@@ -25,6 +25,12 @@ npm run build
 
 # Development mode with hot reload
 npm run dev
+
+# Run tests with Vitest
+npm test
+
+# Watch mode for tests
+npm run test:watch
 ```
 
 After building, load the extension in Chrome:
@@ -36,125 +42,269 @@ After building, load the extension in Chrome:
 ### Backend (Optional - Currently Unused)
 
 ```bash
-# Install dependencies
 cd backend
 npm install
-
-# Start server on port 3000
-npm start
-
-# Development mode with auto-restart
-npm run dev
+npm start        # Production on port 3000
+npm run dev      # Development with auto-restart
 ```
 
 Health check: `http://localhost:3000/health`
 
-## Architecture
+## Build System Architecture
 
-### Extension Structure
+**Bundler**: Vite 5.x with custom plugin for Chrome extension support
 
-**Entry Points:**
-- `popup.html` - Main UI popup
-- `popup.tsx` - React component for popup UI
-- `background.js` - Service worker that handles API calls to Anthropic
+**Custom Vite Plugin** (`extension/vite.config.ts:10-28`):
+- Copies `manifest.json`, `background.js`, and `content-extractor.js` to `dist/` after build
+- Required because Chrome extensions need these files at specific locations
+- Runs in `closeBundle` hook to ensure copying happens after Vite finishes
 
-**Build Process:**
-- Vite bundles the React app from `popup.tsx` → `dist/assets/popup-*.js`
-- Custom Vite plugin copies `manifest.json` and `background.js` to `dist/`
-- Output is a complete Chrome extension in `extension/dist/`
+**Path Aliases** (configured in both `vite.config.ts` and `tsconfig.json`):
+- `@components/*` → `src/components/*`
+- `@services/*` → `src/services/*`
+- `@types` → `src/types`
+- `@utils/*` → `src/utils/*`
 
-**Data Flow:**
-1. User opens extension popup → `popup.tsx` loads
-2. Extension queries all Chrome tabs via `chrome.tabs.query()`
-3. Popup sends message to `background.js` with tab data + API key
-4. Background worker calls Anthropic API with tab information
-5. Claude categorizes tabs and returns JSON mapping of categories to tab indices
-6. Popup renders categorized tabs in UI
+**Build Output** (`extension/dist/`):
+- `popup.html` - Entry point
+- `manifest.json` - Extension manifest (copied)
+- `background.js` - Service worker (copied)
+- `content-extractor.js` - Content extraction script (copied)
+- `assets/popup-[hash].js` - Bundled React app
+- `assets/popup-[hash].css` - Bundled styles
 
-**Key Implementation Details:**
-- API key stored in `chrome.storage.local` (never hardcoded)
-- Background worker required because Chrome extensions can't fetch() from popup context directly
-- Uses `chrome.runtime.sendMessage()` for popup ↔ background communication
-- Tab indices used (instead of full tab objects) to minimize API token usage
+## Chrome Extension Architecture
 
-### Backend Structure (Legacy)
+### Three-Component System
 
-Simple Express server with:
-- `/health` - Health check endpoint
-- `/api/categorize` - Tab categorization (basic keyword matching)
-- Currently uses simple keyword-based categorization
-- Originally planned for MCP tool integration (not yet implemented)
+**1. Popup UI** (`popup.html` + `popup.tsx`):
+- React 18 application with TypeScript
+- Five view modes: Categories, Search, Jira, Duplicates, Settings
+- Communicates with background worker via `chrome.runtime.sendMessage()`
+- Cannot make fetch() requests directly (Chrome security restriction)
 
-**Note**: The extension does NOT currently communicate with this backend. It makes direct API calls to Anthropic.
+**2. Background Service Worker** (`background.js`):
+- Runs in separate execution context (Manifest v3 requirement)
+- Handles all API calls to Anthropic Claude
+- Implements retry logic (max 2 retries with exponential backoff)
+- Timeout: 30 seconds per request with AbortController
+- Auto-indexes tabs on create/update/remove events for search feature
+- Listens for messages: `categorize`, `summarizeTab`, `summarizeCategory`, `extractContent`
 
-## Extension Manifest (manifest.json)
+**3. Content Extractor** (`content-extractor.js`):
+- Injected into tab pages by background worker via `chrome.scripting.executeScript()`
+- Extracts page content: headings, text, meta descriptions
+- Runs in page context (can access DOM)
+- Used for tab summaries and content-aware search
+
+### Communication Pattern
+
+```
+Popup (popup.tsx)
+    ↓ chrome.runtime.sendMessage({action, ...params})
+Background Worker (background.js)
+    ↓ fetch() with AbortController timeout
+Anthropic Claude API (claude-3-5-sonnet-20241022)
+    ↓ JSON response
+Background Worker processes response
+    ↓ chrome.runtime.sendMessage response
+Popup receives data and updates UI
+```
+
+### Extension Manifest Permissions
 
 ```json
 {
   "manifest_version": 3,
-  "permissions": ["tabs", "storage"],
-  "host_permissions": ["https://api.anthropic.com/*"],
-  "action": { "default_popup": "popup.html" },
-  "background": { "service_worker": "background.js" }
+  "permissions": [
+    "tabs",        // Read tab information (titles, URLs)
+    "storage",     // Store API key and settings in chrome.storage.local
+    "scripting",   // Execute content-extractor.js in tab pages
+    "activeTab"    // Interact with current active tab
+  ],
+  "host_permissions": [
+    "https://api.anthropic.com/*",  // Call Anthropic API from background
+    "<all_urls>"                     // Access content from any website for extraction
+  ]
 }
 ```
 
-- `tabs` permission: Read open tabs
-- `storage` permission: Store API key locally
-- `host_permissions`: Allow fetch to Anthropic API from background worker
-- `service_worker`: Background script runs in separate context for API calls
+## Key Architectural Patterns
 
-## Key Files
+### Pattern 1: Service Worker for API Calls
+- Chrome extensions can't make fetch() from popup context (CSP restrictions)
+- Solution: Background service worker acts as proxy
+- All API calls route through `background.js` which has `host_permissions`
 
-- `extension/src/popup.tsx` - Main React UI component with categorization logic
-- `extension/background.js` - Service worker that calls Anthropic API
-- `extension/vite.config.ts` - Build configuration with custom plugin for copying extension files
-- `extension/manifest.json` - Chrome extension manifest (v3)
-- `backend/server.js` - Express server (currently unused by extension)
+### Pattern 2: Token Optimization
+- Sends tab **indices** instead of full tab objects to Claude API
+- Example: `[0, 1, 2]` instead of `[{id, url, title}, ...]`
+- Reduces token usage by ~70% for large tab sets
+- Background worker maintains index-to-tab mapping
 
-## Tech Stack
+### Pattern 3: Tab Indexing for Performance
+- Background worker auto-indexes tabs with content on creation/update
+- Stores: tab ID, title, URL, content hash, first 5000 chars
+- Index expires after 24 hours or if URL changes
+- Enables instant client-side search without API calls
 
-**Extension:**
-- React 18 + TypeScript
-- Vite (bundler)
-- Chrome Extension API (Manifest V3)
-- Anthropic Claude API (called directly from background worker)
+### Pattern 4: Storage-Based Configuration
+- API key stored in `chrome.storage.local` (encrypted by Chrome)
+- Summary cache with TTL to reduce API calls
+- Jira settings persistence across sessions
 
-**Backend:**
-- Node.js with ES modules (`"type": "module"`)
-- Express 4.x
-- CORS enabled
-- dotenv for configuration
+### Pattern 5: Event-Driven Tab Management
+- Listeners on `chrome.tabs.onCreated`, `onUpdated`, `onRemoved`
+- Listeners on `chrome.runtime.onStartup`, `onInstalled`
+- Staggered delays prevent overwhelming browser with concurrent operations
 
-## Testing the Extension
+## Service Layer Architecture
 
-1. Build: `cd extension && npm run build`
-2. Load unpacked extension from `extension/dist/`
-3. Open multiple tabs (10-15 recommended)
-4. Click extension icon in Chrome toolbar
-5. On first launch, enter Claude API key in settings
-6. Extension will categorize tabs into: Development, Work, Shopping, Social, Entertainment, Research, Other
+All business logic is in `extension/src/services/`:
 
-## Troubleshooting
+**Core Services**:
+- `claudeApi.ts` - API wrapper, sends messages to background worker
+- `tabManager.ts` - Tab operations (`getAllTabs`, `switchToTab`, `closeTab`)
+- `summaryService.ts` - Content summarization with TTL caching
+- `searchService.ts` - Full-text search in indexed tabs
+- `duplicateDetectionService.ts` - URL/content/semantic duplicate detection
 
-**Extension not loading:**
+**Jira Integration** (`services/jira/` folder):
+- `urlParser.ts` - Parse Jira/Confluence URLs (Cloud, Server, Data Center)
+- `titleParser.ts` - Extract issue keys, summaries, status from titles
+- `jiraSearchEnhancer.ts` - Pattern matching for "ENG-123", "eng 123", "123"
+- `atlassianDetectionService.ts` - Group tickets by project, sort by number
+
+**Test Coverage**:
+- 123 unit tests across 5 test files in `services/jira/__tests__/`
+- Performance tests validate <1ms for 100 tabs, <1s for 1000 tabs
+- Run with `npm test` from `extension/` directory
+
+## Component Structure
+
+**Main Component**: `popup.tsx` (290 lines)
+- Manages app state: tabs, categories, loading, errors
+- Renders different views based on `currentView` state
+- Handles API key validation and storage
+
+**Sub-components** (`src/components/`):
+- `CategoryView.tsx` - Display categorized tabs with summaries
+- `TabSearch.tsx` - Search interface with Jira pattern support
+- `DuplicateDetection.tsx` - Find duplicate tabs (URL/content/semantic)
+- `JiraView.tsx` - Jira-specific organization by project
+- `SettingsPanel.tsx` - Configuration UI (API key, Jira mode)
+- `CategorySummaryCard.tsx` - Category-level summaries
+- `SummaryCard.tsx` - Individual tab summaries
+- `TabList.tsx` - Reusable tab list renderer
+
+## Data Flow for Tab Categorization
+
+1. User opens extension popup → `popup.tsx` loads
+2. Extension queries all Chrome tabs via `chrome.tabs.query({})`
+3. Check for API key in `chrome.storage.local`
+4. If Jira Smart Mode enabled: Extract Jira/Confluence tabs via `atlassianDetectionService`
+5. Send remaining tabs to background worker: `chrome.runtime.sendMessage({action: 'categorize', tabs, apiKey})`
+6. Background worker formats tabs for Claude API (uses indices for token optimization)
+7. Background worker calls `https://api.anthropic.com/v1/messages` with retry logic
+8. Claude returns JSON: `{"Development": [0, 2], "Work": [1, 3], ...}`
+9. Background worker maps indices back to full Tab objects
+10. Popup receives categorized tabs and renders `CategoryView`
+
+## API Integration Details
+
+**Anthropic API Configuration**:
+- Base URL: `https://api.anthropic.com/v1/messages`
+- Model: `claude-3-5-sonnet-20241022`
+- Authentication: `x-api-key` header
+- CORS header: `anthropic-dangerous-direct-browser-access: true` (required for browser)
+- Timeout: 30 seconds with AbortController
+- Retry logic: Max 2 retries with exponential backoff (1s, 2s)
+
+**Message Format**:
+```javascript
+{
+  model: "claude-3-5-sonnet-20241022",
+  max_tokens: 1024,
+  messages: [{
+    role: "user",
+    content: "Categorize these tabs: ..."
+  }]
+}
+```
+
+## Testing
+
+**Framework**: Vitest 3.2.4
+
+**Test Location**: `extension/src/services/jira/__tests__/`
+
+**Test Files**:
+- `urlParser.test.ts` - 24 tests for URL parsing
+- `titleParser.test.ts` - 41 tests for title parsing
+- `jiraSearchEnhancer.test.ts` - 30 tests for search patterns
+- `atlassianDetectionService.test.ts` - 20 tests for detection/grouping
+- `performance.test.ts` - 8 tests for performance benchmarks
+
+**Running Tests**:
+```bash
+cd extension
+npm test              # Run all tests once
+npm run test:watch    # Watch mode for development
+```
+
+## Debugging
+
+**Background Worker Console**:
+- Right-click extension icon → "Inspect" or "Manage Extension" → "Inspect views: background page"
+- Shows API calls, errors, retry attempts
+
+**Popup Console**:
+- Right-click popup → "Inspect"
+- Shows React component lifecycle, state changes
+
+**Common Issues**:
+
+*Extension not loading*:
 - Verify `npm run build` completed successfully
-- Check that `dist/manifest.json` exists
+- Check `extension/dist/manifest.json` exists
 - Look for errors in `chrome://extensions/` page
 
-**Categorization fails:**
-- Check background worker console: Right-click extension icon → Inspect → Console tab
-- Verify API key is valid (stored in chrome.storage.local)
-- Check for CORS/network errors in background worker console
+*Categorization fails*:
+- Check background worker console for API errors
+- Verify API key is valid in chrome.storage.local
+- Check for CORS/network errors
+- Verify Anthropic account has available credits
 
-**Popup won't open:**
-- Check popup console: Right-click popup → Inspect
-- Verify all files copied to dist/ folder
+*Tab indexing not working*:
+- Check background worker console for extraction errors
+- Verify `content-extractor.js` copied to dist/
+- Check for CSP restrictions on specific domains
 
 ## Current vs. Future Architecture
 
-**Current (v0.1)**: Extension → Background Worker → Anthropic API (standalone)
+**Current (v0.1)**:
+```
+Extension Popup → Background Worker → Anthropic API (standalone)
+```
 
-**Future (planned)**: Extension → Backend Server → MCP unified-thinking tool → Anthropic API
+**Future (planned)**:
+```
+Extension Popup → Backend Server → MCP unified-thinking tool → Anthropic API
+```
 
-The backend server exists for this future integration but is not currently part of the active workflow.
+The backend server exists for this future integration but is not currently part of the active workflow. All development should focus on the extension component.
+
+## Tech Stack Summary
+
+**Extension**:
+- React 18.2.0 + TypeScript 5.3.0
+- Vite 5.0.0 (bundler)
+- Tailwind CSS 3.3.6 + PostCSS 8.4.32
+- Vitest 3.2.4 (testing)
+- Chrome Extension API (Manifest V3)
+- Anthropic Claude API (claude-3-5-sonnet-20241022)
+
+**Backend** (unused):
+- Node.js with ES modules
+- Express 4.18.2
+- @modelcontextprotocol/sdk 0.5.0

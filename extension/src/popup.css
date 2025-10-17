@@ -37,12 +37,16 @@ body {
   background: rgba(255,255,255,0.2);
   border: none;
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   width: 32px;
   height: 32px;
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .settings-btn:hover {
@@ -593,3 +597,107 @@ body {
 .error-close-btn:hover {
   background: rgba(255, 255, 255, 0.9);
 }
+
+/* Error Boundary Styles */
+.error-boundary {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: #fef2f2;
+}
+
+.error-boundary-content {
+  max-width: 400px;
+  text-align: center;
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  border: 2px solid #fee2e2;
+}
+
+.error-boundary-content h2 {
+  font-size: 20px;
+  color: #dc2626;
+  margin-bottom: 12px;
+}
+
+.error-boundary-content p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.error-boundary-content details {
+  text-align: left;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.error-boundary-content summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.error-boundary-content pre {
+  color: #dc2626;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.error-boundary-reset {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.error-boundary-reset:hover {
+  transform: translateY(-1px);
+}
+
+/* Density Toggle Styles */
+.density-toggle {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.density-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.density-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.density-btn.active {
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+

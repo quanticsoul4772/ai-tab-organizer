@@ -1,292 +1,369 @@
 # AI Tab Organizer
 
-A Chrome browser extension that categorizes open tabs using Claude AI.
+A Chrome browser extension that automatically categorizes open tabs using Claude AI.
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![React](https://img.shields.io/badge/React-18-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## Overview
+
+AI Tab Organizer helps you manage browser tab overload by automatically grouping tabs into categories like Work, Development, Shopping, Social, and more. It includes specialized support for Jira and Confluence, powerful search capabilities, and duplicate detection.
+
+**Version**: 0.1.0
+**Status**: Active Development
+
 ## Features
 
-### Core Features
-- **AI Categorization**: Uses Claude AI to group tabs into categories
-- **Automatic Sorting**: Sorts tabs into Work, Research, Shopping, Social, Entertainment, Development, News, and Other
-- **One-Click Organization**: Click the extension icon to organize all open tabs
-- **Tab Management**: Switch to any tab or close tabs directly from the organized view
-- **Privacy-First**: API key stored locally, tabs processed in real-time
-- **Fast & Lightweight**: Built with React and optimized for performance
+### Core Capabilities
+- Automatic tab categorization using Claude AI
+- Visual density modes (compact, normal, spacious)
+- Tab search with content-aware indexing
+- Duplicate tab detection (URL, content, semantic)
+- AI-powered tab and category summaries
+- Real-time tab management (switch, close, organize)
+- Privacy-first design (API key stored locally)
 
-### Jira/Confluence Integration
-- **Jira Grouping**: Groups Jira tickets by project (ENG, DESIGN, etc.)
-- **Confluence Organization**: Groups Confluence pages by space
-- **Pattern Search**: Search for tickets with patterns like "ENG-123", "eng 123", or just "123"
-- **Project Filtering**: Type "ENG" to see all ENG-* tickets
-- **Status Indicators**: Visual status badges (To Do, In Progress, In Review, Done, Blocked)
-- **Ticket Sorting**: Tickets sorted by number within each project
-- **Performance**: Handles 100+ tabs in <100ms, 1000+ tabs in <1 second
-- **Works with all Jira/Confluence**: Cloud, Server, and Data Center supported
+### Jira and Confluence Integration
+- Auto-grouping of Jira tickets by project
+- Confluence pages grouped by space
+- Smart search patterns (ENG-123, eng 123, or just 123)
+- Visual status indicators
+- Ticket sorting by number
+- Works with Cloud, Server, and Data Center versions
+- High performance (100 tabs in under 100ms)
 
-## Screenshots
+### Search and Organization
+- Full-text search across tab titles and content
+- Content extraction from tab pages
+- Auto-indexing with 24-hour cache
+- Pattern matching for Jira tickets
+- Project-based filtering
 
-```
-┌─────────────────────────────────┐
-│  AI Tab Organizer      Settings │
-├─────────────────────────────────┤
-│  15 tabs open                   │
-│                                  │
-│  Work (4)                        │
-│  ├─ Gmail                        │
-│  ├─ Google Calendar             │
-│  ├─ Slack                        │
-│  └─ Notion                       │
-│                                  │
-│  Development (3)                 │
-│  ├─ GitHub                       │
-│  ├─ Stack Overflow              │
-│  └─ VS Code Docs                │
-│                                  │
-│  Shopping (2)                    │
-│  ├─ Amazon                       │
-│  └─ eBay                         │
-└─────────────────────────────────┘
-```
+### Performance
+- Handles 200+ tabs efficiently
+- Virtual scrolling for smooth rendering
+- Smart caching reduces API calls
+- Background indexing does not block UI
+- Memory optimized (under 100MB)
 
 ## Installation
 
+### Prerequisites
+- Chrome 88 or newer (or Chromium-based browser)
+- Anthropic Claude API key ([Get one here](https://console.anthropic.com))
+
 ### From Source
 
-1. **Clone the repository**
+1. Clone the repository
    ```bash
    git clone https://github.com/yourusername/ai-tab-organizer.git
    cd ai-tab-organizer/extension
    ```
 
-2. **Install dependencies**
+2. Install dependencies
    ```bash
    npm install
    ```
 
-3. **Build the extension**
+3. Build the extension
    ```bash
    npm run build
    ```
 
-4. **Load in Chrome**
-   - Open Chrome and navigate to `chrome://extensions/`
+4. Load in Chrome
+   - Navigate to `chrome://extensions/`
    - Enable "Developer mode" (toggle in top-right)
    - Click "Load unpacked"
    - Select the `extension/dist` folder
 
-### Get API Key
-
-1. Visit [Anthropic Console](https://console.anthropic.com)
-2. Create an account or sign in
-3. Generate an API key
-4. Open the extension and enter your API key in settings
+5. Configure API key
+   - Click the extension icon
+   - Enter your Claude API key in settings
+   - Start organizing your tabs
 
 ## Usage
 
-### Basic Usage
+### Basic Workflow
 
-1. **Open the extension**: Click the extension icon in your Chrome toolbar
-2. **First-time setup**: Enter your Claude API key when prompted
-3. **Categorization**: The extension will categorize all open tabs
-4. **Navigate tabs**: Click any tab in the list to switch to it
-5. **Close tabs**: Click the X button to close unwanted tabs
-6. **Update settings**: Click the settings icon to change your API key
+1. Click the extension icon to open the popup
+2. Extension automatically categorizes all open tabs
+3. Navigate through categories to find tabs
+4. Click any tab to switch to it
+5. Close tabs with the close button
+6. Use search to find specific tabs quickly
 
-### Jira/Confluence Features
+### Navigation Modes
 
-#### Viewing Jira Tabs
-1. Click the "Jira" tab in the extension
-2. See all Jira tickets grouped by project (ENG, DESIGN, etc.)
-3. Tickets show status badges and are sorted by number
-4. Click any ticket to switch to that tab
+Four view modes available:
+- **Categories**: AI-organized groups
+- **Search**: Find tabs by content
+- **Jira**: Project-based ticket grouping
+- **Duplicates**: Identify and manage duplicates
 
-#### Searching for Jira Tickets
-1. Click the "Search" tab
-2. Enter search patterns:
-   - **Exact ticket**: "ENG-123" or "eng-123" (case-insensitive)
-   - **Partial ticket**: "eng 123" (with space)
-   - **Just number**: "123" (finds ticket ending in 123)
-   - **Project filter**: "ENG" (shows all ENG-* tickets)
-   - **Text search**: "login bug" (searches ticket summaries)
-3. Results show instant matches with no API calls
+### Density Modes
 
-#### Settings
-- Toggle "Enable Jira Mode" in settings
-- When enabled, Jira tickets are grouped by project
-- When disabled, Jira tabs use standard categorization
-- Search enhancements work regardless of this setting
+Choose how tabs are displayed:
+- **Compact** (32px): Favicon and truncated title, shows 15-20 tabs
+- **Normal** (48px): Favicon, title, and domain, shows 10-12 tabs
+- **Spacious** (64px): Full title, URL, and timestamp, shows 6-8 tabs
+
+Density auto-selects based on tab count but can be manually adjusted.
+
+### Search Patterns
+
+Multiple search formats supported:
+- **Exact ticket**: ENG-123 or eng-123
+- **Partial match**: eng 123 (with space)
+- **Number only**: 123 (finds tickets ending in 123)
+- **Project filter**: ENG (shows all ENG-* tickets)
+- **Text search**: login bug (searches titles and content)
 
 ## Project Structure
 
 ```
 ai-tab-organizer/
-├── extension/                 # Chrome extension source
+├── extension/                 # Main extension codebase
 │   ├── src/
-│   │   ├── components/       # React components
+│   │   ├── components/       # React UI components
+│   │   │   ├── shared/       # Reusable components
 │   │   │   ├── CategoryView.tsx
-│   │   │   ├── SettingsPanel.tsx
-│   │   │   └── TabList.tsx
+│   │   │   ├── TabSearch.tsx
+│   │   │   ├── JiraView.tsx
+│   │   │   └── DuplicateDetection.tsx
 │   │   ├── services/         # Business logic
 │   │   │   ├── claudeApi.ts
-│   │   │   └── tabManager.ts
+│   │   │   ├── tabManager.ts
+│   │   │   ├── searchService.ts
+│   │   │   ├── summaryService.ts
+│   │   │   └── jira/         # Jira-specific services
+│   │   ├── hooks/            # Custom React hooks
 │   │   ├── types/            # TypeScript definitions
-│   │   │   └── index.ts
 │   │   ├── utils/            # Helper functions
-│   │   │   └── storage.ts
-│   │   ├── popup.tsx         # Main entry point
-│   │   └── popup.css         # Styles
+│   │   └── popup.tsx         # Main entry point
 │   ├── background.js         # Service worker
+│   ├── content-extractor.js  # Content extraction
 │   ├── manifest.json         # Extension manifest
-│   ├── popup.html            # Extension popup
 │   ├── vite.config.ts        # Build configuration
 │   └── package.json
-├── backend/                   # Optional backend (legacy)
-└── README.md
+├── docs/
+├── ARCHITECTURE.md           # Architecture documentation
+├── CONTRIBUTING.md           # Contribution guidelines
+├── DEVELOPMENT.md            # Developer setup guide
+├── ROADMAP.md                # Feature roadmap
+├── CHANGELOG.md              # Version history
+└── README.md                 # This file
 ```
 
-## Development
+## Architecture
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development setup and guidelines.
+The extension uses a three-component architecture:
+
+### 1. Popup UI (popup.tsx)
+- React application with TypeScript
+- Multiple view modes (categories, search, Jira, duplicates)
+- Communicates with background worker via `chrome.runtime.sendMessage()`
+- Cannot make fetch requests directly (Chrome security)
+
+### 2. Background Service Worker (background.js)
+- Runs in separate execution context (Manifest v3)
+- Handles all API calls to Anthropic Claude
+- Implements retry logic (max 2 retries, exponential backoff)
+- 30-second timeout per request with AbortController
+- Auto-indexes tabs for search feature
+- Listens for tab events (create, update, remove)
+
+### 3. Content Extractor (content-extractor.js)
+- Injected into tab pages via `chrome.scripting.executeScript()`
+- Extracts page content (headings, text, meta descriptions)
+- Runs in page context (can access DOM)
+- Used for summaries and content-aware search
+
+### Communication Flow
+
+```
+Popup -> chrome.runtime.sendMessage() -> Background Worker
+Background Worker -> fetch() with AbortController -> Anthropic API
+Background Worker -> response -> Popup updates UI
+```
+
+### Key Design Patterns
+
+1. **Service Worker for API Calls**: Background worker acts as proxy to bypass popup CSP restrictions
+2. **Token Optimization**: Sends tab indices instead of full objects to reduce API usage by 70%
+3. **Tab Indexing**: Auto-indexes tabs with content for instant client-side search
+4. **Storage-Based Config**: API key and settings stored in `chrome.storage.local`
+5. **Event-Driven Management**: Listeners on tab create/update/remove events
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
+
+## Development
 
 ### Quick Start
 
 ```bash
-# Development mode with hot reload
+# Install dependencies
 cd extension
+npm install
+
+# Development mode with hot reload
 npm run dev
 
 # Build for production
 npm run build
 
-# The built extension will be in extension/dist/
+# Run tests
+npm test
+
+# Watch mode for tests
+npm run test:watch
 ```
 
-## Architecture
+### Testing
 
-The extension consists of two main parts:
+- 123 unit tests across 5 test files
+- Performance benchmarks included
+- Test coverage for Jira services
+- Run with `npm test` from extension directory
 
-1. **Extension Frontend** (React + TypeScript)
-   - Popup UI for displaying categorized tabs
-   - React components for modular UI
-   - TypeScript for type safety
-
-2. **Background Service Worker** (JavaScript)
-   - Handles API calls to Anthropic Claude
-   - Implements retry logic and error handling
-   - Manages tab categorization
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 
 ## Configuration
 
-### Extension Manifest (manifest.json)
+### Extension Permissions
 
 ```json
 {
-  "manifest_version": 3,
-  "permissions": ["tabs", "storage"],
-  "host_permissions": ["https://api.anthropic.com/*"]
+  "permissions": ["tabs", "storage", "scripting", "activeTab"],
+  "host_permissions": [
+    "https://api.anthropic.com/*",
+    "<all_urls>"
+  ]
 }
 ```
 
-### API Configuration (background.js)
+### API Configuration
 
-- **Model**: Claude 3.5 Sonnet
+- **Model**: claude-3-5-sonnet-20241022
 - **Timeout**: 30 seconds
 - **Max Retries**: 2 attempts
-- **Retry Delay**: 1 second (exponential backoff)
+- **Retry Delay**: 1 second with exponential backoff
+- **Token Optimization**: Uses tab indices instead of full objects
 
-## Privacy & Security
+### Storage
 
-- **Local Storage**: API keys are stored locally using `chrome.storage.local`
-- **No Data Collection**: No telemetry or analytics
-- **Direct API Calls**: Extension communicates directly with Anthropic API
-- **No Third-Party Servers**: No data passes through external servers
+- API key: `chrome.storage.local`
+- Settings: `chrome.storage.local`
+- Summary cache: 24-hour TTL
+- Tab index: 24-hour expiration
 
-## Tech Stack
+## Privacy and Security
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Extension**: Chrome Extension Manifest V3
-- **AI**: Anthropic Claude 3.5 Sonnet
-- **Build Tool**: Vite
-- **Styling**: CSS
+- API keys stored locally in Chrome (encrypted by Chrome)
+- No telemetry or analytics
+- Direct API communication with Anthropic
+- No data passes through external servers
+- Content extraction happens locally in browser
+- Cache stored locally with configurable TTL
+- No persistent logging of tab data
 
 ## Browser Support
 
 - Chrome 88+
 - Edge 88+ (Chromium-based)
 - Brave
+- Opera
 - Other Chromium-based browsers
+
+Note: Side panel mode requires Chrome 114+ (planned for version 0.2.0)
 
 ## Troubleshooting
 
 ### Extension not loading
 - Verify `npm run build` completed successfully
-- Check that `extension/dist/` folder exists
-- Look for errors in `chrome://extensions/`
+- Check `extension/dist/manifest.json` exists
+- Look for errors in `chrome://extensions/` page
 
 ### Categorization fails
-- Verify your API key is valid
-- Check background worker console: Right-click extension icon → "Inspect"
-- Ensure you have an active internet connection
-- Check API rate limits on your Anthropic account
+- Check background worker console: Right-click extension icon -> Inspect
+- Verify API key is valid in chrome.storage.local
+- Check for network errors
+- Verify Anthropic account has available credits
 
-### Popup won't open
-- Check popup console: Right-click popup → "Inspect"
-- Verify all files were copied to dist/
-- Reload the extension from `chrome://extensions/`
+### Tab indexing not working
+- Check background worker console for extraction errors
+- Verify `content-extractor.js` copied to dist/
+- Check for Content Security Policy restrictions on specific domains
 
-### Jira/Confluence Issues
+### Jira tabs not detected
+- Extension supports Cloud, Server, and Data Center
+- URL must contain `/browse/` or `/projects/`
+- Custom domains supported if they match the pattern
+- Tab title helps but is not required
 
-#### Jira tabs not detected
-- **Check URL format**: Extension supports:
-  - Cloud: `https://*.atlassian.net/browse/PROJECT-123`
-  - Server: `https://jira.company.com/browse/PROJECT-123`
-  - Projects view: `/projects/PROJECT/issues/PROJECT-123`
-- **Custom domain**: If using a custom Jira domain, it must contain `/browse/` in the URL
-- **Verify tab title**: While not required, tab titles with `[PROJECT-123]` format work best
+### Search not finding tabs
+- Extension only searches currently open tabs
+- Index expires after 24 hours or if URL changes
+- Pattern matching is case-insensitive for tickets
+- Project filtering requires uppercase (ENG, not eng)
 
-#### Search not finding tickets
-- **Uppercase for projects**: Type "ENG" not "eng" to filter by project
-- **Exact ticket format**: For exact matches, use "ENG-123" or "eng-123"
-- **Number search**: Typing just "123" searches for tickets ending in that number
-- **Check tabs are open**: Extension only searches currently open tabs
-
-#### Performance issues
-- **Expected performance**:
-  - 100 tabs: <100ms
-  - 500 tabs: <500ms
-  - 1000 tabs: <1 second
-- **If slower**: Try closing unused tabs or reloading the extension
+### Performance issues
+- Expected: 100 tabs in under 100ms
+- Expected: 1000 tabs in under 1 second
+- If slower, try closing unused tabs or reloading extension
+- Check Chrome Task Manager for memory usage
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes with tests
+4. Ensure all tests pass
+5. Submit a pull request
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned features and development timeline.
+
+**Upcoming in v0.2.0**:
+- Enhanced virtual scrolling for 200+ tabs
+- Full keyboard navigation
+- Side panel mode (Chrome 114+)
+- Collapsible category groups
+- Smart filter chips
+- Visual status indicators
+
+## Tech Stack
+
+- React 18.2.0
+- TypeScript 5.3.0
+- Vite 5.0.0 (build system)
+- Tailwind CSS 3.3.6
+- Vitest 3.2.4 (testing)
+- Chrome Extension Manifest V3
+- Anthropic Claude API (claude-3-5-sonnet-20241022)
 
 ## License
 
-MIT License - feel free to use this project for personal or commercial use.
+MIT License - See [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
 - Powered by [Anthropic Claude](https://www.anthropic.com/)
 - Built with [Vite](https://vitejs.dev/)
-- UI components built with [React](https://react.dev/)
+- UI framework: [React](https://react.dev/)
+- Testing: [Vitest](https://vitest.dev/)
 
 ## Support
 
-For issues, bugs, or feature requests, please check the GitHub repository or contact the maintainers.
+- **Issues**: [GitHub Issues](https://github.com/yourusername/ai-tab-organizer/issues)
+- **Documentation**: See docs folder
+- **Development**: See [DEVELOPMENT.md](DEVELOPMENT.md)
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-**Note**: This extension requires a Claude API key from Anthropic. API usage is subject to Anthropic's pricing and terms of service.
+Note: This extension requires a Claude API key from Anthropic. API usage is subject to Anthropic's pricing and terms of service.

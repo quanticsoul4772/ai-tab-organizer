@@ -20,6 +20,8 @@ export async function rankTabsByRelevance(
 
   const prompt = `Rank these browser tabs by relevance to the search query.
 
+CRITICAL: Your response must be ONLY a single-line JSON array. Do not include any explanations, comments, or text before or after the JSON.
+
 Search Query: "${query.rawQuery}"
 
 Tabs:
@@ -27,26 +29,16 @@ ${tabSummaries.map(t => `${t.index}. Title: "${t.title}"
    URL: ${t.url}
    Content: ${t.contentPreview}...`).join('\n\n')}
 
-For each tab, provide:
-1. Relevance score (0-100)
-2. Match reason (1 sentence explaining why it matches)
-3. Key highlights (1-2 short phrases to show user)
-
-Respond ONLY with valid JSON array:
-[
-  {
-    "index": 0,
-    "relevanceScore": 95,
-    "matchReason": "Direct match for React tutorial content",
-    "highlights": ["React Hooks tutorial", "created yesterday"]
-  },
-  ...
-]
+Format (single line, all tabs must be included):
+[{"index":0,"relevanceScore":95,"matchReason":"Brief reason","highlights":["phrase 1","phrase 2"]},...]
 
 Rules:
-- Score based on query relevance, not recency
+- Score based on query relevance (0-100)
 - Include ALL tabs even if low relevance
-- DO NOT OUTPUT ANYTHING OTHER THAN VALID JSON ARRAY`;
+- Keep matchReason under 10 words
+- Max 2 highlights per tab
+
+Return only the JSON array as a single line, nothing else:`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -72,10 +64,31 @@ Rules:
     }
 
     const data = await response.json();
-    const text = data.content[0].text;
+    const rawText = data.content[0].text;
+    console.log('AI Ranker raw response:', rawText);
 
-    // Parse response
-    let jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    // Parse response with robust JSON cleaning
+    let jsonText = rawText
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim();
+
+    // Extract JSON array if response contains additional text
+    const jsonMatch = jsonText.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      jsonText = jsonMatch[0];
+    }
+
+    // Clean up common JSON issues
+    jsonText = jsonText
+      // Remove control characters
+      .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+      // Remove trailing commas
+      .replace(/,\s*]/g, ']')
+      .replace(/,\s*}/g, '}')
+      .trim();
+
+    console.log('AI Ranker cleaned JSON:', jsonText);
     const rankings = JSON.parse(jsonText);
 
     // Build search results

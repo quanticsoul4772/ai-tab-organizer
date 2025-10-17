@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../types';
+import type { DensityMode } from '../types/density';
 import { TabList } from './TabList';
 import { CategorySummaryCard } from './CategorySummaryCard';
 
@@ -10,6 +11,7 @@ interface CategoryViewProps {
   onTabSummaryRequest?: (tab: Tab) => Promise<TabSummary>;
   onCategorySummaryRequest?: (category: string, tabs: Tab[]) => Promise<CategorySummary>;
   summariesEnabled?: boolean;
+  densityMode?: DensityMode;
 }
 
 /**
@@ -21,8 +23,11 @@ export function CategoryView({
   onTabClose,
   onTabSummaryRequest,
   onCategorySummaryRequest,
-  summariesEnabled = true
+  summariesEnabled = true,
+  densityMode = 'normal'
 }: CategoryViewProps) {
+  console.log('CategoryView rendered with densityMode:', densityMode);
+
   const [activeCategorySummary, setActiveCategorySummary] = useState<CategorySummary | null>(null);
   const [loadingCategorySummary, setLoadingCategorySummary] = useState<string | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -88,6 +93,7 @@ export function CategoryView({
             onTabClose={onTabClose}
             onSummaryRequest={onTabSummaryRequest}
             summariesEnabled={summariesEnabled}
+            densityMode={densityMode}
           />
         </div>
       ))}

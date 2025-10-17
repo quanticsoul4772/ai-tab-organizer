@@ -6,11 +6,50 @@ export class ContentMatcher {
   private contentCache = new Map<number, TabContent>();
 
   /**
+   * Check if URL can be accessed for content extraction
+   */
+  private isAccessibleUrl(url: string): boolean {
+    if (!url) return false;
+
+    const protectedProtocols = [
+      'chrome://',
+      'chrome-extension://',
+      'edge://',
+      'about:',
+      'file://',
+      'view-source:',
+      'data:',
+      'javascript:'
+    ];
+
+    return !protectedProtocols.some(protocol => url.startsWith(protocol));
+  }
+
+  /**
    * Extract tab content for fingerprinting
    */
   async extractTabContent(tab: chrome.tabs.Tab): Promise<TabContent> {
     if (!tab.id || !tab.url) {
       throw new Error('Invalid tab');
+    }
+
+    // Skip protected URLs immediately
+    if (!this.isAccessibleUrl(tab.url)) {
+      console.log(`Skipping protected URL: ${tab.url}`);
+      const fallback = `${tab.title} ${tab.url}`;
+      const contentHash = this.simHash.generate(fallback);
+
+      const tabContent: TabContent = {
+        tabId: tab.id,
+        title: tab.title || '',
+        url: tab.url,
+        textContent: fallback,
+        contentHash,
+        extracted: new Date(),
+      };
+
+      this.contentCache.set(tab.id, tabContent);
+      return tabContent;
     }
 
     // Check cache first

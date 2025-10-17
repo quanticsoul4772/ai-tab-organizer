@@ -130,13 +130,17 @@ async function categorizeTabs(tabs, apiKey) {
  * @returns {string} Prompt text
  */
 function buildPrompt(tabInfo) {
-  return `Categorize these browser tabs into logical groups (Work, Research, Shopping, Social, Entertainment, Development, News, Other). Return ONLY valid JSON in this format:
-{"Work": [0,1], "Research": [2,3], "Shopping": [4]}
+  return `Categorize these browser tabs into logical groups (Work, Research, Shopping, Social, Entertainment, Development, News, Other).
+
+CRITICAL: Your response must be ONLY a single-line JSON object. Do not include any explanations, comments, or text before or after the JSON.
+
+Format (single line only):
+{"Work":[0,1],"Research":[2,3],"Shopping":[4]}
 
 Tabs (by index):
 ${tabInfo}
 
-Return ONLY the JSON object, no other text.`;
+Return only the JSON object as a single line, nothing else:`;
 }
 
 /**
@@ -151,11 +155,32 @@ function parseApiResponse(data) {
     throw new Error('Invalid API response format');
   }
 
-  // Extract JSON from response (handles markdown code blocks)
-  const jsonText = data.content[0].text
-    .replace(/```json\n?/g, '')
-    .replace(/```\n?/g, '')
+  const rawText = data.content[0].text;
+  console.log('Raw API response:', rawText);
+
+  // Extract JSON from response (handles markdown code blocks and other text)
+  let jsonText = rawText
+    .replace(/```json\s*/g, '')
+    .replace(/```\s*/g, '')
     .trim();
+
+  // Try to extract JSON object if response contains additional text
+  const jsonMatch = jsonText.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
+  if (jsonMatch) {
+    jsonText = jsonMatch[0];
+  }
+
+  // Fix common JSON issues from Claude
+  jsonText = jsonText
+    // Remove any control characters and unescaped newlines within strings
+    .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
+    // Remove trailing commas before } and ]
+    .replace(/,\s*}/g, '}')
+    .replace(/,\s*]/g, ']')
+    // Ensure proper spacing
+    .trim();
+
+  console.log('Cleaned JSON:', jsonText);
 
   try {
     const categories = JSON.parse(jsonText);
@@ -170,10 +195,12 @@ function parseApiResponse(data) {
       }
     }
 
+    console.log('Parsed categories:', categories);
     return categories;
   } catch (error) {
     console.error('Failed to parse JSON response:', jsonText);
-    throw new Error(`JSON parsing error: ${error.message}`);
+    console.error('Original response:', rawText);
+    throw new Error(`JSON parsing error: ${error.message}. Please try again.`);
   }
 }
 
@@ -302,6 +329,21 @@ async function extractTabContent(tabId, url) {
  * @returns {Promise<Object>} Tab summary
  */
 async function summarizeTab(tab, apiKey) {
+  // Check if URL is accessible BEFORE trying to extract
+  if (!isAccessibleUrl(tab.url)) {
+    // Return a summary without content for protected pages
+    return {
+      tabId: tab.id,
+      url: tab.url,
+      title: tab.title,
+      summary: `Browser internal page (cannot analyze)`,
+      timestamp: Date.now(),
+      tokens: 0,
+      contentLength: 0,
+      protected: true
+    };
+  }
+
   try {
     // Step 1: Extract content from the tab
     const contentData = await extractTabContent(tab.id, tab.url);
