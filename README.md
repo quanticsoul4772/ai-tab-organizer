@@ -18,6 +18,7 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 ### Core Capabilities
 - Automatic tab categorization using Claude AI
+- Collapsible category groups with smart defaults
 - Visual status indicators with activity tracking
 - Visual density modes (compact, normal, spacious)
 - Tab search with content-aware indexing
@@ -48,6 +49,20 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Ticket sorting by number
 - Works with Cloud, Server, and Data Center versions
 - High performance (100 tabs in under 100ms)
+
+### Category Group Management
+- **Collapsible groups** - Click headers to collapse/expand categories
+- **Smart defaults** - Auto-collapse small groups (≤2 tabs), auto-expand large groups (≥5 tabs)
+- **Persistent state** - Groups remember collapsed/expanded state across sessions
+- **Bulk actions**:
+  - Collapse All / Expand All controls
+  - Close All tabs in a category (with confirmation)
+  - Bookmark All tabs to organized folders
+- **Keyboard shortcuts**:
+  - `Cmd/Ctrl + Left Arrow` - Collapse All
+  - `Cmd/Ctrl + Right Arrow` - Expand All
+- **Visual feedback** - Blue border highlights active groups
+- **Smooth animations** - 0.2s animated transitions
 
 ### Search and Organization
 - Full-text search across tab titles and content
@@ -104,10 +119,11 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 1. Click the extension icon to open the popup
 2. Extension automatically categorizes all open tabs
-3. Navigate through categories to find tabs
-4. Click any tab to switch to it
-5. Close tabs with the close button
-6. Use search to find specific tabs quickly
+3. Click category headers to collapse/expand groups
+4. Navigate through categories to find tabs
+5. Click any tab to switch to it
+6. Use group actions (Close All, Bookmark All) to manage categories
+7. Use search to find specific tabs quickly
 
 ### Navigation Modes
 
@@ -250,13 +266,21 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 
 ```json
 {
-  "permissions": ["tabs", "storage", "scripting", "activeTab"],
+  "permissions": ["tabs", "storage", "scripting", "activeTab", "bookmarks"],
   "host_permissions": [
     "https://api.anthropic.com/*",
     "<all_urls>"
   ]
 }
 ```
+
+**Permissions explained:**
+- `tabs` - Read tab information and manage tabs
+- `storage` - Store API key, settings, and group states locally
+- `scripting` - Inject content extractors for summaries
+- `activeTab` - Interact with currently active tab
+- `bookmarks` - Create bookmark folders for "Bookmark All" feature
+- `host_permissions` - Call Anthropic API and extract content from any site
 
 ### API Configuration
 
@@ -273,6 +297,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 - Summary cache: 24-hour TTL
 - Tab index: 24-hour expiration
 - Activity tracking: Persistent across sessions
+- Group collapse states: Persistent across sessions
 
 ## Privacy and Security
 
