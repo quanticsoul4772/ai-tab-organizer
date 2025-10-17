@@ -879,29 +879,32 @@ function countDuplicates(tab, allTabs) {
 }
 
 /**
- * Parse Jira status from tab title
- * @param {string} title - Tab title
+ * Extract Jira status from page content
+ * @param {number} tabId - Tab ID
  * @param {string} url - Tab URL
- * @returns {string|undefined} Jira status or undefined
+ * @returns {Promise<string|undefined>} Jira status or undefined
  */
-function parseJiraStatus(title, url) {
+async function extractJiraStatus(tabId, url) {
   if (!url || (!url.includes('jira') && !url.includes('atlassian'))) {
     return undefined;
   }
 
-  // Common Jira status indicators in titles
-  const statusPatterns = {
-    'Blocked': /\[Blocked\]|blocked|blocker/i,
-    'In Progress': /\[In Progress\]|in progress|doing/i,
-    'In Review': /\[In Review\]|in review|reviewing|code review/i,
-    'Done': /\[Done\]|done|resolved|closed|completed/i,
-    'To Do': /\[To Do\]|to do|todo|open/i
-  };
+  // Only try to extract from Jira issue pages (with /browse/)
+  if (!url.includes('/browse/')) {
+    return undefined;
+  }
 
-  for (const [status, pattern] of Object.entries(statusPatterns)) {
-    if (pattern.test(title)) {
-      return status;
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['jira-content-extractor.js']
+    });
+
+    if (results && results[0] && results[0].result && results[0].result.success) {
+      return results[0].result.status || undefined;
     }
+  } catch (error) {
+    console.warn(`Failed to extract Jira status from tab ${tabId}:`, error.message);
   }
 
   return undefined;
@@ -930,13 +933,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
       console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
 
+      // Extract Jira status from page content
+      const jiraStatus = await extractJiraStatus(tabId, tab.url || '');
+
       const metadata = {
         lastAccessed: lastAccessed,
         isSuspended: tab.discarded || false,
         duplicateCount: countDuplicates(tab, allTabs),
-        jiraStatus: parseJiraStatus(tab.title || '', tab.url || ''),
+        jiraStatus: jiraStatus,
         // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
       };
+
+      console.log(`✅ Tab ${tabId} metadata complete: jiraStatus=${jiraStatus}`);
 
       sendResponse({ success: true, data: metadata });
     });

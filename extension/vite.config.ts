@@ -23,6 +23,9 @@ export default defineConfig({
         // Copy content-extractor.js
         copyFileSync('content-extractor.js', 'dist/content-extractor.js');
 
+        // Copy jira-content-extractor.js
+        copyFileSync('jira-content-extractor.js', 'dist/jira-content-extractor.js');
+
         console.log('✅ Extension files copied to dist/');
       }
     }
