@@ -93,7 +93,7 @@ export const GroupHeader = memo(function GroupHeader({
             onClick={handleCloseAll}
             className="category-summary-btn"
             title="Close all tabs in this category"
-            style={{ color: '#ef4444' }}
+            style={{ backgroundColor: '#ef4444', color: 'white', border: '1px solid #dc2626' }}
           >
             ✕ Close All
           </button>
