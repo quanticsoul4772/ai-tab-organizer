@@ -340,18 +340,6 @@ Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 4. Ensure all tests pass
 5. Submit a pull request
 
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md) for planned features and development timeline.
-
-**Upcoming in v0.2.0**:
-- Enhanced virtual scrolling for 200+ tabs
-- Full keyboard navigation
-- Side panel mode (Chrome 114+)
-- Collapsible category groups
-- Smart filter chips
-- CSS animations for status changes
-
 ## Tech Stack
 
 - React 18.2.0
