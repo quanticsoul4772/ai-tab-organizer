@@ -18,6 +18,7 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 ### Core Capabilities
 - Automatic tab categorization using Claude AI
+- Visual status indicators with activity tracking
 - Visual density modes (compact, normal, spacious)
 - Tab search with content-aware indexing
 - Duplicate tab detection (URL, content, semantic)
@@ -25,11 +26,25 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 - Real-time tab management (switch, close, organize)
 - Privacy-first design (API key stored locally)
 
+### Visual Status Indicators
+- Color-coded activity dots for each tab
+  - Green: Active (accessed within last 5 minutes)
+  - Yellow: Idle (5-30 minutes since last access)
+  - Red: Forgotten (30+ minutes of inactivity)
+  - Gray: Suspended (tab discarded by Chrome to save memory)
+- Badge overlays for additional context
+  - Pinned indicator for pinned tabs
+  - Duplicate count for multiple instances
+  - Memory usage display for high-memory tabs
+  - Jira status badges (Blocked, In Progress, In Review, Done, To Do)
+- Persistent activity tracking across browser sessions
+- Real-time updates as tabs are accessed
+
 ### Jira and Confluence Integration
 - Auto-grouping of Jira tickets by project
 - Confluence pages grouped by space
 - Smart search patterns (ENG-123, eng 123, or just 123)
-- Visual status indicators
+- Visual status badges for ticket states
 - Ticket sorting by number
 - Works with Cloud, Server, and Data Center versions
 - High performance (100 tabs in under 100ms)
@@ -257,6 +272,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 - Settings: `chrome.storage.local`
 - Summary cache: 24-hour TTL
 - Tab index: 24-hour expiration
+- Activity tracking: Persistent across sessions
 
 ## Privacy and Security
 
@@ -334,7 +350,7 @@ See [ROADMAP.md](ROADMAP.md) for planned features and development timeline.
 - Side panel mode (Chrome 114+)
 - Collapsible category groups
 - Smart filter chips
-- Visual status indicators
+- CSS animations for status changes
 
 ## Tech Stack
 

@@ -728,6 +728,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
 chrome.runtime.onStartup.addListener(async () => {
   console.log('🚀 Extension startup - indexing existing tabs');
   await cleanupIndexedTabs();
+  await initializeActivityTracking();
 
   const allTabs = await chrome.tabs.query({});
   console.log(`Found ${allTabs.length} existing tabs to index`);
@@ -746,6 +747,7 @@ chrome.runtime.onStartup.addListener(async () => {
 // Also index on install (first time)
 chrome.runtime.onInstalled.addListener(async (details) => {
   console.log(`🎉 Extension ${details.reason} - indexing existing tabs`);
+  await initializeActivityTracking();
 
   const allTabs = await chrome.tabs.query({});
   console.log(`Found ${allTabs.length} existing tabs to index`);
@@ -762,3 +764,125 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 });
 
 console.log('✅ Tab search indexing initialized');
+
+// ============================================================================
+// Tab Activity Tracking for Status Indicators
+// ============================================================================
+
+const TAB_ACCESS_TIMES_KEY = 'tab_access_times';
+const tabAccessTimes = new Map();
+
+// Load persisted access times from storage
+async function loadAccessTimes() {
+  try {
+    const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
+    const stored = result[TAB_ACCESS_TIMES_KEY] || {};
+
+    // Convert stored object back to Map
+    for (const [tabIdStr, timestamp] of Object.entries(stored)) {
+      tabAccessTimes.set(parseInt(tabIdStr), timestamp);
+    }
+
+    console.log(`📥 Loaded ${tabAccessTimes.size} tab access times from storage`);
+  } catch (error) {
+    console.error('Failed to load tab access times:', error);
+  }
+}
+
+// Save access times to storage
+async function saveAccessTimes() {
+  try {
+    // Convert Map to plain object for storage
+    const toStore = {};
+    for (const [tabId, timestamp] of tabAccessTimes.entries()) {
+      toStore[tabId] = timestamp;
+    }
+
+    await chrome.storage.local.set({ [TAB_ACCESS_TIMES_KEY]: toStore });
+  } catch (error) {
+    console.error('Failed to save tab access times:', error);
+  }
+}
+
+// Initialize activity tracking for all existing tabs on startup
+async function initializeActivityTracking() {
+  await loadAccessTimes();
+
+  const allTabs = await chrome.tabs.query({});
+  const now = Date.now();
+
+  console.log(`🕐 Initializing activity tracking for ${allTabs.length} tabs`);
+
+  for (const tab of allTabs) {
+    if (tab.id) {
+      // If we don't have a stored time for this tab, set it to now
+      if (!tabAccessTimes.has(tab.id)) {
+        tabAccessTimes.set(tab.id, now);
+      }
+
+      // Always update the currently active tab to now
+      if (tab.active) {
+        tabAccessTimes.set(tab.id, now);
+        console.log(`📍 Active tab ${tab.id} set to current time`);
+      }
+    }
+  }
+
+  await saveAccessTimes();
+}
+
+// Track when tabs are activated
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  tabAccessTimes.set(tabId, Date.now());
+  console.log(`📍 Tab ${tabId} accessed at ${Date.now()}`);
+  await saveAccessTimes();
+});
+
+// Track new tabs
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (tab.id) {
+    tabAccessTimes.set(tab.id, Date.now());
+    await saveAccessTimes();
+  }
+});
+
+// Clean up closed tabs
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  tabAccessTimes.delete(tabId);
+  await saveAccessTimes();
+});
+
+// Add message listener for getting tab metadata
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'getTabMetadata') {
+    const { tabId } = request;
+
+    // Get tab info to check if suspended/discarded
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError) {
+        console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+
+      // Build full metadata object
+      const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
+      const idleTime = Date.now() - lastAccessed;
+      const idleMinutes = Math.round(idleTime / (60 * 1000));
+
+      console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
+
+      const metadata = {
+        lastAccessed: lastAccessed,
+        isSuspended: tab.discarded || false, // Chrome suspends tabs to save memory
+        duplicateCount: 1,  // TODO: Integrate with duplicate detection service
+        // memoryUsage: undefined, // TODO: Use chrome.processes API if available
+        // jiraStatus: undefined, // TODO: Parse from tab title or URL
+      };
+
+      sendResponse({ success: true, data: metadata });
+    });
+
+    return true; // Keep channel open for async response
+  }
+});

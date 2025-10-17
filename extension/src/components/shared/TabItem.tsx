@@ -1,5 +1,7 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState, useEffect } from 'react';
 import type { DensityConfig } from '../../types/density';
+import { getTabIndicators } from '../../utils/indicators';
+import type { TabMetadata } from '../../types/indicators';
 
 interface TabItemProps {
   tab: chrome.tabs.Tab;
@@ -20,6 +22,38 @@ export const TabItem = memo(function TabItem({
 }: TabItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isCloseHovered, setIsCloseHovered] = useState(false);
+  const [metadata, setMetadata] = useState<TabMetadata>({
+    lastAccessed: Date.now(),
+    isSuspended: false,
+    duplicateCount: 1,
+    isPinned: tab.pinned || false,
+  });
+
+  // Fetch tab metadata from background worker
+  useEffect(() => {
+    if (tab.id) {
+      chrome.runtime.sendMessage(
+        { action: 'getTabMetadata', tabId: tab.id },
+        (response) => {
+          if (response?.success && response.data) {
+            setMetadata({
+              lastAccessed: response.data.lastAccessed || Date.now(),
+              memoryUsage: response.data.memoryUsage,
+              isSuspended: response.data.isSuspended || false,
+              duplicateCount: response.data.duplicateCount || 1,
+              isPinned: tab.pinned || false,
+              jiraStatus: response.data.jiraStatus,
+            });
+          }
+        }
+      );
+    }
+  }, [tab.id, tab.pinned]);
+
+  // Calculate indicators using the proper function
+  const indicators = useMemo(() => {
+    return getTabIndicators(metadata);
+  }, [metadata]);
 
   // Debug logging
   if (!densityConfig) {
@@ -96,6 +130,29 @@ export const TabItem = memo(function TabItem({
     cursor: 'pointer',
   }), [isCloseHovered]);
 
+  const activityDotStyle = useMemo(() => ({
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    backgroundColor: indicators.activityColor,
+    flexShrink: 0,
+  }), [indicators.activityColor]);
+
+  const badgeStyle = useMemo(() => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '2px',
+    padding: '2px 6px',
+    fontSize: '11px',
+    fontWeight: 500,
+    backgroundColor: '#f3f4f6',
+    borderRadius: '4px',
+    color: '#374151',
+  }), []);
+
+  // Get badges from indicators
+  const badges = indicators.badges;
+
   // Memoize event handlers
   const handleMouseEnter = useCallback(() => {
     if (!isSelected) {
@@ -137,6 +194,7 @@ export const TabItem = memo(function TabItem({
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
+        <span style={activityDotStyle} title={indicators.activityStatus} />
         <img
           src={tab.favIconUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" fill="%23ddd"/><text x="8" y="12" text-anchor="middle" font-size="12" fill="%23666">?</text></svg>'}
           alt=""
@@ -147,6 +205,15 @@ export const TabItem = memo(function TabItem({
         <span style={titleStyle} onClick={onClick}>
           {tab.title}
         </span>
+        {badges.length > 0 && (
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {badges.map((badge, i) => (
+              <span key={i} style={badgeStyle}>
+                {badge.icon} {badge.value}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           onClick={handleCloseClick}
           style={buttonStyle}
@@ -173,6 +240,7 @@ export const TabItem = memo(function TabItem({
       onMouseLeave={handleMouseLeave}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
+        <span style={activityDotStyle} title={indicators.activityStatus} />
         <img
           src={tab.favIconUrl || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" fill="%23ddd"/><text x="8" y="12" text-anchor="middle" font-size="12" fill="%23666">?</text></svg>'}
           alt=""
@@ -192,6 +260,15 @@ export const TabItem = memo(function TabItem({
             <div style={metaStyle}>Last accessed: {formattedTime}</div>
           )}
         </div>
+        {badges.length > 0 && (
+          <div style={{ display: 'flex', gap: '4px' }}>
+            {badges.map((badge, i) => (
+              <span key={i} style={badgeStyle}>
+                {badge.icon} {badge.value}
+              </span>
+            ))}
+          </div>
+        )}
         <button
           onClick={handleCloseClick}
           style={buttonStyle}
