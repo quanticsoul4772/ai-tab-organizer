@@ -1,5 +1,6 @@
 import type { SummaryCache, TabSummary, CategorySummary, SummarySettings, JiraSettings } from '../types';
 import type { DensityMode } from '../types/density';
+import type { GroupStates } from '../types/groupState';
 
 const STORAGE_KEYS = {
   API_KEY: 'anthropicApiKey',
@@ -7,6 +8,7 @@ const STORAGE_KEYS = {
   SUMMARY_SETTINGS: 'summarySettings',
   JIRA_SETTINGS: 'jiraSettings',
   DENSITY_MODE: 'densityMode',
+  GROUP_STATES: 'groupStates',
 } as const;
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -171,5 +173,29 @@ export const storage = {
    */
   async setDensityMode(mode: DensityMode): Promise<void> {
     await chrome.storage.local.set({ [STORAGE_KEYS.DENSITY_MODE]: mode });
+  },
+
+  /**
+   * Get group collapse states
+   */
+  async getGroupStates(): Promise<GroupStates> {
+    const result = await chrome.storage.local.get([STORAGE_KEYS.GROUP_STATES]);
+    return result[STORAGE_KEYS.GROUP_STATES] || {};
+  },
+
+  /**
+   * Set collapse state for a specific group
+   */
+  async setGroupState(categoryId: string, isCollapsed: boolean): Promise<void> {
+    const states = await this.getGroupStates();
+    states[categoryId] = isCollapsed;
+    await chrome.storage.local.set({ [STORAGE_KEYS.GROUP_STATES]: states });
+  },
+
+  /**
+   * Clear all group states
+   */
+  async clearGroupStates(): Promise<void> {
+    await chrome.storage.local.remove(STORAGE_KEYS.GROUP_STATES);
   },
 };
