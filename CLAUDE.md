@@ -31,6 +31,12 @@ npm test
 
 # Watch mode for tests
 npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run specific test file
+npm test path/to/test.test.ts
 ```
 
 After building, load the extension in Chrome:
@@ -152,6 +158,8 @@ Popup receives data and updates UI
 - API key stored in `chrome.storage.local` (encrypted by Chrome)
 - Summary cache with TTL to reduce API calls
 - Jira settings persistence across sessions
+- Sessions stored with metadata (tab count, Jira tickets, workspace categories)
+- Group collapse states persist across browser restarts
 
 ### Pattern 5: Event-Driven Tab Management
 - Listeners on `chrome.tabs.onCreated`, `onUpdated`, `onRemoved`
@@ -177,8 +185,11 @@ All business logic is in `extension/src/services/`:
 - `atlassianDetectionService.ts` - Group tickets by project, sort by number
 
 **Test Coverage**:
-- 123 unit tests across 5 test files in `services/jira/__tests__/`
-- Performance tests validate <1ms for 100 tabs, <1s for 1000 tabs
+- 788 passing tests with 71% code coverage
+- Components: TabSearch, DuplicateDetection, CategoryView, TabList, SettingsPanel, and more
+- Services: Jira, search, summary, session management
+- Utils: storage, groupDefaults, indicators, tabManager
+- Performance tests validate under 1ms for 100 tabs, under 1s for 1000 tabs
 - Run with `npm test` from `extension/` directory
 
 ## Component Structure
@@ -255,19 +266,19 @@ All business logic is in `extension/src/services/`:
 }
 ```
 
-**UI Features** (`SessionsView.tsx`):
+**UI Features** (SessionsView.tsx):
 - Workspace filter pills (e.g., "APPS (3)", "ENG (5)")
 - Session cards with workspace badges
 - Import/Export buttons
-- Keyboard shortcuts (⌘S, ⌘E, ⌘I)
+- Keyboard shortcuts
 - Restore modes (add to current / replace all)
 - Inline rename and delete
 
 **Keyboard Shortcuts**:
-- `Cmd/Ctrl + S`: Save current session
-- `Cmd/Ctrl + E`: Export all sessions
-- `Cmd/Ctrl + I`: Import sessions
-- `Escape`: Close dialogs
+- Cmd/Ctrl + S: Save current session
+- Cmd/Ctrl + E: Export all sessions
+- Cmd/Ctrl + I: Import sessions
+- Escape: Close dialogs
 
 ## Data Flow for Tab Categorization
 
@@ -311,17 +322,27 @@ All business logic is in `extension/src/services/`:
 **Test Location**: `extension/src/services/jira/__tests__/`
 
 **Test Files**:
+
+Jira Services:
 - `urlParser.test.ts` - 24 tests for URL parsing
 - `titleParser.test.ts` - 41 tests for title parsing
 - `jiraSearchEnhancer.test.ts` - 30 tests for search patterns
 - `atlassianDetectionService.test.ts` - 20 tests for detection/grouping
 - `performance.test.ts` - 8 tests for performance benchmarks
 
+Utils:
+- `storage.test.ts` - 15 tests for storage layer
+- `groupDefaults.test.ts` - 8 tests for smart collapse logic
+- `indicators.test.ts` - 13 tests for visual indicators
+- `tabManager.test.ts` - 3 tests for tab operations
+
 **Running Tests**:
 ```bash
 cd extension
-npm test              # Run all tests once
-npm run test:watch    # Watch mode for development
+npm test                          # Run all tests once
+npm run test:watch                # Watch mode for development
+npm run test:coverage             # Generate coverage report
+npm test indicators.test.ts       # Run specific test file
 ```
 
 ## Debugging

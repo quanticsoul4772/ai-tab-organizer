@@ -274,9 +274,9 @@ npm run test:watch
 
 ### Testing
 
-- 123 unit tests across 5 test files
+- 788 passing tests with 71% code coverage
+- Comprehensive unit and integration tests
 - Performance benchmarks included
-- Test coverage for Jira services
 - Run with `npm test` from extension directory
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.

@@ -15,6 +15,7 @@ global.chrome = {
     get: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
+    create: vi.fn(),
   },
   runtime: {
     sendMessage: vi.fn(),
@@ -25,4 +26,14 @@ global.chrome = {
   bookmarks: {
     create: vi.fn(),
   },
+  windows: {
+    update: vi.fn(),
+  },
 } as any;
+
+// Mock ResizeObserver for react-window tests
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
