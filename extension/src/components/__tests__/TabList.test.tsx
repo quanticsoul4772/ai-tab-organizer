@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TabList } from '../TabList';
 import type { Tab, TabSummary } from '../../types';
+import { DensityProvider } from '../../context/DensityContext';
 
 // Mock child components
 vi.mock('../SummaryCard', () => ({
@@ -36,13 +37,17 @@ describe('TabList', () => {
   const mockOnTabClose = vi.fn();
   const mockOnSummaryRequest = vi.fn();
 
+  const renderWithDensity = (ui: React.ReactElement) => {
+    return render(<DensityProvider>{ui}</DensityProvider>);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('Virtual Scrolling Mode', () => {
     it('should render VirtualTabList when useVirtualScrolling is true', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -54,23 +59,22 @@ describe('TabList', () => {
       expect(screen.getByTestId('virtual-tab-list')).toBeInTheDocument();
     });
 
-    it('should pass densityMode to VirtualTabList', () => {
-      render(
+    it('should pass densityMode from context to VirtualTabList', () => {
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
           onTabClose={mockOnTabClose}
           useVirtualScrolling={true}
-          densityMode="compact"
         />
       );
 
       const virtualList = screen.getByTestId('virtual-tab-list');
-      expect(virtualList).toHaveAttribute('data-density', 'compact');
+      expect(virtualList).toHaveAttribute('data-density', 'normal');
     });
 
     it('should handle tab click in virtual mode', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -86,7 +90,7 @@ describe('TabList', () => {
     });
 
     it('should handle tab close in virtual mode', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -104,7 +108,7 @@ describe('TabList', () => {
 
   describe('Standard Rendering Mode', () => {
     it('should render standard list when useVirtualScrolling is false', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -119,7 +123,7 @@ describe('TabList', () => {
     });
 
     it('should display tab titles and hostnames', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -135,7 +139,7 @@ describe('TabList', () => {
     });
 
     it('should display favicons', () => {
-      const { container } = render(
+      const { container } = renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -150,7 +154,7 @@ describe('TabList', () => {
     });
 
     it('should handle tab click', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -166,7 +170,7 @@ describe('TabList', () => {
     });
 
     it('should handle tab close', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -182,7 +186,7 @@ describe('TabList', () => {
     });
 
     it('should render summary button when summariesEnabled and onSummaryRequest provided', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -198,7 +202,7 @@ describe('TabList', () => {
     });
 
     it('should not render summary button when summariesEnabled is false', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -214,7 +218,7 @@ describe('TabList', () => {
     });
 
     it('should not render summary button when onSummaryRequest not provided', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -239,7 +243,7 @@ describe('TabList', () => {
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -262,7 +266,7 @@ describe('TabList', () => {
     it('should show loading state while fetching summary', async () => {
       mockOnSummaryRequest.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 1000)));
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -289,7 +293,7 @@ describe('TabList', () => {
     it('should handle summary request error', async () => {
       mockOnSummaryRequest.mockRejectedValue(new Error('Failed to fetch summary'));
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -318,7 +322,7 @@ describe('TabList', () => {
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -347,7 +351,7 @@ describe('TabList', () => {
     it('should close error when error close button clicked', async () => {
       mockOnSummaryRequest.mockRejectedValue(new Error('Test error'));
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -384,7 +388,7 @@ describe('TabList', () => {
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -405,7 +409,7 @@ describe('TabList', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty tabs array', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={[]}
           onTabClick={mockOnTabClick}
@@ -422,7 +426,7 @@ describe('TabList', () => {
         { id: 1, url: 'https://example.com', title: 'No Favicon' },
       ];
 
-      const { container } = render(
+      const { container } = renderWithDensity(
         <TabList
           tabs={tabsWithoutFavicon}
           onTabClick={mockOnTabClick}
@@ -436,7 +440,7 @@ describe('TabList', () => {
     });
 
     it('should use default props when optional props not provided', () => {
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}
@@ -451,7 +455,7 @@ describe('TabList', () => {
     it('should handle non-Error objects in summary catch block', async () => {
       mockOnSummaryRequest.mockRejectedValue('String error');
 
-      render(
+      renderWithDensity(
         <TabList
           tabs={mockTabs}
           onTabClick={mockOnTabClick}

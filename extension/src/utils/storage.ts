@@ -2,6 +2,7 @@ import type { SummaryCache, TabSummary, CategorySummary, SummarySettings, JiraSe
 import type { DensityMode } from '../types/density';
 import type { GroupStates } from '../types/groupState';
 import type { Session, SessionListItem } from '../types/session';
+import { storage as browserStorage } from '../core/browserApi';
 
 const STORAGE_KEYS = {
   API_KEY: 'anthropicApiKey',
@@ -20,37 +21,38 @@ export const storage = {
    * Get the stored API key from chrome.storage.local
    */
   async getApiKey(): Promise<string | null> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.API_KEY]);
-    return result[STORAGE_KEYS.API_KEY] || null;
+    return await browserStorage.get<string>(STORAGE_KEYS.API_KEY);
   },
 
   /**
    * Save the API key to chrome.storage.local
    */
   async setApiKey(apiKey: string): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEYS.API_KEY]: apiKey });
+    await browserStorage.set(STORAGE_KEYS.API_KEY, apiKey);
   },
 
   /**
    * Remove the stored API key
    */
   async clearApiKey(): Promise<void> {
-    await chrome.storage.local.remove(STORAGE_KEYS.API_KEY);
+    await browserStorage.remove(STORAGE_KEYS.API_KEY);
   },
 
   /**
    * Get summary cache from storage
    */
   async getSummaryCache(): Promise<SummaryCache> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SUMMARY_CACHE]);
-    return result[STORAGE_KEYS.SUMMARY_CACHE] || { tabs: {}, categories: {} };
+    return await browserStorage.get<SummaryCache>(
+      STORAGE_KEYS.SUMMARY_CACHE,
+      { tabs: {}, categories: {} }
+    );
   },
 
   /**
    * Save summary cache to storage
    */
   async setSummaryCache(cache: SummaryCache): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEYS.SUMMARY_CACHE]: cache });
+    await browserStorage.set(STORAGE_KEYS.SUMMARY_CACHE, cache);
   },
 
   /**
@@ -129,60 +131,62 @@ export const storage = {
    * Clear all summary cache
    */
   async clearSummaryCache(): Promise<void> {
-    await chrome.storage.local.remove(STORAGE_KEYS.SUMMARY_CACHE);
+    await browserStorage.remove(STORAGE_KEYS.SUMMARY_CACHE);
   },
 
   /**
    * Get summary settings
    */
   async getSummarySettings(): Promise<SummarySettings> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SUMMARY_SETTINGS]);
-    return result[STORAGE_KEYS.SUMMARY_SETTINGS] || { enabled: true, cacheDuration: 24 };
+    return await browserStorage.get<SummarySettings>(
+      STORAGE_KEYS.SUMMARY_SETTINGS,
+      { enabled: true, cacheDuration: 24 }
+    );
   },
 
   /**
    * Save summary settings
    */
   async setSummarySettings(settings: SummarySettings): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEYS.SUMMARY_SETTINGS]: settings });
+    await browserStorage.set(STORAGE_KEYS.SUMMARY_SETTINGS, settings);
   },
 
   /**
    * Get Jira settings
    */
   async getJiraSettings(): Promise<JiraSettings> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.JIRA_SETTINGS]);
-    return result[STORAGE_KEYS.JIRA_SETTINGS] || { smartMode: true };
+    return await browserStorage.get<JiraSettings>(
+      STORAGE_KEYS.JIRA_SETTINGS,
+      { smartMode: true }
+    );
   },
 
   /**
    * Save Jira settings
    */
   async setJiraSettings(settings: JiraSettings): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEYS.JIRA_SETTINGS]: settings });
+    await browserStorage.set(STORAGE_KEYS.JIRA_SETTINGS, settings);
   },
 
   /**
    * Get density mode preference
    */
   async getDensityMode(): Promise<DensityMode | null> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.DENSITY_MODE]);
-    return result[STORAGE_KEYS.DENSITY_MODE] || null;
+    return await browserStorage.get<DensityMode>(STORAGE_KEYS.DENSITY_MODE);
   },
 
   /**
    * Save density mode preference
    */
   async setDensityMode(mode: DensityMode): Promise<void> {
-    await chrome.storage.local.set({ [STORAGE_KEYS.DENSITY_MODE]: mode });
+    await browserStorage.set(STORAGE_KEYS.DENSITY_MODE, mode);
   },
 
   /**
    * Get group collapse states
    */
   async getGroupStates(): Promise<GroupStates> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.GROUP_STATES]);
-    return result[STORAGE_KEYS.GROUP_STATES] || {};
+    return await browserStorage.get<GroupStates>(STORAGE_KEYS.GROUP_STATES, {});
   },
 
   /**
@@ -191,22 +195,21 @@ export const storage = {
   async setGroupState(categoryId: string, isCollapsed: boolean): Promise<void> {
     const states = await this.getGroupStates();
     states[categoryId] = isCollapsed;
-    await chrome.storage.local.set({ [STORAGE_KEYS.GROUP_STATES]: states });
+    await browserStorage.set(STORAGE_KEYS.GROUP_STATES, states);
   },
 
   /**
    * Clear all group states
    */
   async clearGroupStates(): Promise<void> {
-    await chrome.storage.local.remove(STORAGE_KEYS.GROUP_STATES);
+    await browserStorage.remove(STORAGE_KEYS.GROUP_STATES);
   },
 
   /**
    * Get all sessions (returns list items only, not full session data)
    */
   async getAllSessions(): Promise<SessionListItem[]> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
-    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
     return Object.values(sessions).map((session: Session) => ({
       id: session.id,
       name: session.name,
@@ -224,8 +227,7 @@ export const storage = {
    * Get a specific session by ID
    */
   async getSession(sessionId: string): Promise<Session | null> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
-    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
     return sessions[sessionId] || null;
   },
 
@@ -233,20 +235,18 @@ export const storage = {
    * Save a session
    */
   async saveSession(session: Session): Promise<void> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
-    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
     sessions[session.id] = session;
-    await chrome.storage.local.set({ [STORAGE_KEYS.SESSIONS]: sessions });
+    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessions);
   },
 
   /**
    * Delete a session
    */
   async deleteSession(sessionId: string): Promise<void> {
-    const result = await chrome.storage.local.get([STORAGE_KEYS.SESSIONS]);
-    const sessions = result[STORAGE_KEYS.SESSIONS] || {};
+    const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
     delete sessions[sessionId];
-    await chrome.storage.local.set({ [STORAGE_KEYS.SESSIONS]: sessions });
+    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessions);
   },
 
   /**

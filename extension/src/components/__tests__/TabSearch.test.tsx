@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { TabSearch } from '../TabSearch';
+import { TabSearch } from '../features/search/TabSearch';
 import * as searchService from '../../services/searchService';
 import * as storageUtils from '../../utils/storage';
 

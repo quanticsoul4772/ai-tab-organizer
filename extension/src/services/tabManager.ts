@@ -1,4 +1,5 @@
 import type { Tab } from '../types';
+import { tabs } from '../core/browserApi';
 
 /**
  * Service for managing browser tabs
@@ -8,20 +9,20 @@ export const tabManager = {
    * Get all open tabs
    */
   async getAllTabs(): Promise<Tab[]> {
-    return await chrome.tabs.query({});
+    return await tabs.getAll();
   },
 
   /**
    * Switch to a specific tab
    */
   async switchToTab(tabId: number): Promise<void> {
-    await chrome.tabs.update(tabId, { active: true });
+    await tabs.switchTo(tabId);
   },
 
   /**
    * Close a specific tab
    */
   async closeTab(tabId: number): Promise<void> {
-    await chrome.tabs.remove(tabId);
+    await tabs.close(tabId);
   },
 };

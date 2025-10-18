@@ -2,6 +2,7 @@ import type { Session, SessionTab } from '../types/session';
 import { storage } from '../utils/storage';
 import { tabManager } from './tabManager';
 import { AtlassianDetectionService } from './jira/atlassianDetectionService';
+import { tabs } from '../core/browserApi';
 
 const atlassianService = new AtlassianDetectionService();
 
@@ -94,13 +95,13 @@ export const sessionManager = {
         .filter((id): id is number => id !== undefined);
 
       if (tabIds.length > 0) {
-        await chrome.tabs.remove(tabIds);
+        await tabs.closeMultiple(tabIds);
       }
     }
 
     // Open session tabs
     for (const sessionTab of session.tabs) {
-      await chrome.tabs.create({
+      await tabs.create({
         url: sessionTab.url,
         pinned: sessionTab.pinned,
         active: false,

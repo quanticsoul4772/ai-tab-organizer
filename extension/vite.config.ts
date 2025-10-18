@@ -17,9 +17,6 @@ export default defineConfig({
         // Copy manifest.json
         copyFileSync('manifest.json', 'dist/manifest.json');
 
-        // Copy background.js
-        copyFileSync('background.js', 'dist/background.js');
-
         // Copy content-extractor.js
         copyFileSync('content-extractor.js', 'dist/content-extractor.js');
 
@@ -43,6 +40,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(__dirname, 'popup.html'),
+        background: resolve(__dirname, 'src/background.ts'),
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          return chunkInfo.name === 'background' ? '[name].js' : 'assets/[name]-[hash].js';
+        },
       },
     }
   }

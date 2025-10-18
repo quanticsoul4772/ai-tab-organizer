@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DuplicateDetectionService } from '../duplicateDetectionService';
+import { runtime } from '../../../core/browserApi';
+
+// Mock browserApi
+vi.mock('../../../core/browserApi');
 
 describe('DuplicateDetectionService', () => {
   beforeEach(() => {
@@ -47,12 +51,9 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://source2.com/article', title: 'Article Title' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: {
-          content: 'This is the exact same article content that appears on both pages with enough text to generate good similarity.',
-          metaDescription: 'Same meta description',
-        },
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
+        content: 'This is the exact same article content that appears on both pages with enough text to generate good similarity.',
+        metaDescription: 'Same meta description',
       });
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -89,7 +90,7 @@ describe('DuplicateDetectionService', () => {
       ];
 
       // Mock content extraction to return moderately similar content (0.7-0.89 range)
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Moderately similar content that will trigger uncertain pair detection',
@@ -121,7 +122,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -142,7 +143,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -162,7 +163,7 @@ describe('DuplicateDetectionService', () => {
         { id: 1, url: 'https://page1.com', title: 'Page 1' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -184,7 +185,7 @@ describe('DuplicateDetectionService', () => {
       ];
 
       // Mock to return content that won't trigger uncertain range
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation(async (msg: any) => {
+      vi.mocked(runtime.sendMessage).mockImplementation(async (msg: any) => {
         if (msg.tabId === 1) {
           return {
             success: true,
@@ -213,7 +214,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockRejectedValue(new Error('Extraction failed'));
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Extraction failed'));
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -232,7 +233,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Moderately similar content for uncertain pair',
@@ -264,7 +265,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -286,7 +287,7 @@ describe('DuplicateDetectionService', () => {
         { id: 4, url: 'https://other.com/page', title: 'Page 4' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -307,7 +308,7 @@ describe('DuplicateDetectionService', () => {
         { id: 1, url: 'https://page1.com', title: 'Page 1' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -341,7 +342,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://page2.com', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Moderately similar content',
@@ -372,7 +373,7 @@ describe('DuplicateDetectionService', () => {
         { id: 1, url: 'https://page1.com', title: 'Page 1' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -392,7 +393,7 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://example.com/page', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });
@@ -421,7 +422,7 @@ describe('DuplicateDetectionService', () => {
         { id: 1, url: 'https://page1.com', title: 'Page 1' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'Content', metaDescription: null },
       });

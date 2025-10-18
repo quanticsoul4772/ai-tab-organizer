@@ -1,4 +1,6 @@
 import type { IndexedTab } from '../types/search';
+import { runtime, storage } from '../core/browserApi';
+import { BACKGROUND_ACTIONS } from '../constants/actions';
 
 const INDEXED_TABS_KEY = 'indexed_tabs';
 const MAX_CONTENT_LENGTH = 5000; // Limit stored content size
@@ -20,18 +22,12 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
 
   try {
     // Request content extraction from background script
-    const response = await chrome.runtime.sendMessage({
-      action: 'extractContent',
-      tabId: tab.id,
-      url: tab.url
-    });
+    const data = await runtime.sendMessage<{ content: string }>(
+      BACKGROUND_ACTIONS.EXTRACT_CONTENT,
+      { tabId: tab.id, url: tab.url }
+    );
 
-    if (!response.success) {
-      console.warn(`Failed to extract content for tab ${tab.id}:`, response.error);
-      return;
-    }
-
-    const content = response.data.content || '';
+    const content = data.content || '';
 
     // Truncate if too long
     const truncatedContent = content.length > MAX_CONTENT_LENGTH
@@ -49,13 +45,10 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
       indexed: new Date().toISOString()
     };
 
-    // Store in chrome.storage.local
-    const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
-    const existingTabs = result[INDEXED_TABS_KEY] || {};
-
+    // Store in storage
+    const existingTabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
     existingTabs[tab.id] = indexedTab;
-
-    await chrome.storage.local.set({ [INDEXED_TABS_KEY]: existingTabs });
+    await storage.set(INDEXED_TABS_KEY, existingTabs);
 
     console.log(`Indexed tab ${tab.id}: ${tab.title}`);
   } catch (error) {
@@ -67,9 +60,7 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
  * Get all indexed tabs
  */
 export async function getIndexedTabs(): Promise<Map<number, IndexedTab>> {
-  const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
-  const tabs = result[INDEXED_TABS_KEY] || {};
-
+  const tabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
   return new Map(Object.entries(tabs).map(([id, tab]) => [parseInt(id), tab as IndexedTab]));
 }
 
@@ -77,12 +68,9 @@ export async function getIndexedTabs(): Promise<Map<number, IndexedTab>> {
  * Remove indexed tab
  */
 export async function removeIndexedTab(tabId: number): Promise<void> {
-  const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
-  const tabs = result[INDEXED_TABS_KEY] || {};
-
+  const tabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
   delete tabs[tabId];
-
-  await chrome.storage.local.set({ [INDEXED_TABS_KEY]: tabs });
+  await storage.set(INDEXED_TABS_KEY, tabs);
 }
 
 /**
@@ -92,8 +80,7 @@ export async function cleanupIndexedTabs(): Promise<void> {
   const allTabs = await chrome.tabs.query({});
   const activeTabIds = new Set(allTabs.map(t => t.id).filter(id => id !== undefined));
 
-  const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
-  const indexed = result[INDEXED_TABS_KEY] || {};
+  const indexed = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
 
   let cleaned = false;
   for (const tabId in indexed) {
@@ -104,7 +91,7 @@ export async function cleanupIndexedTabs(): Promise<void> {
   }
 
   if (cleaned) {
-    await chrome.storage.local.set({ [INDEXED_TABS_KEY]: indexed });
+    await storage.set(INDEXED_TABS_KEY, indexed);
     console.log('Cleaned up old indexed tabs');
   }
 }

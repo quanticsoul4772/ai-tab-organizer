@@ -248,3 +248,6 @@ export class AtlassianDetectionService {
     });
   }
 }
+
+// Export singleton instance
+export const atlassianDetectionService = new AtlassianDetectionService();

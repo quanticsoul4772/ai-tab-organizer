@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { DuplicateDetection } from '../DuplicateDetection';
+import { DuplicateDetection } from '../features/duplicates/DuplicateDetection';
 import type { DuplicateGroup } from '../../types/duplicates';
 import * as tabManager from '../../services/tabManager';
 

@@ -7,6 +7,10 @@ import {
   reindexIfNeeded,
 } from '../tabIndexer';
 import type { IndexedTab } from '../../types/search';
+import { runtime, storage } from '../../core/browserApi';
+
+// Mock browserApi
+vi.mock('../../core/browserApi');
 
 describe('tabIndexer', () => {
   beforeEach(() => {
@@ -21,36 +25,30 @@ describe('tabIndexer', () => {
         title: 'Example Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: { content: 'page content here' } });
-        }
-        return Promise.resolve({ success: true, data: { content: 'page content here' } });
-      });
-
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'page content here' });
+      vi.mocked(storage.get).mockResolvedValue({});
+      vi.mocked(storage.set).mockResolvedValue(undefined);
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
-        action: 'extractContent',
-        tabId: 123,
-        url: 'https://example.com',
-      });
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'extractContent',
+        { tabId: 123, url: 'https://example.com' }
+      );
 
-      expect(chrome.storage.local.set).toHaveBeenCalledWith({
-        indexed_tabs: expect.objectContaining({
+      expect(storage.set).toHaveBeenCalledWith(
+        'indexed_tabs',
+        expect.objectContaining({
           123: expect.objectContaining({
             tabId: 123,
             title: 'Example Page',
             url: 'https://example.com',
             content: 'page content here',
           }),
-        }),
-      });
+        })
+      );
 
       expect(consoleSpy).toHaveBeenCalledWith('Indexed tab 123: Example Page');
     });
@@ -63,7 +61,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip tabs without URL', async () => {
@@ -74,7 +72,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip chrome:// URLs', async () => {
@@ -86,7 +84,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip edge:// URLs', async () => {
@@ -98,7 +96,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip about: URLs', async () => {
@@ -110,7 +108,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip chrome-extension:// URLs', async () => {
@@ -122,7 +120,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should handle extraction failure gracefully', async () => {
@@ -132,20 +130,17 @@ describe('tabIndexer', () => {
         title: 'Example',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: false,
-        error: 'Extraction failed',
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Extraction failed'));
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await indexTab(mockTab);
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to extract content for tab 123:',
-        'Extraction failed'
+        'Failed to index tab 123:',
+        expect.any(Error)
       );
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(storage.set).not.toHaveBeenCalled();
     });
 
     it('should truncate content if too long', async () => {
@@ -156,19 +151,16 @@ describe('tabIndexer', () => {
         title: 'Long Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: { content: longContent },
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: longContent });
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue({});
+      vi.mocked(storage.set).mockResolvedValue(undefined);
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await indexTab(mockTab);
 
-      const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0][0];
-      const savedContent = setCall.indexed_tabs[123].content;
+      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      const savedContent = setCall[123].content;
 
       expect(savedContent.length).toBeLessThanOrEqual(5003); // 5000 + '...'
       expect(savedContent.endsWith('...')).toBe(true);
@@ -193,20 +185,17 @@ describe('tabIndexer', () => {
         title: 'New Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: { content: 'new content' },
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'new content' });
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: existingIndexedTabs });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue(existingIndexedTabs);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await indexTab(mockTab);
 
-      const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0][0];
-      expect(setCall.indexed_tabs[456]).toBeDefined(); // Preserved
-      expect(setCall.indexed_tabs[123]).toBeDefined(); // Added
+      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      expect(setCall[456]).toBeDefined(); // Preserved
+      expect(setCall[123]).toBeDefined(); // Added
     });
 
     it('should handle errors gracefully', async () => {
@@ -216,7 +205,7 @@ describe('tabIndexer', () => {
         title: 'Example',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockRejectedValue(new Error('Network error'));
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Network error'));
 
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -252,7 +241,7 @@ describe('tabIndexer', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: mockIndexedTabs });
+      vi.mocked(storage.get).mockResolvedValue(mockIndexedTabs);
 
       const result = await getIndexedTabs();
 
@@ -264,7 +253,7 @@ describe('tabIndexer', () => {
     });
 
     it('should return empty Map if no indexed tabs', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      vi.mocked(storage.get).mockResolvedValue({});
 
       const result = await getIndexedTabs();
 
@@ -280,23 +269,23 @@ describe('tabIndexer', () => {
         '456': { tabId: 456, title: 'Page 2' },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: mockIndexedTabs });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue(mockIndexedTabs);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
 
       await removeIndexedTab(123);
 
-      const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0][0];
-      expect(setCall.indexed_tabs[123]).toBeUndefined();
-      expect(setCall.indexed_tabs[456]).toBeDefined();
+      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      expect(setCall[123]).toBeUndefined();
+      expect(setCall[456]).toBeDefined();
     });
 
     it('should handle removing non-existent tab', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: {} });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue({});
+      vi.mocked(storage.set).mockResolvedValue(undefined);
 
       await removeIndexedTab(999);
 
-      expect(chrome.storage.local.set).toHaveBeenCalled();
+      expect(storage.set).toHaveBeenCalled();
     });
   });
 
@@ -314,17 +303,17 @@ describe('tabIndexer', () => {
       };
 
       vi.mocked(chrome.tabs.query).mockResolvedValue(activeTabs);
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: mockIndexedTabs });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue(mockIndexedTabs);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
 
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await cleanupIndexedTabs();
 
-      const setCall = vi.mocked(chrome.storage.local.set).mock.calls[0][0];
-      expect(setCall.indexed_tabs['123']).toBeDefined();
-      expect(setCall.indexed_tabs['456']).toBeDefined();
-      expect(setCall.indexed_tabs['789']).toBeUndefined();
+      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      expect(setCall['123']).toBeDefined();
+      expect(setCall['456']).toBeDefined();
+      expect(setCall['789']).toBeUndefined();
       expect(consoleSpy).toHaveBeenCalledWith('Cleaned up old indexed tabs');
     });
 
@@ -338,12 +327,12 @@ describe('tabIndexer', () => {
       };
 
       vi.mocked(chrome.tabs.query).mockResolvedValue(activeTabs);
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: mockIndexedTabs });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.get).mockResolvedValue(mockIndexedTabs);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
 
       await cleanupIndexedTabs();
 
-      expect(chrome.storage.local.set).not.toHaveBeenCalled();
+      expect(storage.set).not.toHaveBeenCalled();
     });
   });
 
@@ -355,17 +344,17 @@ describe('tabIndexer', () => {
         title: 'New Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(storage.get).mockResolvedValue({});
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'content' },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await reindexIfNeeded(mockTab);
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+      expect(runtime.sendMessage).toHaveBeenCalled();
     });
 
     it('should reindex if URL changed', async () => {
@@ -387,17 +376,17 @@ describe('tabIndexer', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: existingIndexed });
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(storage.get).mockResolvedValue(existingIndexed);
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'new content' },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await reindexIfNeeded(mockTab);
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+      expect(runtime.sendMessage).toHaveBeenCalled();
     });
 
     it('should reindex if content is stale (>24 hours)', async () => {
@@ -422,17 +411,17 @@ describe('tabIndexer', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: existingIndexed });
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(storage.get).mockResolvedValue(existingIndexed);
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'fresh content' },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      vi.mocked(storage.set).mockResolvedValue(undefined);
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await reindexIfNeeded(mockTab);
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+      expect(runtime.sendMessage).toHaveBeenCalled();
     });
 
     it('should not reindex if content is fresh and URL unchanged', async () => {
@@ -457,11 +446,11 @@ describe('tabIndexer', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ indexed_tabs: existingIndexed });
+      vi.mocked(storage.get).mockResolvedValue(existingIndexed);
 
       await reindexIfNeeded(mockTab);
 
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should skip tabs without ID', async () => {
@@ -472,7 +461,7 @@ describe('tabIndexer', () => {
 
       await reindexIfNeeded(mockTab);
 
-      expect(chrome.storage.local.get).not.toHaveBeenCalled();
+      expect(storage.get).not.toHaveBeenCalled();
     });
   });
 });

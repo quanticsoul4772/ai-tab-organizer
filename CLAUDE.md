@@ -61,7 +61,8 @@ Health check: `http://localhost:3000/health`
 **Bundler**: Vite 5.x with custom plugin for Chrome extension support
 
 **Custom Vite Plugin** (`extension/vite.config.ts:10-28`):
-- Copies `manifest.json`, `background.js`, and `content-extractor.js` to `dist/` after build
+- Compiles `src/background.ts` to `dist/background.js` with full TypeScript support
+- Copies `manifest.json`, `content-extractor.js`, and `jira-content-extractor.js` to `dist/` after build
 - Required because Chrome extensions need these files at specific locations
 - Runs in `closeBundle` hook to ensure copying happens after Vite finishes
 
@@ -74,8 +75,9 @@ Health check: `http://localhost:3000/health`
 **Build Output** (`extension/dist/`):
 - `popup.html` - Entry point
 - `manifest.json` - Extension manifest (copied)
-- `background.js` - Service worker (copied)
+- `background.js` - Service worker (compiled from TypeScript)
 - `content-extractor.js` - Content extraction script (copied)
+- `jira-content-extractor.js` - Jira content extraction script (copied)
 - `assets/popup-[hash].js` - Bundled React app
 - `assets/popup-[hash].css` - Bundled styles
 
@@ -89,13 +91,15 @@ Health check: `http://localhost:3000/health`
 - Communicates with background worker via `chrome.runtime.sendMessage()`
 - Cannot make fetch() requests directly (Chrome security restriction)
 
-**2. Background Service Worker** (`background.js`):
+**2. Background Service Worker** (`src/background.ts`):
+- **TypeScript** - Fully typed with 80+ interface definitions for type safety
 - Runs in separate execution context (Manifest v3 requirement)
 - Handles all API calls to Anthropic Claude
 - Implements retry logic (max 2 retries with exponential backoff)
 - Timeout: 30 seconds per request with AbortController
 - Auto-indexes tabs on create/update/remove events for search feature
 - Listens for messages: `categorize`, `summarizeTab`, `summarizeCategory`, `extractContent`
+- **Built by Vite** - Compiled from TypeScript to dist/background.js with full type checking
 
 **3. Content Extractor** (`content-extractor.js`):
 - Injected into tab pages by background worker via `chrome.scripting.executeScript()`

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { CategorySummary } from '../types';
+import type { CategorySummary } from '../../../types';
 
 interface CategorySummaryCardProps {
   summary: CategorySummary;

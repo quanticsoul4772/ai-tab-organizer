@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CategoryView } from '../CategoryView';
+import { CategoryView } from '../features/categories/CategoryView';
 import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../../types';
 import * as storage from '../../utils/storage';
+import { DensityProvider } from '../../context/DensityContext';
 
 // Mock dependencies
 vi.mock('../../utils/storage', () => ({
@@ -16,7 +17,7 @@ vi.mock('../../utils/groupDefaults', () => ({
   getDefaultCollapseState: vi.fn(() => false),
 }));
 
-vi.mock('../TabList', () => ({
+vi.mock('@components/TabList', () => ({
   TabList: ({ tabs, onTabClick, onTabClose, densityMode }: any) => (
     <div data-testid="tab-list" data-density={densityMode}>
       {tabs.map((tab: Tab) => (
@@ -29,7 +30,7 @@ vi.mock('../TabList', () => ({
   ),
 }));
 
-vi.mock('../CategorySummaryCard', () => ({
+vi.mock('@components/features/categories/CategorySummaryCard', () => ({
   CategorySummaryCard: ({ summary, onClose }: any) => (
     <div data-testid="category-summary-card">
       <div>{summary.summary}</div>
@@ -38,7 +39,7 @@ vi.mock('../CategorySummaryCard', () => ({
   ),
 }));
 
-vi.mock('../shared/GroupHeader', () => ({
+vi.mock('@components/shared/GroupHeader', () => ({
   GroupHeader: ({
     categoryName,
     tabCount,
@@ -152,13 +153,17 @@ describe('CategoryView', () => {
     global.alert = vi.fn();
   });
 
+  const renderWithDensity = (ui: React.ReactElement) => {
+    return render(<DensityProvider>{ui}</DensityProvider>);
+  };
+
   afterEach(() => {
     consoleLogSpy.mockRestore();
   });
 
   describe('Rendering', () => {
-    it('should render all categories', () => {
-      render(
+    it('should render all categories', async () => {
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -166,12 +171,14 @@ describe('CategoryView', () => {
         />
       );
 
-      expect(screen.getByTestId('group-header-Development')).toBeInTheDocument();
-      expect(screen.getByTestId('group-header-Work')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('group-header-Development')).toBeInTheDocument();
+        expect(screen.getByTestId('group-header-Work')).toBeInTheDocument();
+      });
     });
 
-    it('should render tab lists for each category', () => {
-      render(
+    it('should render tab lists for each category', async () => {
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -179,12 +186,14 @@ describe('CategoryView', () => {
         />
       );
 
-      const tabLists = screen.getAllByTestId('tab-list');
-      expect(tabLists).toHaveLength(2);
+      await waitFor(() => {
+        const tabLists = screen.getAllByTestId('tab-list');
+        expect(tabLists).toHaveLength(2);
+      });
     });
 
     it('should render collapse/expand all buttons when multiple groups', () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -201,7 +210,7 @@ describe('CategoryView', () => {
         Development: mockTabs,
       };
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={singleGroupTabs}
           onTabClick={mockOnTabClick}
@@ -213,36 +222,21 @@ describe('CategoryView', () => {
       expect(screen.queryByText('Expand All')).not.toBeInTheDocument();
     });
 
-    it('should pass density mode to tab lists', () => {
-      render(
+    it('should pass density mode from context to tab lists', async () => {
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
           onTabClose={mockOnTabClose}
-          densityMode="compact"
         />
       );
 
-      const tabLists = screen.getAllByTestId('tab-list');
-      tabLists.forEach(list => {
-        expect(list).toHaveAttribute('data-density', 'compact');
+      await waitFor(() => {
+        const tabLists = screen.getAllByTestId('tab-list');
+        tabLists.forEach(list => {
+          expect(list).toHaveAttribute('data-density', 'normal');
+        });
       });
-    });
-
-    it('should log density mode on render', () => {
-      render(
-        <CategoryView
-          categorizedTabs={mockCategorizedTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-          densityMode="spacious"
-        />
-      );
-
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        'CategoryView rendered with densityMode:',
-        'spacious'
-      );
     });
   });
 
@@ -253,7 +247,7 @@ describe('CategoryView', () => {
         Work: false,
       });
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -267,7 +261,7 @@ describe('CategoryView', () => {
     });
 
     it('should toggle group collapse state', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -288,7 +282,7 @@ describe('CategoryView', () => {
     });
 
     it('should collapse all groups when Collapse All clicked', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -315,7 +309,7 @@ describe('CategoryView', () => {
         Work: true,
       });
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -339,7 +333,7 @@ describe('CategoryView', () => {
 
   describe('Keyboard Shortcuts', () => {
     it('should collapse all on Cmd+Left Arrow', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -360,7 +354,7 @@ describe('CategoryView', () => {
     });
 
     it('should expand all on Cmd+Right Arrow', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -381,7 +375,7 @@ describe('CategoryView', () => {
     });
 
     it('should collapse all on Ctrl+Left Arrow', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -401,7 +395,7 @@ describe('CategoryView', () => {
     });
 
     it('should expand all on Ctrl+Right Arrow', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -432,7 +426,7 @@ describe('CategoryView', () => {
     it('should request category summary when Summarize clicked', async () => {
       mockOnCategorySummaryRequest.mockResolvedValue(mockCategorySummary);
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -461,7 +455,7 @@ describe('CategoryView', () => {
     it('should display category summary card', async () => {
       mockOnCategorySummaryRequest.mockResolvedValue(mockCategorySummary);
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -487,7 +481,7 @@ describe('CategoryView', () => {
     it('should close category summary when Close clicked', async () => {
       mockOnCategorySummaryRequest.mockResolvedValue(mockCategorySummary);
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -521,7 +515,7 @@ describe('CategoryView', () => {
     it('should display error when summary fails', async () => {
       mockOnCategorySummaryRequest.mockRejectedValue(new Error('API error'));
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -548,7 +542,7 @@ describe('CategoryView', () => {
     it('should handle non-Error exceptions', async () => {
       mockOnCategorySummaryRequest.mockRejectedValue('String error');
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -574,7 +568,7 @@ describe('CategoryView', () => {
     it('should clear error when ✕ clicked', async () => {
       mockOnCategorySummaryRequest.mockRejectedValue(new Error('Test error'));
 
-      const { container } = render(
+      const { container } = renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -605,7 +599,7 @@ describe('CategoryView', () => {
     });
 
     it('should not render Summarize button when summariesEnabled is false', () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -619,7 +613,7 @@ describe('CategoryView', () => {
     });
 
     it('should not render Summarize button when onCategorySummaryRequest not provided', () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -634,7 +628,7 @@ describe('CategoryView', () => {
 
   describe('Tab Actions', () => {
     it('should call onTabClick when tab clicked', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -653,7 +647,7 @@ describe('CategoryView', () => {
     });
 
     it('should call onTabClose when tab closed', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -675,7 +669,7 @@ describe('CategoryView', () => {
 
   describe('Close All Tabs', () => {
     it('should close all tabs in category', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -701,7 +695,7 @@ describe('CategoryView', () => {
 
   describe('Bookmark All Tabs', () => {
     it('should bookmark all tabs in category', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -740,7 +734,7 @@ describe('CategoryView', () => {
     });
 
     it('should show alert after bookmarking', async () => {
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -765,7 +759,7 @@ describe('CategoryView', () => {
 
   describe('Activity Indicator', () => {
     it('should render category element', async () => {
-      const { container } = render(
+      const { container } = renderWithDensity(
         <CategoryView
           categorizedTabs={mockCategorizedTabs}
           onTabClick={mockOnTabClick}
@@ -782,7 +776,7 @@ describe('CategoryView', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty categories object', () => {
-      const { container } = render(
+      const { container } = renderWithDensity(
         <CategoryView
           categorizedTabs={{}}
           onTabClick={mockOnTabClick}
@@ -798,7 +792,7 @@ describe('CategoryView', () => {
         Work: [mockTabs[2]],
       };
 
-      render(
+      renderWithDensity(
         <CategoryView
           categorizedTabs={singleTabCategory}
           onTabClick={mockOnTabClick}

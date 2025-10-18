@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import type { JiraTicketInfo, ConfluencePageInfo, AtlassianGrouping } from '../types/jira';
-import { AtlassianDetectionService } from '../services/jira/atlassianDetectionService';
-import { JiraTitleParser } from '../services/jira/titleParser';
-import './JiraView.css';
+import type { JiraTicketInfo, ConfluencePageInfo, AtlassianGrouping } from '../../../types/jira';
+import { AtlassianDetectionService } from '../../../services/jira/atlassianDetectionService';
+import { JiraTitleParser } from '../../../services/jira/titleParser';
+import '../../JiraView.css';
 
 export function JiraView() {
   const [loading, setLoading] = useState(true);
@@ -306,3 +306,5 @@ export function JiraView() {
     </div>
   );
 }
+
+export default JiraView;

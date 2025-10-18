@@ -377,8 +377,6 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes with tests

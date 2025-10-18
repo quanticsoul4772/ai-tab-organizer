@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Tab, TabSummary } from '../types';
 import { SummaryCard } from './SummaryCard';
 import { VirtualTabList } from './shared/VirtualTabList';
-import type { DensityMode } from '../types/density';
+import { useDensity } from '../context/DensityContext';
 
 interface TabListProps {
   tabs: Tab[];
@@ -11,7 +11,6 @@ interface TabListProps {
   onSummaryRequest?: (tab: Tab) => Promise<TabSummary>;
   summariesEnabled?: boolean;
   useVirtualScrolling?: boolean;
-  densityMode?: DensityMode;
 }
 
 /**
@@ -24,9 +23,8 @@ export function TabList({
   onSummaryRequest,
   summariesEnabled = true,
   useVirtualScrolling = true,
-  densityMode = 'normal'
 }: TabListProps) {
-  console.log('TabList rendered with densityMode:', densityMode, 'tabs:', tabs.length);
+  const { densityMode } = useDensity();
 
   const [activeSummary, setActiveSummary] = useState<TabSummary | null>(null);
   const [loadingSummary, setLoadingSummary] = useState<number | null>(null);

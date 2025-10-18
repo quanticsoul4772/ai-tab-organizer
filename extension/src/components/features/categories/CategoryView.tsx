@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../types';
-import type { DensityMode } from '../types/density';
-import { TabList } from './TabList';
+import React, { useMemo, useCallback } from 'react';
+import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../../../types';
+import { TabList } from '../../TabList';
 import { CategorySummaryCard } from './CategorySummaryCard';
-import { GroupHeader } from './shared/GroupHeader';
-import { storage } from '../utils/storage';
-import { getDefaultCollapseState } from '../utils/groupDefaults';
+import { GroupHeader } from '../../shared/GroupHeader';
+import { useCategoryState } from '../../../hooks/useCategoryState';
+import { useDensity } from '../../../context/DensityContext';
 
 interface CategoryViewProps {
   categorizedTabs: CategorizedTabs;
@@ -14,7 +13,6 @@ interface CategoryViewProps {
   onTabSummaryRequest?: (tab: Tab) => Promise<TabSummary>;
   onCategorySummaryRequest?: (category: string, tabs: Tab[]) => Promise<CategorySummary>;
   summariesEnabled?: boolean;
-  densityMode?: DensityMode;
 }
 
 /**
@@ -27,113 +25,34 @@ export function CategoryView({
   onTabSummaryRequest,
   onCategorySummaryRequest,
   summariesEnabled = true,
-  densityMode = 'normal'
 }: CategoryViewProps) {
-  console.log('CategoryView rendered with densityMode:', densityMode);
+  const { densityMode } = useDensity();
 
-  const [activeCategorySummary, setActiveCategorySummary] = useState<CategorySummary | null>(null);
-  const [loadingCategorySummary, setLoadingCategorySummary] = useState<string | null>(null);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [groupStates, setGroupStates] = useState<{ [key: string]: boolean }>({});
+  // Use custom hook for category state management
+  const {
+    groupStates,
+    activeCategorySummary,
+    loadingCategorySummary,
+    summaryError,
+    toggleGroup,
+    collapseAll,
+    expandAll,
+    handleCategorySummaryClick,
+    handleCloseCategorySummary,
+    setSummaryError,
+  } = useCategoryState({
+    categorizedTabs,
+    onCategorySummaryRequest,
+  });
 
-  // Load group collapse states on mount and when categories change
-  useEffect(() => {
-    const loadStates = async () => {
-      const savedStates = await storage.getGroupStates();
-      const initialStates: { [key: string]: boolean } = {};
-
-      Object.entries(categorizedTabs).forEach(([category, tabs]) => {
-        // Use saved state if available, otherwise use smart default
-        initialStates[category] = savedStates[category] ?? getDefaultCollapseState(category, tabs);
-      });
-
-      setGroupStates(initialStates);
-    };
-
-    loadStates();
-  }, [categorizedTabs]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Cmd/Ctrl + Left Arrow: Collapse All
-      if ((e.metaKey || e.ctrlKey) && e.key === 'ArrowLeft') {
-        e.preventDefault();
-        collapseAll();
-      }
-      // Cmd/Ctrl + Right Arrow: Expand All
-      if ((e.metaKey || e.ctrlKey) && e.key === 'ArrowRight') {
-        e.preventDefault();
-        expandAll();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [categorizedTabs]);
-
-  const handleCategorySummaryClick = async (category: string, tabs: Tab[]) => {
-    if (!onCategorySummaryRequest) return;
-
-    setLoadingCategorySummary(category);
-    setSummaryError(null);
-
-    try {
-      const summary = await onCategorySummaryRequest(category, tabs);
-      setActiveCategorySummary(summary);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to generate summary';
-      setSummaryError(message);
-    } finally {
-      setLoadingCategorySummary(null);
-    }
-  };
-
-  const handleCloseCategorySummary = () => {
-    setActiveCategorySummary(null);
-    setSummaryError(null);
-  };
-
-  const toggleGroup = async (categoryId: string) => {
-    const newState = !groupStates[categoryId];
-    setGroupStates(prev => ({ ...prev, [categoryId]: newState }));
-    await storage.setGroupState(categoryId, newState);
-  };
-
-  const collapseAll = async () => {
-    const newStates: { [key: string]: boolean } = {};
-    Object.keys(categorizedTabs).forEach(key => {
-      newStates[key] = true;
-    });
-    setGroupStates(newStates);
-
-    // Persist all states
-    for (const [key, value] of Object.entries(newStates)) {
-      await storage.setGroupState(key, value);
-    }
-  };
-
-  const expandAll = async () => {
-    const newStates: { [key: string]: boolean } = {};
-    Object.keys(categorizedTabs).forEach(key => {
-      newStates[key] = false;
-    });
-    setGroupStates(newStates);
-
-    // Persist all states
-    for (const [key, value] of Object.entries(newStates)) {
-      await storage.setGroupState(key, value);
-    }
-  };
-
-  const handleCloseAll = async (category: string, tabs: Tab[]) => {
+  const handleCloseAll = useCallback(async (category: string, tabs: Tab[]) => {
     for (const tab of tabs) {
       await chrome.tabs.remove(tab.id);
       onTabClose(tab.id);
     }
-  };
+  }, [onTabClose]);
 
-  const handleBookmarkAll = async (category: string, tabs: Tab[]) => {
+  const handleBookmarkAll = useCallback(async (category: string, tabs: Tab[]) => {
     const folderName = `${category} - ${new Date().toLocaleDateString()}`;
     const folder = await chrome.bookmarks.create({ title: folderName });
 
@@ -146,9 +65,16 @@ export function CategoryView({
     }
 
     alert(`Bookmarked ${tabs.length} tabs to folder "${folderName}"`);
-  };
+  }, []);
 
-  const hasMultipleGroups = Object.keys(categorizedTabs).length > 1;
+  // Memoize expensive computation
+  const sortedCategories = useMemo(() => {
+    return Object.entries(categorizedTabs).sort(([a], [b]) => a.localeCompare(b));
+  }, [categorizedTabs]);
+
+  const hasMultipleGroups = useMemo(() => {
+    return Object.keys(categorizedTabs).length > 1;
+  }, [categorizedTabs]);
 
   return (
     <div className="categories">
@@ -190,7 +116,7 @@ export function CategoryView({
           </button>
         </div>
       )}
-      {Object.entries(categorizedTabs).map(([category, categoryTabs]) => {
+      {sortedCategories.map(([category, categoryTabs]) => {
         const isCollapsed = groupStates[category] ?? false;
 
         // Check if any tabs in this group are active (opened in last 5 minutes)

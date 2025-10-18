@@ -1,5 +1,7 @@
 import type { Tab, TabSummary, CategorySummary } from '../types';
 import { storage } from '../utils/storage';
+import { runtime } from '../core/browserApi';
+import { BACKGROUND_ACTIONS } from '../constants/actions';
 
 /**
  * Service for managing tab and category summarization
@@ -20,29 +22,14 @@ export const summaryService = {
     }
 
     // Call background worker to generate summary
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
-        {
-          action: 'summarizeTab',
-          tab: tab,
-          apiKey: apiKey,
-        },
-        async (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
+    const summary = await runtime.sendMessage<TabSummary>(
+      BACKGROUND_ACTIONS.SUMMARIZE_TAB,
+      { tab, apiKey }
+    );
 
-          if (response.success && response.data) {
-            // Cache the summary
-            await storage.cacheTabSummary(response.data);
-            resolve(response.data);
-          } else {
-            reject(new Error(response.error || 'Failed to summarize tab'));
-          }
-        }
-      );
-    });
+    // Cache the summary
+    await storage.cacheTabSummary(summary);
+    return summary;
   },
 
   /**
@@ -65,30 +52,14 @@ export const summaryService = {
     }
 
     // Call background worker to generate summary
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
-        {
-          action: 'summarizeCategory',
-          tabs: tabs,
-          categoryName: category,
-          apiKey: apiKey,
-        },
-        async (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
+    const summary = await runtime.sendMessage<CategorySummary>(
+      BACKGROUND_ACTIONS.SUMMARIZE_CATEGORY,
+      { tabs, categoryName: category, apiKey }
+    );
 
-          if (response.success && response.data) {
-            // Cache the summary
-            await storage.cacheCategorySummary(response.data);
-            resolve(response.data);
-          } else {
-            reject(new Error(response.error || 'Failed to summarize category'));
-          }
-        }
-      );
-    });
+    // Cache the summary
+    await storage.cacheCategorySummary(summary);
+    return summary;
   },
 
   /**

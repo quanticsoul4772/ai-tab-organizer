@@ -1,6 +1,87 @@
 // Background service worker for AI Tab Organizer
 
-const API_CONFIG = {
+// Type definitions
+interface ApiConfig {
+  BASE_URL: string;
+  MODEL: string;
+  MAX_TOKENS: number;
+  VERSION: string;
+  TIMEOUT_MS: number;
+  MAX_RETRIES: number;
+  RETRY_DELAY_MS: number;
+}
+
+interface BackgroundRequest {
+  action: 'categorize' | 'summarizeTab' | 'summarizeCategory' | 'extractContent' | 'getTabMetadata';
+  tabs?: chrome.tabs.Tab[];
+  tab?: chrome.tabs.Tab;
+  apiKey?: string;
+  categoryName?: string;
+  tabId?: number;
+  url?: string;
+}
+
+interface BackgroundResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+interface CategoryResponse {
+  [category: string]: number[];
+}
+
+interface TabSummary {
+  tabId: number;
+  summary: string;
+  timestamp: number;
+}
+
+interface CategorySummary {
+  category: string;
+  summary: string;
+  timestamp: number;
+}
+
+interface TabMetadata {
+  lastAccessed: number;
+  isSuspended: boolean;
+  duplicateCount: number;
+  jiraStatus?: string;
+}
+
+interface IndexedTab {
+  id: number;
+  title: string;
+  url: string;
+  content: string;
+  contentHash: string;
+  timestamp: number;
+}
+
+interface ExtractedContent {
+  headings: string[];
+  paragraphs: string[];
+  metaDescription: string | null;
+}
+
+interface ClaudeApiResponse {
+  id: string;
+  type: string;
+  role: string;
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+  model: string;
+  stop_reason: string;
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
+const API_CONFIG: ApiConfig = {
   BASE_URL: 'https://api.anthropic.com/v1/messages',
   MODEL: 'claude-3-5-sonnet-20241022',
   MAX_TOKENS: 1024,
@@ -10,7 +91,11 @@ const API_CONFIG = {
   RETRY_DELAY_MS: 1000,
 };
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((
+  request: BackgroundRequest,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: (response: BackgroundResponse) => void
+) => {
   if (request.action === 'categorize') {
     categorizeTabs(request.tabs, request.apiKey)
       .then(result => sendResponse({ success: true, data: result }))
@@ -96,14 +181,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 /**
  * Categorize tabs using Claude API with retry logic
- * @param {Array} tabs - Array of tab objects
- * @param {string} apiKey - Anthropic API key
- * @returns {Promise<Object>} Category mapping
  */
-async function categorizeTabs(tabs, apiKey) {
+async function categorizeTabs(
+  tabs: chrome.tabs.Tab[] | undefined,
+  apiKey: string | undefined
+): Promise<CategoryResponse> {
+  if (!tabs || !apiKey) {
+    throw new Error('Missing required parameters');
+  }
   const tabInfo = tabs.map((t, i) => `${i}: ${t.title} - ${t.url}`).join('\n');
 
-  let lastError;
+  let lastError: Error | undefined;
   for (let attempt = 0; attempt <= API_CONFIG.MAX_RETRIES; attempt++) {
     try {
       if (attempt > 0) {
@@ -168,10 +256,8 @@ async function categorizeTabs(tabs, apiKey) {
 
 /**
  * Build the prompt for Claude API
- * @param {string} tabInfo - Formatted tab information
- * @returns {string} Prompt text
  */
-function buildPrompt(tabInfo) {
+function buildPrompt(tabInfo: string): string {
   return `Categorize these browser tabs into logical groups (Work, Research, Shopping, Social, Entertainment, Development, News, Other).
 
 CRITICAL: Your response must be ONLY a single-line JSON object. Do not include any explanations, comments, or text before or after the JSON.
@@ -187,10 +273,8 @@ Return only the JSON object as a single line, nothing else:`;
 
 /**
  * Parse and validate API response
- * @param {Object} data - API response data
- * @returns {Object} Parsed category mapping
  */
-function parseApiResponse(data) {
+function parseApiResponse(data: ClaudeApiResponse): CategoryResponse {
   // Validate response structure
   if (!data.content || !data.content[0] || !data.content[0].text) {
     console.error('Unexpected API response:', data);
@@ -248,12 +332,12 @@ function parseApiResponse(data) {
 
 /**
  * Fetch with timeout support
- * @param {string} url - URL to fetch
- * @param {Object} options - Fetch options
- * @param {number} timeout - Timeout in milliseconds
- * @returns {Promise<Response>} Fetch response
  */
-async function fetchWithTimeout(url, options, timeout) {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeout: number
+): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -275,7 +359,7 @@ async function fetchWithTimeout(url, options, timeout) {
  * @param {number} ms - Milliseconds to sleep
  * @returns {Promise<void>}
  */
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -284,7 +368,7 @@ function sleep(ms) {
  * @param {string} url - The URL to check
  * @returns {boolean} True if URL is accessible
  */
-function isAccessibleUrl(url) {
+function isAccessibleUrl(url: string): boolean {
   if (!url) return false;
 
   const protectedProtocols = [
@@ -306,7 +390,7 @@ function isAccessibleUrl(url) {
  * @param {string} url - The inaccessible URL
  * @returns {string} Error message
  */
-function getInaccessibleUrlMessage(url) {
+function getInaccessibleUrlMessage(url: string): string {
   if (!url) return 'Invalid URL';
 
   if (url.startsWith('chrome://') || url.startsWith('edge://')) {
@@ -334,7 +418,7 @@ function getInaccessibleUrlMessage(url) {
  * @param {string} url - Tab URL for validation
  * @returns {Promise<Object>} Extracted content data
  */
-async function extractTabContent(tabId, url) {
+async function extractTabContent(tabId: number, url: string): Promise<ExtractedContent | null> {
   // Validate URL is accessible
   if (!isAccessibleUrl(url)) {
     throw new Error(getInaccessibleUrlMessage(url));
@@ -370,9 +454,13 @@ async function extractTabContent(tabId, url) {
  * @param {string} apiKey - Anthropic API key
  * @returns {Promise<Object>} Tab summary
  */
-async function summarizeTab(tab, apiKey) {
+async function summarizeTab(tab: chrome.tabs.Tab | undefined, apiKey: string | undefined): Promise<TabSummary> {
+  if (!tab || !apiKey) {
+    throw new Error('Missing required parameters');
+  }
+
   // Check if URL is accessible BEFORE trying to extract
-  if (!isAccessibleUrl(tab.url)) {
+  if (!isAccessibleUrl(tab.url || '')) {
     // Return a summary without content for protected pages
     return {
       tabId: tab.id,
@@ -464,7 +552,11 @@ Provide a concise, actionable summary.`;
  * @param {string} apiKey - Anthropic API key
  * @returns {Promise<Object>} Category summary
  */
-async function summarizeCategory(tabs, categoryName, apiKey) {
+async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryName: string | undefined, apiKey: string | undefined): Promise<CategorySummary> {
+  if (!tabs || !categoryName || !apiKey) {
+    throw new Error('Missing required parameters');
+  }
+
   try {
     // Step 1: Extract content from all tabs (with rate limiting)
     const tabsWithContent = [];
@@ -584,7 +676,7 @@ const INDEX_EXPIRY_HOURS = 24;
  * Index a tab for search
  * @param {chrome.tabs.Tab} tab - Tab to index
  */
-async function indexTabForSearch(tab) {
+async function indexTabForSearch(tab: chrome.tabs.Tab): Promise<void> {
   if (!tab.id || !tab.url) return;
 
   // Skip protected URLs
@@ -634,7 +726,7 @@ async function indexTabForSearch(tab) {
  * Remove a tab from the search index
  * @param {number} tabId - Tab ID to remove
  */
-async function removeIndexedTab(tabId) {
+async function removeIndexedTab(tabId: number): Promise<void> {
   try {
     const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
     const tabs = result[INDEXED_TABS_KEY] || {};
@@ -651,7 +743,7 @@ async function removeIndexedTab(tabId) {
 /**
  * Clean up indexed tabs that no longer exist
  */
-async function cleanupIndexedTabs() {
+async function cleanupIndexedTabs(): Promise<void> {
   try {
     const allTabs = await chrome.tabs.query({});
     const activeTabIds = new Set(allTabs.map(t => t.id).filter(id => id !== undefined));
@@ -682,7 +774,7 @@ async function cleanupIndexedTabs() {
  * @param {string} str - String to hash
  * @returns {string} Hash string
  */
-function simpleHash(str) {
+function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -697,7 +789,7 @@ function simpleHash(str) {
  * @param {chrome.tabs.Tab} tab - Tab to check
  * @returns {Promise<boolean>} True if tab needs re-indexing
  */
-async function shouldReindexTab(tab) {
+async function shouldReindexTab(tab: chrome.tabs.Tab): Promise<boolean> {
   if (!tab.id) return false;
 
   try {
@@ -815,7 +907,7 @@ const TAB_ACCESS_TIMES_KEY = 'tab_access_times';
 const tabAccessTimes = new Map();
 
 // Load persisted access times from storage
-async function loadAccessTimes() {
+async function loadAccessTimes(): Promise<void> {
   try {
     const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
     const stored = result[TAB_ACCESS_TIMES_KEY] || {};
@@ -832,7 +924,7 @@ async function loadAccessTimes() {
 }
 
 // Save access times to storage
-async function saveAccessTimes() {
+async function saveAccessTimes(): Promise<void> {
   try {
     // Convert Map to plain object for storage
     const toStore = {};
@@ -847,7 +939,7 @@ async function saveAccessTimes() {
 }
 
 // Initialize activity tracking for all existing tabs on startup
-async function initializeActivityTracking() {
+async function initializeActivityTracking(): Promise<void> {
   await loadAccessTimes();
 
   const allTabs = await chrome.tabs.query({});
@@ -900,7 +992,7 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
  * @param {Array<chrome.tabs.Tab>} allTabs - All open tabs
  * @returns {number} Number of tabs with same URL
  */
-function countDuplicates(tab, allTabs) {
+function countDuplicates(tab: chrome.tabs.Tab, allTabs: chrome.tabs.Tab[]): number {
   if (!tab.url) return 1;
 
   // Only remove hash fragment (# and after) for comparison
@@ -926,7 +1018,7 @@ function countDuplicates(tab, allTabs) {
  * @param {string} url - Tab URL
  * @returns {Promise<string|undefined>} Jira status or undefined
  */
-async function extractJiraStatus(tabId, url) {
+async function extractJiraStatus(tabId: number, url: string): Promise<string | undefined> {
   console.log(`🔬 extractJiraStatus called for tab ${tabId}, url: ${url}`);
 
   if (!url || (!url.includes('jira') && !url.includes('atlassian'))) {

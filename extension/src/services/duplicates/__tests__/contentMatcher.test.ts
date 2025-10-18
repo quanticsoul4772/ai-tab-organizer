@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ContentMatcher } from '../contentMatcher';
+import { runtime } from '../../../core/browserApi';
+
+// Mock browserApi
+vi.mock('../../../core/browserApi');
 
 describe('ContentMatcher', () => {
   let matcher: ContentMatcher;
@@ -160,12 +164,9 @@ describe('ContentMatcher', () => {
         title: 'Example Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: {
-          content: 'This is the page content',
-          metaDescription: 'Page description',
-        },
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
+        content: 'This is the page content',
+        metaDescription: 'Page description',
       });
 
       const content = await matcher.extractTabContent(tab);
@@ -178,11 +179,10 @@ describe('ContentMatcher', () => {
       expect(content.contentHash).toBeDefined();
       expect(content.extracted).toBeInstanceOf(Date);
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith({
-        action: 'extractContent',
-        tabId: 9,
-        url: 'https://example.com/page',
-      });
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'extractContent',
+        { tabId: 9, url: 'https://example.com/page' }
+      );
     });
 
     it('should handle missing meta description', async () => {
@@ -192,12 +192,9 @@ describe('ContentMatcher', () => {
         title: 'Test',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: {
-          content: 'Content only',
-          metaDescription: null,
-        },
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
+        content: 'Content only',
+        metaDescription: null,
       });
 
       const content = await matcher.extractTabContent(tab);
@@ -213,10 +210,9 @@ describe('ContentMatcher', () => {
         title: 'Test Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: false,
-        error: 'Content extraction failed',
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('Content extraction failed')
+      );
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -236,7 +232,7 @@ describe('ContentMatcher', () => {
         title: 'Test',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockRejectedValue(new Error('Network error'));
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Network error'));
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -253,7 +249,7 @@ describe('ContentMatcher', () => {
         title: 'Test',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Test content',
@@ -275,7 +271,7 @@ describe('ContentMatcher', () => {
         title: '',
       } as chrome.tabs.Tab;
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Content',
@@ -297,7 +293,7 @@ describe('ContentMatcher', () => {
       ];
 
       // Return identical content for both tabs to ensure high similarity
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'This is the exact same content that appears on both pages. It has enough text to generate a good SimHash fingerprint for comparison purposes.',
@@ -320,14 +316,11 @@ describe('ContentMatcher', () => {
       ];
 
       let callCount = 0;
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation(async () => {
+      vi.mocked(runtime.sendMessage).mockImplementation(async () => {
         callCount++;
         return {
-          success: true,
-          data: {
-            content: callCount === 1 ? 'Content A' : 'Completely different content B',
-            metaDescription: null,
-          },
+          content: callCount === 1 ? 'Content A' : 'Completely different content B',
+          metaDescription: null,
         };
       });
 
@@ -343,14 +336,11 @@ describe('ContentMatcher', () => {
       ];
 
       let callCount = 0;
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation(async () => {
+      vi.mocked(runtime.sendMessage).mockImplementation(async () => {
         callCount++;
         return {
-          success: true,
-          data: {
-            content: callCount === 1 ? 'Similar content here' : 'Similar content there',
-            metaDescription: null,
-          },
+          content: callCount === 1 ? 'Similar content here' : 'Similar content there',
+          metaDescription: null,
         };
       });
 
@@ -368,14 +358,14 @@ describe('ContentMatcher', () => {
       ];
 
       let callCount = 0;
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation(async () => {
+      vi.mocked(runtime.sendMessage).mockImplementation(async () => {
         callCount++;
         if (callCount === 2) {
-          return { success: false, error: 'Failed' };
+          throw new Error('Failed');
         }
         return {
-          success: true,
-          data: { content: 'Content', metaDescription: null },
+          content: 'Content',
+          metaDescription: null,
         };
       });
 
@@ -392,9 +382,9 @@ describe('ContentMatcher', () => {
         { id: 1, url: 'https://example.com', title: 'Test' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: { content: 'Content', metaDescription: null },
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
+        content: 'Content',
+        metaDescription: null,
       });
 
       const groups = await matcher.findContentDuplicates(tabs, 0.9);
@@ -408,7 +398,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page2', title: 'Page 2', active: true } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content',
@@ -432,7 +422,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page2', title: 'Page 2', active: true } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content',
@@ -453,7 +443,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page', title: 'HTTPS', active: false } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content',
@@ -474,7 +464,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/article', title: 'Canonical' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same article content',
@@ -495,7 +485,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page2', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content',
@@ -515,9 +505,9 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page2', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
-        success: true,
-        data: { content: 'Content', metaDescription: null },
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
+        content: 'Content',
+        metaDescription: null,
       });
 
       const start = Date.now();
@@ -540,7 +530,7 @@ describe('ContentMatcher', () => {
         { id: 3, url: 'https://example.com/page3', title: 'Page 3' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content everywhere',
@@ -562,7 +552,7 @@ describe('ContentMatcher', () => {
         { id: 2, url: 'https://example.com/page2', title: 'Page 2' } as chrome.tabs.Tab,
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
           content: 'Same content',
@@ -595,7 +585,7 @@ describe('ContentMatcher', () => {
       matcher.clearCache();
 
       // Extract again - should not use cache
-      vi.mocked(chrome.runtime.sendMessage).mockResolvedValue({
+      vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: { content: 'New content', metaDescription: null },
       });

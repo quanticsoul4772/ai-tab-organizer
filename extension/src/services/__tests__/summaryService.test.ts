@@ -5,7 +5,24 @@ import type { Tab, TabSummary, CategorySummary } from '../../types';
 // Mock storage
 vi.mock('../../utils/storage');
 
-// Import summaryService AFTER setting up mocks
+// Mock browserApi
+vi.mock('../../core/browserApi', () => ({
+  runtime: {
+    sendMessage: vi.fn(),
+  },
+}));
+
+// Mock constants
+vi.mock('../../constants/actions', () => ({
+  BACKGROUND_ACTIONS: {
+    SUMMARIZE_TAB: 'summarizeTab',
+    SUMMARIZE_CATEGORY: 'summarizeCategory',
+  },
+}));
+
+// Import after mocks
+import { runtime } from '../../core/browserApi';
+import { BACKGROUND_ACTIONS } from '../../constants/actions';
 const { summaryService } = await import('../summaryService');
 
 describe('summaryService', () => {
@@ -38,7 +55,7 @@ describe('summaryService', () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SummaryService] Using cached summary for tab 123'
       );
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should generate new summary if not cached', async () => {
@@ -57,25 +74,19 @@ describe('summaryService', () => {
 
       vi.mocked(storage.getCachedTabSummary).mockResolvedValue(null);
       vi.mocked(storage.cacheTabSummary).mockResolvedValue(undefined);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: true, data: newSummary });
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue(newSummary);
 
       const result = await summaryService.summarizeTab(mockTab, 'test-api-key');
 
       expect(result).toEqual(newSummary);
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        {
-          action: 'summarizeTab',
-          tab: mockTab,
-          apiKey: 'test-api-key',
-        },
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'summarizeTab',
+        { tab: mockTab, apiKey: 'test-api-key' }
       );
       expect(storage.cacheTabSummary).toHaveBeenCalledWith(newSummary);
     });
 
-    it('should reject if chrome.runtime.lastError occurs', async () => {
+    it('should reject if runtime error occurs', async () => {
       const mockTab: Tab = {
         id: 789,
         title: 'Error Page',
@@ -83,17 +94,11 @@ describe('summaryService', () => {
       };
 
       vi.mocked(storage.getCachedTabSummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        (chrome.runtime as any).lastError = { message: 'Runtime error occurred' };
-        callback(null);
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Runtime error occurred'));
 
       await expect(summaryService.summarizeTab(mockTab, 'test-api-key')).rejects.toThrow(
         'Runtime error occurred'
       );
-
-      // Clean up lastError
-      delete (chrome.runtime as any).lastError;
     });
 
     it('should reject if response indicates failure', async () => {
@@ -104,9 +109,7 @@ describe('summaryService', () => {
       };
 
       vi.mocked(storage.getCachedTabSummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: false, error: 'API error' });
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('API error'));
 
       await expect(summaryService.summarizeTab(mockTab, 'test-api-key')).rejects.toThrow(
         'API error'
@@ -121,12 +124,10 @@ describe('summaryService', () => {
       };
 
       vi.mocked(storage.getCachedTabSummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: false });
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Failed to execute action: summarizeTab'));
 
       await expect(summaryService.summarizeTab(mockTab, 'test-api-key')).rejects.toThrow(
-        'Failed to summarize tab'
+        'Failed to execute action: summarizeTab'
       );
     });
   });
@@ -155,7 +156,7 @@ describe('summaryService', () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SummaryService] Using cached summary for category Work'
       );
-      expect(chrome.runtime.sendMessage).not.toHaveBeenCalled();
+      expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
     it('should generate new summary if tab count changed', async () => {
@@ -181,21 +182,14 @@ describe('summaryService', () => {
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(cachedSummary);
       vi.mocked(storage.cacheCategorySummary).mockResolvedValue(undefined);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: true, data: newSummary });
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue(newSummary);
 
       const result = await summaryService.summarizeCategory('Work', mockTabs, 'test-api-key');
 
       expect(result).toEqual(newSummary);
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        {
-          action: 'summarizeCategory',
-          tabs: mockTabs,
-          categoryName: 'Work',
-          apiKey: 'test-api-key',
-        },
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        BACKGROUND_ACTIONS.SUMMARIZE_CATEGORY,
+        { tabs: mockTabs, categoryName: 'Work', apiKey: 'test-api-key' }
       );
       expect(storage.cacheCategorySummary).toHaveBeenCalledWith(newSummary);
     });
@@ -214,9 +208,7 @@ describe('summaryService', () => {
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(storage.cacheCategorySummary).mockResolvedValue(undefined);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: true, data: newSummary });
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue(newSummary);
 
       const result = await summaryService.summarizeCategory('Personal', mockTabs, 'test-api-key');
 
@@ -224,23 +216,17 @@ describe('summaryService', () => {
       expect(storage.cacheCategorySummary).toHaveBeenCalledWith(newSummary);
     });
 
-    it('should reject if chrome.runtime.lastError occurs', async () => {
+    it('should reject if runtime error occurs', async () => {
       const mockTabs: Tab[] = [
         { id: 1, title: 'Tab 1', url: 'https://one.com' },
       ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        (chrome.runtime as any).lastError = { message: 'Category runtime error' };
-        callback(null);
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category runtime error'));
 
       await expect(
         summaryService.summarizeCategory('Work', mockTabs, 'test-api-key')
       ).rejects.toThrow('Category runtime error');
-
-      // Clean up lastError
-      delete (chrome.runtime as any).lastError;
     });
 
     it('should reject if response indicates failure', async () => {
@@ -249,9 +235,7 @@ describe('summaryService', () => {
       ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: false, error: 'Category API error' });
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category API error'));
 
       await expect(
         summaryService.summarizeCategory('Work', mockTabs, 'test-api-key')
@@ -264,13 +248,11 @@ describe('summaryService', () => {
       ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback: any) => {
-        callback({ success: false });
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Failed to execute action: summarizeCategory'));
 
       await expect(
         summaryService.summarizeCategory('Work', mockTabs, 'test-api-key')
-      ).rejects.toThrow('Failed to summarize category');
+      ).rejects.toThrow('Failed to execute action: summarizeCategory');
     });
   });
 

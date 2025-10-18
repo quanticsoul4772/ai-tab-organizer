@@ -5,6 +5,7 @@ import { filterTabsLocally } from './localSearch';
 import { rankTabsByRelevance } from './aiRanker';
 import { getCachedSearch, cacheSearchResults } from '../utils/searchCache';
 import { JiraSearchEnhancer } from './jira/jiraSearchEnhancer';
+import { tabs } from '../core/browserApi';
 
 /**
  * Main search function
@@ -22,7 +23,7 @@ export async function searchTabs(queryText: string, apiKey: string): Promise<Sea
   // Try Jira-enhanced search first (for ticket patterns and project filters)
   if (JiraSearchEnhancer.isTicketPattern(queryText) || JiraSearchEnhancer.isProjectPattern(queryText)) {
     console.log('Using Jira-enhanced search');
-    const allTabs = await chrome.tabs.query({});
+    const allTabs = await tabs.getAll();
     const jiraResults = JiraSearchEnhancer.searchJiraTabs(queryText, allTabs);
 
     if (jiraResults.length > 0) {
@@ -76,14 +77,16 @@ export async function searchTabs(queryText: string, apiKey: string): Promise<Sea
  * Switch to a tab
  */
 export async function switchToTab(tabId: number): Promise<void> {
-  const tab = await chrome.tabs.get(tabId);
-  await chrome.tabs.update(tabId, { active: true });
-  await chrome.windows.update(tab.windowId, { focused: true });
+  const tab = await tabs.getById(tabId);
+  if (tab) {
+    await tabs.switchTo(tabId);
+    await chrome.windows.update(tab.windowId, { focused: true });
+  }
 }
 
 /**
  * Close a tab
  */
 export async function closeTab(tabId: number): Promise<void> {
-  await chrome.tabs.remove(tabId);
+  await tabs.close(tabId);
 }

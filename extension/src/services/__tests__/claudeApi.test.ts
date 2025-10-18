@@ -2,6 +2,22 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { claudeApi } from '../claudeApi';
 import type { Tab } from '../../types';
 
+// Mock the browserApi module
+vi.mock('../../core/browserApi', () => ({
+  runtime: {
+    sendMessage: vi.fn(),
+  },
+}));
+
+// Mock the constants
+vi.mock('../../constants/actions', () => ({
+  BACKGROUND_ACTIONS: {
+    CATEGORIZE: 'categorize',
+  },
+}));
+
+import { runtime } from '../../core/browserApi';
+
 describe('claudeApi', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,51 +35,29 @@ describe('claudeApi', () => {
         Personal: [1],
       };
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: mockResponse });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue(mockResponse);
 
       const result = await claudeApi.categorizeTabs(tabs, 'test-api-key');
 
       expect(result).toEqual(mockResponse);
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        { action: 'categorize', tabs, apiKey: 'test-api-key' },
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'categorize',
+        { tabs, apiKey: 'test-api-key' }
       );
     });
 
-    it('should handle chrome.runtime.lastError', async () => {
+    it('should handle runtime errors', async () => {
       const tabs: Tab[] = [
         { id: 1, url: 'https://example.com', title: 'Test' },
       ];
 
-      // Mock lastError
-      Object.defineProperty(chrome.runtime, 'lastError', {
-        value: { message: 'Extension context invalidated' },
-        writable: true,
-        configurable: true,
-      });
-
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({});
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('Extension context invalidated')
+      );
 
       await expect(claudeApi.categorizeTabs(tabs, 'test-api-key')).rejects.toThrow(
         'Extension context invalidated'
       );
-
-      // Clean up
-      Object.defineProperty(chrome.runtime, 'lastError', {
-        value: undefined,
-        writable: true,
-        configurable: true,
-      });
     });
 
     it('should handle API errors', async () => {
@@ -71,12 +65,9 @@ describe('claudeApi', () => {
         { id: 1, url: 'https://example.com', title: 'Test' },
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: false, error: 'API rate limit exceeded' });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('API rate limit exceeded')
+      );
 
       await expect(claudeApi.categorizeTabs(tabs, 'test-api-key')).rejects.toThrow(
         'API rate limit exceeded'
@@ -88,15 +79,12 @@ describe('claudeApi', () => {
         { id: 1, url: 'https://example.com', title: 'Test' },
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: false });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('Failed to execute action: categorize')
+      );
 
       await expect(claudeApi.categorizeTabs(tabs, 'test-api-key')).rejects.toThrow(
-        'Failed to categorize tabs'
+        'Failed to execute action: categorize'
       );
     });
 
@@ -105,18 +93,13 @@ describe('claudeApi', () => {
         { id: 1, url: 'https://example.com', title: 'Test' },
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: { Test: [0] } });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ Test: [0] });
 
       await claudeApi.categorizeTabs(tabs, 'my-secret-key');
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ apiKey: 'my-secret-key' }),
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'categorize',
+        expect.objectContaining({ apiKey: 'my-secret-key' })
       );
     });
 
@@ -126,46 +109,31 @@ describe('claudeApi', () => {
         { id: 2, url: 'https://gitlab.com', title: 'GitLab' },
       ];
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: { Development: [0, 1] } });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ Development: [0, 1] });
 
       await claudeApi.categorizeTabs(tabs, 'test-api-key');
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ tabs }),
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'categorize',
+        expect.objectContaining({ tabs })
       );
     });
 
     it('should include categorize action in message', async () => {
       const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: {} });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({});
 
       await claudeApi.categorizeTabs(tabs, 'test-api-key');
 
-      expect(chrome.runtime.sendMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ action: 'categorize' }),
-        expect.any(Function)
+      expect(runtime.sendMessage).toHaveBeenCalledWith(
+        'categorize',
+        expect.anything()
       );
     });
 
     it('should handle empty tabs array', async () => {
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: {} });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue({});
 
       const result = await claudeApi.categorizeTabs([], 'test-api-key');
 
@@ -183,12 +151,7 @@ describe('claudeApi', () => {
         Development: [],
       };
 
-      vi.mocked(chrome.runtime.sendMessage).mockImplementation((message: any, callback?: any) => {
-        if (callback) {
-          callback({ success: true, data: categoryData });
-        }
-        return undefined as any;
-      });
+      vi.mocked(runtime.sendMessage).mockResolvedValue(categoryData);
 
       const result = await claudeApi.categorizeTabs(tabs, 'test-api-key');
 

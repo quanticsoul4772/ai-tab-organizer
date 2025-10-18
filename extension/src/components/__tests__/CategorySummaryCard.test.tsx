@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { CategorySummaryCard } from '../CategorySummaryCard';
+import { CategorySummaryCard } from '../features/categories/CategorySummaryCard';
 import type { CategorySummary } from '../../types';
 
 describe('CategorySummaryCard', () => {

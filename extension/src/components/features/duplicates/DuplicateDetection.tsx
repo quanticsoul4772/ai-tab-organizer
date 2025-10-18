@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import type { DuplicateGroup } from '../types/duplicates';
-import { DuplicateDetectionService } from '../services/duplicates/duplicateDetectionService';
-import { tabManager } from '../services/tabManager';
+import type { DuplicateGroup } from '../../../types/duplicates';
+import { DuplicateDetectionService } from '../../../services/duplicates/duplicateDetectionService';
+import { tabManager } from '../../../services/tabManager';
 
 export function DuplicateDetection() {
   const [scanning, setScanning] = useState(false);
@@ -190,3 +190,5 @@ export function DuplicateDetection() {
     </div>
   );
 }
+
+export default DuplicateDetection;

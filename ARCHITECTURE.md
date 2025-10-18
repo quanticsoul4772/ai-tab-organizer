@@ -56,36 +56,59 @@ AI Tab Organizer is a Chrome extension built with React, TypeScript, and Vite th
 extension/
 ├── src/
 │   ├── components/              # React UI Components
-│   │   ├── CategoryView.tsx     # Main tab categorization view
-│   │   ├── SettingsPanel.tsx    # Settings and configuration
-│   │   ├── TabSearch.tsx        # Search interface
-│   │   ├── DuplicateDetection.tsx  # Duplicate finder
-│   │   └── JiraView.tsx         # Jira-specific view
+│   │   ├── features/            # Feature-based organization
+│   │   │   ├── categories/      # CategoryView, CategorySummaryCard
+│   │   │   ├── search/          # TabSearch
+│   │   │   ├── sessions/        # SessionsView
+│   │   │   ├── jira/            # JiraView
+│   │   │   └── duplicates/      # DuplicateDetection
+│   │   ├── layout/              # PopupHeader, PopupNavigation
+│   │   ├── shared/              # Shared components
+│   │   │   ├── ui/              # Button, Badge, Dialog, etc.
+│   │   │   ├── GroupHeader.tsx
+│   │   │   └── VirtualTabList.tsx
+│   │   ├── sessions/            # Session sub-components
+│   │   ├── SettingsPanel.tsx
+│   │   └── TabList.tsx
 │   │
 │   ├── services/                # Business Logic Layer
 │   │   ├── claudeApi.ts         # Claude API communication
 │   │   ├── tabManager.ts        # Tab operations
 │   │   ├── searchService.ts     # Search functionality
-│   │   ├── duplicateService.ts  # Duplicate detection
 │   │   ├── summaryService.ts    # Tab summarization
+│   │   ├── sessionManager.ts    # Session save/restore
+│   │   ├── duplicates/          # Duplicate detection services
 │   │   └── jira/                # Jira-specific services
-│   │       ├── urlParser.ts           # Parse Jira URLs
-│   │       ├── titleParser.ts         # Extract ticket info from titles
-│   │       ├── jiraSearchEnhancer.ts  # Enhanced Jira search
-│   │       └── atlassianDetectionService.ts  # Detect/group Jira tabs
+│   │       ├── urlParser.ts
+│   │       ├── titleParser.ts
+│   │       ├── jiraSearchEnhancer.ts
+│   │       └── atlassianDetectionService.ts
+│   │
+│   ├── context/                 # React Context Providers
+│   │   ├── DensityContext.tsx   # Density mode state
+│   │   ├── SettingsContext.tsx  # Settings management
+│   │   └── AppStateContext.tsx  # App-level state
+│   │
+│   ├── core/                    # Core functionality
+│   │   ├── browserApi.ts        # Chrome API abstraction
+│   │   └── logger.ts            # Centralized logging
 │   │
 │   ├── types/                   # TypeScript Definitions
 │   │   ├── index.ts             # Core types
+│   │   ├── background.ts        # Background worker types
 │   │   ├── search.ts            # Search types
-│   │   └── jira.ts              # Jira types
+│   │   ├── jira.ts              # Jira types
+│   │   └── session.ts           # Session types
 │   │
 │   ├── utils/                   # Utility Functions
 │   │   └── storage.ts           # Chrome storage wrapper
 │   │
+│   ├── background.ts            # Background service worker (TypeScript)
 │   ├── popup.tsx                # Main React entry point
 │   └── popup.css                # Global styles
 │
-├── background.js                # Background service worker
+├── content-extractor.js         # Content extraction script
+├── jira-content-extractor.js    # Jira content extraction
 ├── manifest.json                # Chrome extension manifest
 ├── popup.html                   # Extension popup HTML
 └── vite.config.ts              # Build configuration
@@ -226,12 +249,15 @@ Content-based duplicate detection:
 
 ```
 dist/
-├── popup.html              # Extension popup
-├── manifest.json           # Extension manifest (copied)
-├── background.js           # Service worker (copied)
+├── popup.html                    # Extension popup
+├── manifest.json                 # Extension manifest (copied)
+├── background.js                 # Service worker (compiled from TypeScript)
+├── content-extractor.js          # Content extraction (copied)
+├── jira-content-extractor.js     # Jira extraction (copied)
 └── assets/
-    ├── popup-[hash].js     # Bundled React app (~193 KB)
-    └── popup-[hash].css    # Bundled styles (~17 KB)
+    ├── popup-[hash].js           # Bundled React app (~190 KB)
+    ├── popup-[hash].css          # Bundled styles (~19 KB)
+    └── [feature]-[hash].js       # Lazy-loaded feature chunks
 ```
 
 ## Testing
@@ -244,13 +270,24 @@ dist/
 
 ### Test Files
 
+**Current Coverage**: 918 tests across 46 test files (71% code coverage)
+
 ```
-src/services/jira/__tests__/
-├── urlParser.test.ts               # URL parsing (24 tests)
-├── titleParser.test.ts             # Title parsing (41 tests)
-├── jiraSearchEnhancer.test.ts      # Search (30 tests)
-├── atlassianDetectionService.test.ts  # Detection (20 tests)
-└── performance.test.ts             # Performance (8 tests)
+src/
+├── components/__tests__/          # Component tests
+│   ├── CategoryView.test.tsx
+│   ├── TabList.test.tsx
+│   ├── SettingsPanel.test.tsx
+│   └── ...
+├── services/__tests__/            # Service tests
+│   ├── jira/__tests__/
+│   │   ├── urlParser.test.ts               # 24 tests
+│   │   ├── titleParser.test.ts             # 41 tests
+│   │   ├── jiraSearchEnhancer.test.ts      # 30 tests
+│   │   ├── atlassianDetectionService.test.ts  # 20 tests
+│   │   └── performance.test.ts             # 8 tests
+│   └── ...
+└── utils/__tests__/               # Utility tests
 ```
 
 ## Security

@@ -1,7 +1,7 @@
-import { memo, useCallback, useMemo, useState, useEffect } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import type { DensityConfig } from '../../types/density';
 import { getTabIndicators } from '../../utils/indicators';
-import type { TabMetadata } from '../../types/indicators';
+import { useTabMetadata } from '../../hooks/useTabMetadata';
 
 interface TabItemProps {
   tab: chrome.tabs.Tab;
@@ -22,33 +22,9 @@ export const TabItem = memo(function TabItem({
 }: TabItemProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isCloseHovered, setIsCloseHovered] = useState(false);
-  const [metadata, setMetadata] = useState<TabMetadata>({
-    lastAccessed: Date.now(),
-    isSuspended: false,
-    duplicateCount: 1,
-    isPinned: tab.pinned || false,
-  });
 
-  // Fetch tab metadata from background worker
-  useEffect(() => {
-    if (tab.id) {
-      chrome.runtime.sendMessage(
-        { action: 'getTabMetadata', tabId: tab.id },
-        (response) => {
-          if (response?.success && response.data) {
-            setMetadata({
-              lastAccessed: response.data.lastAccessed || Date.now(),
-              memoryUsage: response.data.memoryUsage,
-              isSuspended: response.data.isSuspended || false,
-              duplicateCount: response.data.duplicateCount || 1,
-              isPinned: tab.pinned || false,
-              jiraStatus: response.data.jiraStatus,
-            });
-          }
-        }
-      );
-    }
-  }, [tab.id, tab.pinned]);
+  // Fetch tab metadata using custom hook
+  const { metadata } = useTabMetadata(tab.id, tab.pinned || false);
 
   // Calculate indicators using the proper function
   const indicators = useMemo(() => {

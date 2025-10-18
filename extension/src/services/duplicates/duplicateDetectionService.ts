@@ -145,3 +145,6 @@ export class DuplicateDetectionService {
     this.contentMatcher.clearCache();
   }
 }
+
+// Export singleton instance (without API key, can be set via updateApiKey method)
+export const duplicateDetectionService = new DuplicateDetectionService();

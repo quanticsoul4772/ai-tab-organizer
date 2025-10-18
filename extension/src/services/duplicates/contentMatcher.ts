@@ -1,5 +1,7 @@
 import type { DuplicateGroup, TabContent } from '../../types/duplicates';
 import { SimHash } from './simHash';
+import { runtime } from '../../core/browserApi';
+import { BACKGROUND_ACTIONS } from '../../constants/actions';
 
 export class ContentMatcher {
   private simHash = new SimHash();
@@ -59,17 +61,12 @@ export class ContentMatcher {
 
     try {
       // Request content extraction from background script
-      const response = await chrome.runtime.sendMessage({
-        action: 'extractContent',
-        tabId: tab.id,
-        url: tab.url,
-      });
+      const data = await runtime.sendMessage<{ content: string; metaDescription?: string }>(
+        BACKGROUND_ACTIONS.EXTRACT_CONTENT,
+        { tabId: tab.id, url: tab.url }
+      );
 
-      if (!response.success) {
-        throw new Error(response.error);
-      }
-
-      const { content, metaDescription } = response.data;
+      const { content, metaDescription } = data;
 
       // Combine title, description, and content for fingerprinting
       const combined = [tab.title || '', metaDescription || '', content || ''].join(' ');
