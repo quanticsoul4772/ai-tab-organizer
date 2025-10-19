@@ -15,7 +15,8 @@ const tabs = {
    * Get all open tabs
    */
   async getAll(): Promise<Tab[]> {
-    return await chrome.tabs.query({});
+    const tabs = await chrome.tabs.query({});
+    return tabs as Tab[];
   },
 
   /**
@@ -23,7 +24,7 @@ const tabs = {
    */
   async getActive(): Promise<Tab | null> {
     const activeTabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    return activeTabs[0] || null;
+    return (activeTabs[0] as Tab) || null;
   },
 
   /**
@@ -31,7 +32,8 @@ const tabs = {
    */
   async getById(tabId: number): Promise<Tab | null> {
     try {
-      return await chrome.tabs.get(tabId);
+      const tab = await chrome.tabs.get(tabId);
+      return tab as Tab;
     } catch (error) {
       // Tab might not exist
       logger.debug(`Tab ${tabId} not found`, 'browserApi.tabs.getById', error);
@@ -64,21 +66,24 @@ const tabs = {
    * Create a new tab
    */
   async create(options: chrome.tabs.CreateProperties): Promise<Tab> {
-    return await chrome.tabs.create(options);
+    const tab = await chrome.tabs.create(options);
+    return tab as Tab;
   },
 
   /**
    * Update a tab
    */
   async update(tabId: number, updateProperties: chrome.tabs.UpdateProperties): Promise<Tab> {
-    return await chrome.tabs.update(tabId, updateProperties);
+    const tab = await chrome.tabs.update(tabId, updateProperties);
+    return tab as Tab;
   },
 
   /**
    * Query tabs based on criteria
    */
   async query(queryInfo: chrome.tabs.QueryInfo): Promise<Tab[]> {
-    return await chrome.tabs.query(queryInfo);
+    const tabs = await chrome.tabs.query(queryInfo);
+    return tabs as Tab[];
   },
 };
 

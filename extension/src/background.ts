@@ -4,10 +4,10 @@ import { retryWithValidation, isRetryableHttpError } from '@utils/retry';
 import {
   ClaudeResponseSchema,
   CategoryResponseSchema,
-  MessageSchema,
   type ClaudeResponse,
   type CategoryResponse,
 } from '@schemas/index';
+import type { TabSummary, CategorySummary } from '@types/index';
 
 // Type definitions
 interface ApiConfig {
@@ -37,40 +37,15 @@ interface BackgroundResponse<T = any> {
   error?: string;
 }
 
-// CategoryResponse now imported from schemas
-
-interface TabSummary {
-  tabId: number;
-  summary: string;
-  timestamp: number;
-}
-
-interface CategorySummary {
-  category: string;
-  summary: string;
-  timestamp: number;
-}
-
-interface TabMetadata {
-  lastAccessed: number;
-  isSuspended: boolean;
-  duplicateCount: number;
-  jiraStatus?: string;
-}
-
-interface IndexedTab {
-  id: number;
-  title: string;
-  url: string;
-  content: string;
-  contentHash: string;
-  timestamp: number;
-}
+// CategoryResponse, TabSummary, and CategorySummary now imported from schemas
 
 interface ExtractedContent {
   headings: string[];
   paragraphs: string[];
   metaDescription: string | null;
+  hasContent: boolean;
+  content?: string;
+  contentLength?: number;
 }
 
 // ClaudeResponse now imported from schemas (as ClaudeResponse type)
@@ -89,7 +64,7 @@ const API_CONFIG: ApiConfig = {
 chrome.runtime.onMessage.addListener(
   (
     request: BackgroundRequest,
-    sender: chrome.runtime.MessageSender,
+    _sender: chrome.runtime.MessageSender,
     sendResponse: (response: BackgroundResponse) => void
   ) => {
     if (request.action === 'categorize') {
@@ -123,6 +98,10 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === 'extractContent') {
+      if (!request.tabId || !request.url) {
+        sendResponse({ success: false, error: 'Missing tabId or url' });
+        return true;
+      }
       extractTabContent(request.tabId, request.url)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
@@ -134,6 +113,10 @@ chrome.runtime.onMessage.addListener(
 
     if (request.action === 'getTabMetadata') {
       const { tabId } = request;
+      if (!tabId) {
+        sendResponse({ success: false, error: 'Missing tabId' });
+        return true;
+      }
 
       // Get tab info and all tabs for duplicate detection
       chrome.tabs.get(tabId, async (tab) => {
@@ -309,11 +292,17 @@ function parseApiResponse(data: ClaudeResponse): CategoryResponse {
   } catch (error) {
     console.error('Failed to parse JSON response:', jsonText);
     console.error('Original response:', rawText);
-    throw new Error(`JSON parsing error: ${error.message}. Please try again.`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`JSON parsing error: ${errorMessage}. Please try again.`);
   }
 }
 
-// fetchWithTimeout and sleep are now handled by retryWithBackoff utility
+/**
+ * Sleep utility for delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 /**
  * Check if a URL can be accessed for content extraction
@@ -387,16 +376,17 @@ async function extractTabContent(tabId: number, url: string): Promise<ExtractedC
       throw new Error('No content extraction results returned');
     }
 
-    const extractedData = results[0].result;
+    const extractedData = results[0].result as ExtractedContent;
 
-    if (!extractedData.hasContent) {
+    if (!extractedData || !extractedData.hasContent) {
       throw new Error('Unable to extract content from page');
     }
 
     return extractedData;
   } catch (error) {
     console.error('Content extraction failed:', error);
-    throw new Error(`Failed to extract page content: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to extract page content: ${errorMessage}`);
   }
 }
 
@@ -410,12 +400,12 @@ async function summarizeTab(
   tab: chrome.tabs.Tab | undefined,
   apiKey: string | undefined
 ): Promise<TabSummary> {
-  if (!tab || !apiKey) {
+  if (!tab || !apiKey || !tab.id || !tab.url || !tab.title) {
     throw new Error('Missing required parameters');
   }
 
   // Check if URL is accessible BEFORE trying to extract
-  if (!isAccessibleUrl(tab.url || '')) {
+  if (!isAccessibleUrl(tab.url)) {
     // Return a summary without content for protected pages
     return {
       tabId: tab.id,
@@ -424,14 +414,22 @@ async function summarizeTab(
       summary: `Browser internal page (cannot analyze)`,
       timestamp: Date.now(),
       tokens: 0,
-      contentLength: 0,
-      protected: true,
     };
   }
 
   try {
     // Step 1: Extract content from the tab
     const contentData = await extractTabContent(tab.id, tab.url);
+
+    if (!contentData) {
+      throw new Error('Failed to extract content');
+    }
+
+    // Build content string from extracted data
+    const contentText = contentData.content || [
+      ...contentData.headings.map(h => `Heading: ${h}`),
+      ...contentData.paragraphs.slice(0, 5)
+    ].join('\n');
 
     // Step 2: Build enhanced prompt with actual content
     const prompt = `Summarize this browser tab in 2-3 sentences. Focus on:
@@ -441,13 +439,13 @@ async function summarizeTab(
 
 Tab Title: ${tab.title}
 Tab URL: ${tab.url}
-Page Content Preview: ${contentData.content}
+Page Content Preview: ${contentText}
 ${contentData.metaDescription ? `Meta Description: ${contentData.metaDescription}` : ''}
 
 Provide a concise, actionable summary.`;
 
     // Step 3: Call Claude API with content
-    const response = await fetchWithTimeout(
+    const response = await fetch(
       API_CONFIG.BASE_URL,
       {
         method: 'POST',
@@ -467,8 +465,7 @@ Provide a concise, actionable summary.`;
             },
           ],
         }),
-      },
-      API_CONFIG.TIMEOUT_MS
+      }
     );
 
     if (!response.ok) {
@@ -494,7 +491,6 @@ Provide a concise, actionable summary.`;
       summary: summary,
       timestamp: Date.now(),
       tokens: tokens,
-      contentLength: contentData.contentLength,
     };
   } catch (error) {
     console.error('Failed to summarize tab:', error);
@@ -524,6 +520,11 @@ async function summarizeCategory(
 
     for (const tab of tabs.slice(0, 10)) {
       // Limit to 10 tabs max
+      if (!tab.id || !tab.url || !tab.title) {
+        console.warn('Skipping tab with missing properties');
+        continue;
+      }
+
       // Check if URL is accessible before attempting extraction
       if (!isAccessibleUrl(tab.url)) {
         console.log(`Skipping protected URL: ${tab.url}`);
@@ -537,15 +538,25 @@ async function summarizeCategory(
 
       try {
         const contentData = await extractTabContent(tab.id, tab.url);
+        if (!contentData) {
+          throw new Error('No content extracted');
+        }
+
+        // Build content string from extracted data
+        const contentText = contentData.content || [
+          ...contentData.headings.map(h => `Heading: ${h}`),
+          ...contentData.paragraphs.slice(0, 3)
+        ].join('\n');
+
         tabsWithContent.push({
           title: tab.title,
           url: tab.url,
-          contentPreview: contentData.content.substring(0, 500), // Limit per-tab content
+          contentPreview: contentText.substring(0, 500), // Limit per-tab content
         });
       } catch (error) {
         console.warn(`Failed to extract content from tab ${tab.id}:`, error);
         // Include tab with error message
-        const errorMessage = error.message || 'Content unavailable';
+        const errorMessage = error instanceof Error ? error.message : 'Content unavailable';
         tabsWithContent.push({
           title: tab.title,
           url: tab.url,
@@ -576,7 +587,7 @@ ${tabList}
 Provide a cohesive summary that captures the essence of this tab collection.`;
 
     // Step 4: Call Claude API
-    const response = await fetchWithTimeout(
+    const response = await fetch(
       API_CONFIG.BASE_URL,
       {
         method: 'POST',
@@ -596,8 +607,7 @@ Provide a cohesive summary that captures the essence of this tab collection.`;
             },
           ],
         }),
-      },
-      API_CONFIG.TIMEOUT_MS
+      }
     );
 
     if (!response.ok) {

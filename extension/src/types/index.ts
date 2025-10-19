@@ -1,9 +1,5 @@
-export interface Tab {
-  id: number;
-  title: string;
-  url: string;
-  favIconUrl?: string;
-}
+// Use chrome.tabs.Tab as the base type for better compatibility
+export type Tab = chrome.tabs.Tab;
 
 export interface CategorizedTabs {
   [category: string]: Tab[];
