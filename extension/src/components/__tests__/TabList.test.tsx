@@ -6,6 +6,7 @@ import { DensityProvider } from '../../context/DensityContext';
 
 // Mock child components
 vi.mock('../SummaryCard', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   SummaryCard: ({ summary, onClose }: any) => (
     <div data-testid="summary-card">
       <div>Summary: {summary.summary}</div>
@@ -15,6 +16,7 @@ vi.mock('../SummaryCard', () => ({
 }));
 
 vi.mock('../shared/VirtualTabList', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   VirtualTabList: ({ tabs, onTabClick, onTabClose, densityMode }: any) => (
     <div data-testid="virtual-tab-list" data-density={densityMode}>
       {tabs.map((tab: Tab) => (

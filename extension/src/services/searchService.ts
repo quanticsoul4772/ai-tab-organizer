@@ -1,4 +1,4 @@
-import type { SearchQuery, SearchResult } from '../types/search';
+import type { SearchResult } from '../types/search';
 import { parseSearchQuery } from './queryParser';
 import { getIndexedTabs } from './tabIndexer';
 import { filterTabsLocally } from './localSearch';
@@ -34,7 +34,8 @@ export async function searchTabs(queryText: string, apiKey: string): Promise<Sea
       const results: SearchResult[] = jiraResults.map(({ tab, score, reason }) => ({
         tab,
         relevanceScore: score,
-        matchedFields: ['jira-ticket'],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        matchedFields: ['jira-ticket'] as any,
         highlights: [queryText],
         matchReason: reason,
       }));

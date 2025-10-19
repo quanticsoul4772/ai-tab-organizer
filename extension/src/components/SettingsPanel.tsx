@@ -1,4 +1,3 @@
-import React from 'react';
 import type { SummarySettings, JiraSettings } from '../types';
 
 interface SettingsPanelProps {

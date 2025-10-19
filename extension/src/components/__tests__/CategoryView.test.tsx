@@ -18,6 +18,7 @@ vi.mock('../../utils/groupDefaults', () => ({
 }));
 
 vi.mock('@components/TabList', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TabList: ({ tabs, onTabClick, onTabClose, densityMode }: any) => (
     <div data-testid="tab-list" data-density={densityMode}>
       {tabs.map((tab: Tab) => (
@@ -31,6 +32,7 @@ vi.mock('@components/TabList', () => ({
 }));
 
 vi.mock('@components/features/categories/CategorySummaryCard', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   CategorySummaryCard: ({ summary, onClose }: any) => (
     <div data-testid="category-summary-card">
       <div>{summary.summary}</div>
@@ -49,6 +51,7 @@ vi.mock('@components/shared/GroupHeader', () => ({
     isLoadingSummary,
     onCloseAll,
     onBookmarkAll,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   }: any) => (
     <div data-testid={`group-header-${categoryName}`}>
       <button onClick={onToggle}>
@@ -146,6 +149,7 @@ describe('CategoryView', () => {
         // Creating bookmark
         return Promise.resolve({ id: 'bookmark-456', parentId, title, url });
       }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     // Mock window.alert
@@ -244,7 +248,8 @@ describe('CategoryView', () => {
       vi.mocked(storage.storage.getGroupStates).mockResolvedValue({
         Development: true,
         Work: false,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       renderWithDensity(
         <CategoryView
@@ -306,7 +311,8 @@ describe('CategoryView', () => {
       vi.mocked(storage.storage.getGroupStates).mockResolvedValue({
         Development: true,
         Work: true,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       renderWithDensity(
         <CategoryView

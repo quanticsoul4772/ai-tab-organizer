@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../../../types';
 import { TabList } from '../../TabList';
 import { CategorySummaryCard } from './CategorySummaryCard';
@@ -46,10 +46,12 @@ export function CategoryView({
   });
 
   const handleCloseAll = useCallback(
-    async (category: string, tabs: Tab[]) => {
+    async (_category: string, tabs: Tab[]) => {
       for (const tab of tabs) {
-        await chrome.tabs.remove(tab.id);
-        onTabClose(tab.id);
+        if (tab.id !== undefined) {
+          await chrome.tabs.remove(tab.id);
+          onTabClose(tab.id);
+        }
       }
     },
     [onTabClose]
@@ -60,11 +62,13 @@ export function CategoryView({
     const folder = await chrome.bookmarks.create({ title: folderName });
 
     for (const tab of tabs) {
-      await chrome.bookmarks.create({
-        parentId: folder.id,
-        title: tab.title,
-        url: tab.url,
-      });
+      if (tab.url && tab.title) {
+        await chrome.bookmarks.create({
+          parentId: folder.id,
+          title: tab.title,
+          url: tab.url,
+        });
+      }
     }
 
     alert(`Bookmarked ${tabs.length} tabs to folder "${folderName}"`);

@@ -30,7 +30,8 @@ describe('Performance Tests', () => {
         active: i === 0,
         incognito: false,
         selected: false,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
     }
 
     return tabs;
@@ -60,7 +61,8 @@ describe('Performance Tests', () => {
           active: i === 0,
           incognito: false,
           selected: false,
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
       } else if (type === 1) {
         // Confluence tab
         const spaceKey = ['TEAM', 'DOCS', 'WIKI'][i % 3];
@@ -75,7 +77,8 @@ describe('Performance Tests', () => {
           active: false,
           incognito: false,
           selected: false,
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
       } else {
         // Regular tab
         tabs.push({
@@ -89,7 +92,8 @@ describe('Performance Tests', () => {
           active: false,
           incognito: false,
           selected: false,
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
       }
     }
 
@@ -196,7 +200,7 @@ describe('Performance Tests', () => {
 
       expect(grouping.jiraProjects.size).toBeGreaterThan(0);
 
-      if (process.memoryUsage) {
+      if (typeof process.memoryUsage === 'function') {
         expect(memDiff).toBeLessThan(50); // Should use less than 50MB
         console.log(`Memory usage for 500 tabs: ${memDiff.toFixed(2)}MB`);
       }

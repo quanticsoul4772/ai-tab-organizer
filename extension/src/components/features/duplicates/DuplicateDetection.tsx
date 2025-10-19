@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { DuplicateGroup } from '../../../types/duplicates';
 import { DuplicateDetectionService } from '../../../services/duplicates/duplicateDetectionService';
 import { tabManager } from '../../../services/tabManager';

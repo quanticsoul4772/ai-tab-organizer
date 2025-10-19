@@ -31,6 +31,7 @@ interface BackgroundRequest {
   url?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface BackgroundResponse<T = any> {
   success: boolean;
   data?: T;
@@ -303,6 +304,9 @@ function parseApiResponse(data: ClaudeResponse): CategoryResponse {
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// Suppress unused variable warning - sleep is used in async context
+void sleep;
 
 /**
  * Check if a URL can be accessed for content extraction

@@ -9,7 +9,11 @@ describe('storage', () => {
   describe('API Key', () => {
     it('should get API key from storage', async () => {
       const mockKey = 'test-api-key';
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ anthropicApiKey: mockKey });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        anthropicApiKey: mockKey,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getApiKey();
 
@@ -18,7 +22,8 @@ describe('storage', () => {
     });
 
     it('should return null when no API key exists', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getApiKey();
 
@@ -27,7 +32,8 @@ describe('storage', () => {
 
     it('should set API key in storage', async () => {
       const mockKey = 'new-api-key';
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.setApiKey(mockKey);
 
@@ -46,7 +52,11 @@ describe('storage', () => {
   describe('Group States', () => {
     it('should get group states from storage', async () => {
       const mockStates = { Work: true, Research: false };
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: mockStates });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        groupStates: mockStates,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getGroupStates();
 
@@ -54,7 +64,8 @@ describe('storage', () => {
     });
 
     it('should return empty object when no group states exist', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getGroupStates();
 
@@ -62,8 +73,10 @@ describe('storage', () => {
     });
 
     it('should set group state for a specific category', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: {} });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({ groupStates: {} });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.setGroupState('Work', true);
 
@@ -73,10 +86,12 @@ describe('storage', () => {
     });
 
     it('should merge new group state with existing states', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         groupStates: { Work: true },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.setGroupState('Research', false);
 
@@ -96,7 +111,11 @@ describe('storage', () => {
 
   describe('Density Mode', () => {
     it('should get density mode from storage', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ densityMode: 'compact' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        densityMode: 'compact',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getDensityMode();
 
@@ -104,7 +123,8 @@ describe('storage', () => {
     });
 
     it('should return null when no density mode exists', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getDensityMode();
 
@@ -112,7 +132,8 @@ describe('storage', () => {
     });
 
     it('should set density mode in storage', async () => {
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.setDensityMode('spacious');
 
@@ -122,7 +143,8 @@ describe('storage', () => {
 
   describe('Jira Settings', () => {
     it('should get Jira settings with default', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getJiraSettings();
 
@@ -130,7 +152,8 @@ describe('storage', () => {
     });
 
     it('should set Jira settings', async () => {
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.setJiraSettings({ smartMode: false });
 

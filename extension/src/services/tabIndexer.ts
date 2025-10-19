@@ -49,8 +49,11 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
     };
 
     // Store in storage
-    const existingTabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
-    existingTabs[tab.id] = indexedTab;
+    const existingTabs =
+      (await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {})) || {};
+    if (tab.id !== undefined) {
+      existingTabs[tab.id] = indexedTab;
+    }
     await storage.set(INDEXED_TABS_KEY, existingTabs);
 
     console.log(`Indexed tab ${tab.id}: ${tab.title}`);
@@ -63,7 +66,7 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
  * Get all indexed tabs
  */
 export async function getIndexedTabs(): Promise<Map<number, IndexedTab>> {
-  const tabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
+  const tabs = (await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {})) || {};
   return new Map(Object.entries(tabs).map(([id, tab]) => [parseInt(id), tab as IndexedTab]));
 }
 
@@ -71,7 +74,7 @@ export async function getIndexedTabs(): Promise<Map<number, IndexedTab>> {
  * Remove indexed tab
  */
 export async function removeIndexedTab(tabId: number): Promise<void> {
-  const tabs = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
+  const tabs = (await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {})) || {};
   delete tabs[tabId];
   await storage.set(INDEXED_TABS_KEY, tabs);
 }

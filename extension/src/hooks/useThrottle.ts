@@ -4,6 +4,7 @@ import { useCallback, useRef } from 'react';
  * Throttle a function - ensures it's called at most once per specified interval
  * Useful for scroll events, resize handlers, etc.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useThrottle<T extends (...args: any[]) => any>(callback: T, delay: number): T {
   const lastRan = useRef<number>(Date.now());
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);

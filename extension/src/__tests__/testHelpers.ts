@@ -43,6 +43,7 @@ export function createMockTabs(count: number, baseOverrides: Partial<Tab> = {}):
  * Helper to cast chrome.storage.local.get mock resolved value
  * This helps with TypeScript type inference issues with vitest mocks
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function mockStorageGet<T>(value: T): any {
   return value;
 }

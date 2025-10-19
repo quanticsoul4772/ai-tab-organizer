@@ -10,6 +10,7 @@ interface LogEntry {
   message: string;
   context?: string;
   timestamp: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 }
 
@@ -22,6 +23,7 @@ class Logger {
     this.enabledLevels = new Set(enabledLevels);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private log(level: LogLevel, message: string, context?: string, data?: any): void {
     if (!this.enabledLevels.has(level)) {
       return;
@@ -62,18 +64,22 @@ class Logger {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   debug(message: string, context?: string, data?: any): void {
     this.log('debug', message, context, data);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   info(message: string, context?: string, data?: any): void {
     this.log('info', message, context, data);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   warn(message: string, context?: string, data?: any): void {
     this.log('warn', message, context, data);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(message: string, context?: string, data?: any): void {
     this.log('error', message, context, data);
   }

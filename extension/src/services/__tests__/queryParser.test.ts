@@ -68,7 +68,8 @@ describe('queryParser', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify({ keywords: ['search'] }) }],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          content: [{ text: JSON.stringify({ keywords: ['search'] } as any) }],
         }),
       } as Response);
 
@@ -129,7 +130,8 @@ describe('queryParser', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify({ keywords: ['test'] }) }],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          content: [{ text: JSON.stringify({ keywords: ['test'] } as any) }],
         }),
       } as Response);
 

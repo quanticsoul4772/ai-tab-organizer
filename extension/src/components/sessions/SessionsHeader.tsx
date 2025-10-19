@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface SessionsHeaderProps {
   sessionsCount: number;
   onSave: () => void;

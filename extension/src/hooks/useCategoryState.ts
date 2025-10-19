@@ -63,6 +63,7 @@ export function useCategoryState({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorizedTabs]);
 
   const handleCategorySummaryClick = async (category: string, tabs: Tab[]) => {

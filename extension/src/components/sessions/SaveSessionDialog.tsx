@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface SaveSessionDialogProps {
   show: boolean;
   sessionName: string;

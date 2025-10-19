@@ -36,7 +36,7 @@ describe('DuplicateDetectionService', () => {
         { id: 3, url: 'https://other.com', title: 'Other' } as chrome.tabs.Tab,
       ];
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs);
 
@@ -44,7 +44,7 @@ describe('DuplicateDetectionService', () => {
       expect(result.tier1Found).toBeGreaterThan(0);
       expect(result.duplicateGroups.length).toBeGreaterThan(0);
       expect(result.processingTime).toBeGreaterThan(0);
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(_consoleSpy).toHaveBeenCalled();
     });
 
     it('should detect content-based duplicates (Tier 2)', async () => {
@@ -61,12 +61,12 @@ describe('DuplicateDetectionService', () => {
         metaDescription: 'Same meta description',
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { fingerprintThreshold: 0.85 });
 
       expect(result.totalTabs).toBe(2);
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 2'));
+      expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 2'));
     });
 
     it('should skip Tier 2 for tabs already in Tier 1', async () => {
@@ -77,13 +77,13 @@ describe('DuplicateDetectionService', () => {
         { id: 2, url: 'https://example.com/page', title: 'Page' } as chrome.tabs.Tab,
       ];
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs);
 
       // Both tabs should be caught by Tier 1, so Tier 2 should process 0 tabs
       expect(result.tier1Found).toBeGreaterThan(0);
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(_consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('Tier 2: Content fingerprinting 0 tabs')
       );
     });
@@ -124,12 +124,12 @@ describe('DuplicateDetectionService', () => {
         }),
       } as Response);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
       expect(result.totalTabs).toBe(2);
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
+      expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
     });
 
     it('should skip Tier 3 when semantic analysis disabled', async () => {
@@ -145,12 +145,12 @@ describe('DuplicateDetectionService', () => {
         data: { content: 'Content', metaDescription: null },
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: false });
 
       expect(result.tier3Found).toBe(0);
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
+      expect(_consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
     });
 
     it('should skip Tier 3 when no API key provided', async () => {
@@ -166,12 +166,12 @@ describe('DuplicateDetectionService', () => {
         data: { content: 'Content', metaDescription: null },
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
       expect(result.tier3Found).toBe(0);
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
+      expect(_consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
     });
 
     it('should skip Tier 3 when only 1 tab remaining', async () => {
@@ -186,12 +186,12 @@ describe('DuplicateDetectionService', () => {
         data: { content: 'Content', metaDescription: null },
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
       expect(result.tier3Found).toBe(0);
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
+      expect(_consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining('Tier 3'));
     });
 
     it('should only analyze uncertain pairs in Tier 3 (0.7-0.89 similarity)', async () => {
@@ -203,6 +203,7 @@ describe('DuplicateDetectionService', () => {
       ];
 
       // Mock to return content that won't trigger uncertain range
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(runtime.sendMessage).mockImplementation(async (msg: any) => {
         if (msg.tabId === 1) {
           return {
@@ -215,8 +216,6 @@ describe('DuplicateDetectionService', () => {
           data: { content: 'Completely unrelated content B there', metaDescription: null },
         };
       });
-
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
@@ -234,12 +233,12 @@ describe('DuplicateDetectionService', () => {
 
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Extraction failed'));
 
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
-      expect(consoleSpy).toHaveBeenCalled();
+      expect(_consoleSpy).toHaveBeenCalled();
       expect(result.tier3Found).toBe(0);
     });
 
@@ -389,12 +388,12 @@ describe('DuplicateDetectionService', () => {
         }),
       } as Response);
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const result = await service.detectDuplicates(tabs, { enableSemanticAnalysis: true });
 
       if (result.apiCost > 0) {
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('API cost'));
+        expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('API cost'));
       }
     });
 
@@ -410,11 +409,11 @@ describe('DuplicateDetectionService', () => {
         data: { content: 'Content', metaDescription: null },
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await service.detectDuplicates(tabs);
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Detection complete'));
+      expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Detection complete'));
     });
 
     it('should log tier results', async () => {
@@ -430,12 +429,12 @@ describe('DuplicateDetectionService', () => {
         data: { content: 'Content', metaDescription: null },
       });
 
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const _consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       await service.detectDuplicates(tabs);
 
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 1 found'));
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 2 found'));
+      expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 1 found'));
+      expect(_consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 2 found'));
     });
   });
 

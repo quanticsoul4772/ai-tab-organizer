@@ -23,6 +23,9 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
         {
           id: 2,
@@ -35,6 +38,9 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
       ];
 
@@ -67,6 +73,9 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
       ];
 
@@ -96,6 +105,9 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
       ];
 
@@ -119,6 +131,7 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
         {
           id: 1,
@@ -131,6 +144,7 @@ describe('AtlassianDetectionService', () => {
           active: false,
           incognito: false,
           selected: false,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ];
 

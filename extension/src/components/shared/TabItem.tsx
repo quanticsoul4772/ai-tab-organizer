@@ -71,7 +71,7 @@ export const TabItem = memo(
       () => ({
         ...style,
         display: 'flex',
-        flexDirection: densityConfig?.mode === 'compact' ? 'row' : 'column',
+        flexDirection: (densityConfig?.mode === 'compact' ? 'row' : 'column') as 'row' | 'column',
         alignItems: densityConfig?.mode === 'compact' ? 'center' : 'flex-start',
         gap: densityConfig?.mode === 'compact' ? '8px' : '4px',
         padding:

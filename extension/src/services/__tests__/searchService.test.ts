@@ -30,7 +30,7 @@ describe('searchService', () => {
     it('should return cached results if available', async () => {
       const cachedResults: SearchResult[] = [
         {
-          tab: { id: 1, title: 'Test', url: 'https://test.com' },
+          tab: { id: 1, title: 'Test', url: 'https://test.com' } as chrome.tabs.Tab,
           relevanceScore: 0.9,
           matchedFields: ['title'],
           highlights: ['test'],
@@ -62,7 +62,8 @@ describe('searchService', () => {
         },
       ];
 
-      vi.mocked(JiraSearchEnhancer.searchJiraTabs).mockReturnValue(jiraResults);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(JiraSearchEnhancer.searchJiraTabs).mockReturnValue(jiraResults as any);
       vi.mocked(chrome.tabs.query).mockResolvedValue([mockTab] as chrome.tabs.Tab[]);
       vi.mocked(cacheSearchResults).mockResolvedValue(undefined);
 
@@ -89,7 +90,8 @@ describe('searchService', () => {
         },
       ];
 
-      vi.mocked(JiraSearchEnhancer.searchJiraTabs).mockReturnValue(jiraResults);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(JiraSearchEnhancer.searchJiraTabs).mockReturnValue(jiraResults as any);
       vi.mocked(chrome.tabs.query).mockResolvedValue([mockTab] as chrome.tabs.Tab[]);
       vi.mocked(cacheSearchResults).mockResolvedValue(undefined);
 
@@ -106,9 +108,8 @@ describe('searchService', () => {
       vi.mocked(chrome.tabs.query).mockResolvedValue([]);
 
       const mockQuery: SearchQuery = {
-        originalQuery: 'ENG-123',
-        tokens: ['eng', '123'],
-        filters: {},
+        rawQuery: 'ENG-123',
+        keywords: ['eng', '123'],
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
@@ -119,14 +120,16 @@ describe('searchService', () => {
             title: 'Different Page',
             url: 'https://different.com',
             content: 'some content',
-            timestamp: Date.now(),
+            contentHash: '',
+            lastAccessed: new Date().toISOString(),
+            indexed: new Date().toISOString(),
           },
         ],
       ]);
 
       const mockCandidates = [
         {
-          tab: { id: 1, title: 'Different Page', url: 'https://different.com' },
+          tab: { id: 1, title: 'Different Page', url: 'https://different.com' } as chrome.tabs.Tab,
           relevanceScore: 0.5,
           matchedFields: ['content'],
           highlights: ['123'],
@@ -135,8 +138,10 @@ describe('searchService', () => {
 
       vi.mocked(parseSearchQuery).mockResolvedValue(mockQuery);
       vi.mocked(getIndexedTabs).mockResolvedValue(mockIndexedTabs);
-      vi.mocked(filterTabsLocally).mockResolvedValue(mockCandidates);
-      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockCandidates);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(filterTabsLocally).mockResolvedValue(mockCandidates as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockCandidates as any);
       vi.mocked(cacheSearchResults).mockResolvedValue(undefined);
 
       const results = await searchTabs('ENG-123', 'api-key');
@@ -151,9 +156,8 @@ describe('searchService', () => {
       vi.mocked(JiraSearchEnhancer.isProjectPattern).mockReturnValue(false);
 
       const mockQuery: SearchQuery = {
-        originalQuery: 'login page',
-        tokens: ['login', 'page'],
-        filters: {},
+        rawQuery: 'login page',
+        keywords: ['login', 'page'],
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
@@ -164,7 +168,9 @@ describe('searchService', () => {
             title: 'Login Page',
             url: 'https://example.com/login',
             content: 'login page content',
-            timestamp: Date.now(),
+            contentHash: '',
+            lastAccessed: new Date().toISOString(),
+            indexed: new Date().toISOString(),
           },
         ],
         [
@@ -174,14 +180,16 @@ describe('searchService', () => {
             title: 'Home',
             url: 'https://example.com',
             content: 'home content',
-            timestamp: Date.now(),
+            contentHash: '',
+            lastAccessed: new Date().toISOString(),
+            indexed: new Date().toISOString(),
           },
         ],
       ]);
 
       const mockCandidates = [
         {
-          tab: { id: 1, title: 'Login Page', url: 'https://example.com/login' },
+          tab: { id: 1, title: 'Login Page', url: 'https://example.com/login' } as chrome.tabs.Tab,
           relevanceScore: 0.7,
           matchedFields: ['title', 'content'],
           highlights: ['login', 'page'],
@@ -190,7 +198,7 @@ describe('searchService', () => {
 
       const mockRankedResults = [
         {
-          tab: { id: 1, title: 'Login Page', url: 'https://example.com/login' },
+          tab: { id: 1, title: 'Login Page', url: 'https://example.com/login' } as chrome.tabs.Tab,
           relevanceScore: 0.95,
           matchedFields: ['title', 'content'],
           highlights: ['login', 'page'],
@@ -199,8 +207,10 @@ describe('searchService', () => {
 
       vi.mocked(parseSearchQuery).mockResolvedValue(mockQuery);
       vi.mocked(getIndexedTabs).mockResolvedValue(mockIndexedTabs);
-      vi.mocked(filterTabsLocally).mockResolvedValue(mockCandidates);
-      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockRankedResults);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(filterTabsLocally).mockResolvedValue(mockCandidates as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockRankedResults as any);
       vi.mocked(cacheSearchResults).mockResolvedValue(undefined);
 
       const results = await searchTabs('login page', 'api-key');
@@ -219,9 +229,8 @@ describe('searchService', () => {
       vi.mocked(JiraSearchEnhancer.isProjectPattern).mockReturnValue(false);
 
       const mockQuery: SearchQuery = {
-        originalQuery: 'test',
-        tokens: ['test'],
-        filters: {},
+        rawQuery: 'test',
+        keywords: ['test'],
       };
 
       vi.mocked(parseSearchQuery).mockResolvedValue(mockQuery);
@@ -239,9 +248,8 @@ describe('searchService', () => {
       vi.mocked(JiraSearchEnhancer.isProjectPattern).mockReturnValue(false);
 
       const mockQuery: SearchQuery = {
-        originalQuery: 'nonexistent',
-        tokens: ['nonexistent'],
-        filters: {},
+        rawQuery: 'nonexistent',
+        keywords: ['nonexistent'],
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
@@ -252,7 +260,9 @@ describe('searchService', () => {
             title: 'Different',
             url: 'https://different.com',
             content: 'different content',
-            timestamp: Date.now(),
+            contentHash: '',
+            lastAccessed: new Date().toISOString(),
+            indexed: new Date().toISOString(),
           },
         ],
       ]);
@@ -273,9 +283,8 @@ describe('searchService', () => {
       vi.mocked(JiraSearchEnhancer.isProjectPattern).mockReturnValue(false);
 
       const mockQuery: SearchQuery = {
-        originalQuery: 'test',
-        tokens: ['test'],
-        filters: {},
+        rawQuery: 'test',
+        keywords: ['test'],
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>();
@@ -287,11 +296,13 @@ describe('searchService', () => {
           title: `Test ${i}`,
           url: `https://test${i}.com`,
           content: 'test content',
-          timestamp: Date.now(),
+          contentHash: '',
+          lastAccessed: new Date().toISOString(),
+          indexed: new Date().toISOString(),
         });
 
         mockRankedResults.push({
-          tab: { id: i, title: `Test ${i}`, url: `https://test${i}.com` },
+          tab: { id: i, title: `Test ${i}`, url: `https://test${i}.com` } as chrome.tabs.Tab,
           relevanceScore: 1 - i * 0.01,
           matchedFields: ['title'],
           highlights: ['test'],
@@ -300,8 +311,10 @@ describe('searchService', () => {
 
       vi.mocked(parseSearchQuery).mockResolvedValue(mockQuery);
       vi.mocked(getIndexedTabs).mockResolvedValue(mockIndexedTabs);
-      vi.mocked(filterTabsLocally).mockResolvedValue(mockRankedResults);
-      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockRankedResults);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(filterTabsLocally).mockResolvedValue(mockRankedResults as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(rankTabsByRelevance).mockResolvedValue(mockRankedResults as any);
       vi.mocked(cacheSearchResults).mockResolvedValue(undefined);
 
       const results = await searchTabs('test', 'api-key');
@@ -321,9 +334,12 @@ describe('searchService', () => {
         url: 'https://test.com',
       };
 
-      vi.mocked(chrome.tabs.get).mockResolvedValue(mockTab as chrome.tabs.Tab);
-      vi.mocked(chrome.tabs.update).mockResolvedValue(mockTab as chrome.tabs.Tab);
-      vi.mocked(chrome.windows.update).mockResolvedValue({} as chrome.windows.Window);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.tabs.get).mockResolvedValue(mockTab as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.tabs.update).mockResolvedValue(mockTab as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.windows.update).mockResolvedValue({} as any);
 
       await switchToTab(123);
 

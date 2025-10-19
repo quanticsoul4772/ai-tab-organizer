@@ -100,6 +100,7 @@ Return only the JSON array as a single line, nothing else:`;
 
     // Build search results
     const results: SearchResult[] = rankings
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((ranking: any) => {
         const tab = candidates[ranking.index];
         if (!tab) return null;
@@ -130,8 +131,10 @@ Return only the JSON array as a single line, nothing else:`;
           lastAccessed: tab.lastAccessed,
         };
       })
-      .filter((result): result is SearchResult => result !== null)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .filter((result: any): result is SearchResult => result !== null)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore);
 
     return results;
   } catch (error) {
@@ -153,12 +156,15 @@ Return only the JSON array as a single line, nothing else:`;
         groupId: -1,
         incognito: false,
         index: 0,
-      },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
       relevanceScore: 0.5,
-      matchedFields: determineMatchedFields(query, tab),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      matchedFields: determineMatchedFields(query, tab) as any,
       highlights: [],
       lastAccessed: tab.lastAccessed,
-    }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    })) as any;
   }
 }
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useSessionManagement } from '../../../hooks/useSessionManagement';
 import { SessionsHeader } from '../../sessions/SessionsHeader';
 import { WorkspaceFilter } from '../../sessions/WorkspaceFilter';
@@ -42,7 +41,6 @@ export function SessionsView({ onError }: SessionsViewProps) {
     handleImport,
     handleImportFile,
     formatDate,
-    allSessions,
   } = useSessionManagement({ onError });
 
   if (isLoading) {
@@ -65,7 +63,7 @@ export function SessionsView({ onError }: SessionsViewProps) {
       <WorkspaceFilter
         workspaces={workspaces}
         selectedWorkspace={selectedWorkspace}
-        allSessions={allSessions}
+        allSessions={sessions}
         onSelectWorkspace={setSelectedWorkspace}
       />
 

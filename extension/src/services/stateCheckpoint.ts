@@ -3,6 +3,7 @@
  * Allows resuming long-running operations after failures or interruptions
  */
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface CheckpointData<T = any> {
   id: string;
   operation: string;
@@ -119,6 +120,7 @@ export class StateCheckpoint {
   /**
    * Update checkpoint progress
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateProgress(id: string, progress: number, state?: any): Promise<void> {
     const checkpoint = await this.load(id);
 

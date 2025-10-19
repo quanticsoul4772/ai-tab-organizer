@@ -21,16 +21,14 @@ describe('aiRanker', () => {
       title,
       url,
       content,
-      timestamp: Date.now(),
-      lastAccessed: Date.now(),
+      contentHash: '',
+      lastAccessed: new Date().toISOString(),
+      indexed: new Date().toISOString(),
     });
 
     const createQuery = (rawQuery: string, keywords: string[] = []): SearchQuery => ({
-      originalQuery: rawQuery,
       rawQuery,
       keywords,
-      tokens: keywords,
-      filters: {},
     });
 
     it('should return empty array for empty candidates', async () => {
@@ -412,14 +410,15 @@ describe('aiRanker', () => {
     });
 
     it('should preserve lastAccessed timestamp in results', async () => {
-      const lastAccessed = Date.now() - 1000;
+      const lastAccessed = new Date(Date.now() - 1000).toISOString();
       const tab: IndexedTab = {
         tabId: 1,
         title: 'Test',
         url: 'https://test.com',
         content: 'content',
-        timestamp: Date.now(),
+        contentHash: '',
         lastAccessed,
+        indexed: new Date().toISOString(),
       };
 
       const query = createQuery('test', ['test']);
@@ -453,16 +452,15 @@ describe('aiRanker', () => {
           title: 'Login Page',
           url: 'https://example.com',
           content: 'some content',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'login',
+        // originalQuery: 'login',
         rawQuery: 'login',
         keywords: ['login'],
-        tokens: ['login'],
-        filters: {},
+        // tokens: ['login'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -492,16 +490,15 @@ describe('aiRanker', () => {
           title: 'Page',
           url: 'https://github.com/user/repo',
           content: 'content',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'github',
+        // originalQuery: 'github',
         rawQuery: 'github',
         keywords: ['github'],
-        tokens: ['github'],
-        filters: {},
+        // tokens: ['github'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -531,16 +528,15 @@ describe('aiRanker', () => {
           title: 'Article',
           url: 'https://blog.com',
           content: 'This article is about react development',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'react',
+        // originalQuery: 'react',
         rawQuery: 'react',
         keywords: ['react'],
-        tokens: ['react'],
-        filters: {},
+        // tokens: ['react'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -570,16 +566,15 @@ describe('aiRanker', () => {
           title: 'Test Page',
           url: 'https://test.com',
           content: 'This is a test content',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'test',
+        // originalQuery: 'test',
         rawQuery: 'test',
         keywords: ['test'],
-        tokens: ['test'],
-        filters: {},
+        // tokens: ['test'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -611,16 +606,15 @@ describe('aiRanker', () => {
           title: 'UPPERCASE TITLE',
           url: 'https://UPPERCASE.COM',
           content: 'UPPERCASE CONTENT',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'uppercase',
+        // originalQuery: 'uppercase',
         rawQuery: 'uppercase',
         keywords: ['uppercase'],
-        tokens: ['uppercase'],
-        filters: {},
+        // tokens: ['uppercase'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -650,16 +644,15 @@ describe('aiRanker', () => {
           title: 'React Tutorial for Beginners',
           url: 'https://example.com',
           content: 'content',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'react tutorial',
+        // originalQuery: 'react tutorial',
         rawQuery: 'react tutorial',
         keywords: ['react', 'tutorial'],
-        tokens: ['react', 'tutorial'],
-        filters: {},
+        // tokens: ['react', 'tutorial'],
       };
 
       vi.mocked(fetch).mockResolvedValue({
@@ -690,16 +683,15 @@ describe('aiRanker', () => {
           title: 'Page',
           url: 'https://example.com',
           content: 'content',
-          timestamp: Date.now(),
+          contentHash: '',
         } as IndexedTab,
       ];
 
       const query: SearchQuery = {
-        originalQuery: 'nonexistent',
+        // originalQuery: 'nonexistent',
         rawQuery: 'nonexistent',
         keywords: ['nonexistent'],
-        tokens: ['nonexistent'],
-        filters: {},
+        // tokens: ['nonexistent'],
       };
 
       vi.mocked(fetch).mockResolvedValue({

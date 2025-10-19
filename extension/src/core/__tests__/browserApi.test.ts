@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { tabs, storage, runtime, scripting } from '../browserApi';
 
 // Mock Chrome APIs
@@ -22,7 +22,7 @@ const mockChrome = {
     sendMessage: vi.fn(),
     id: 'test-extension-id',
     getURL: vi.fn((path: string) => `chrome-extension://test-id/${path}`),
-    lastError: null,
+    lastError: null as chrome.runtime.LastError | undefined | null,
   },
   scripting: {
     executeScript: vi.fn(),
@@ -30,6 +30,7 @@ const mockChrome = {
 };
 
 // Set up global chrome mock
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).chrome = mockChrome;
 
 describe('browserApi - tabs', () => {
@@ -143,7 +144,8 @@ describe('browserApi - storage', () => {
 
   describe('get', () => {
     it('should get a value from storage', async () => {
-      mockChrome.storage.local.get.mockResolvedValue({ testKey: 'testValue' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockChrome.storage.local.get.mockResolvedValue({ testKey: 'testValue' } as any);
 
       const result = await storage.get('testKey');
 
@@ -173,7 +175,8 @@ describe('browserApi - storage', () => {
       mockChrome.storage.local.get.mockResolvedValue({
         key1: 'value1',
         key2: 'value2',
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getMultiple(['key1', 'key2']);
 
@@ -254,7 +257,8 @@ describe('browserApi - runtime', () => {
   describe('sendMessage', () => {
     it('should send a message and resolve on success', async () => {
       const mockResponse = { success: true, data: { result: 'test' } };
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockChrome.runtime.sendMessage.mockImplementation((_message: any, callback: any) => {
         callback(mockResponse);
       });
 
@@ -268,9 +272,10 @@ describe('browserApi - runtime', () => {
     });
 
     it('should reject if runtime error occurs', async () => {
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
-        mockChrome.runtime.lastError = { message: 'Connection error' };
-        callback(null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockChrome.runtime.sendMessage.mockImplementation((_message: any, callback: any) => {
+        mockChrome.runtime.lastError = { message: 'Connection error' } as chrome.runtime.LastError;
+        callback(undefined);
       });
 
       await expect(runtime.sendMessage('testAction')).rejects.toThrow('Connection error');
@@ -278,7 +283,8 @@ describe('browserApi - runtime', () => {
 
     it('should reject if response is not successful', async () => {
       const mockResponse = { success: false, error: 'Test error' };
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockChrome.runtime.sendMessage.mockImplementation((_message: any, callback: any) => {
         callback(mockResponse);
       });
 
@@ -287,7 +293,8 @@ describe('browserApi - runtime', () => {
 
     it('should reject with generic message if no error provided', async () => {
       const mockResponse = { success: false };
-      mockChrome.runtime.sendMessage.mockImplementation((message, callback) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockChrome.runtime.sendMessage.mockImplementation((_message: any, callback: any) => {
         callback(mockResponse);
       });
 

@@ -12,7 +12,9 @@ export interface ApiConfig {
 
 export interface BackgroundRequest {
   action: 'categorize' | 'summarizeTab' | 'summarizeCategory' | 'extractContent' | 'getTabMetadata';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tabs?: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tab?: any;
   apiKey?: string;
   categoryName?: string;
@@ -20,6 +22,7 @@ export interface BackgroundRequest {
   url?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface BackgroundResponse<T = any> {
   success: boolean;
   data?: T;

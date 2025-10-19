@@ -162,18 +162,21 @@ const runtime = {
    */
   async sendMessage<T = unknown>(action: string, data?: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ action, ...data }, (response: BackgroundResponse) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
+      chrome.runtime.sendMessage(
+        { action, ...(data && typeof data === 'object' ? data : {}) },
+        (response: BackgroundResponse) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
 
-        if (response && response.success) {
-          resolve(response.data as T);
-        } else {
-          reject(new Error(response?.error || `Failed to execute action: ${action}`));
+          if (response && response.success) {
+            resolve(response.data as T);
+          } else {
+            reject(new Error(response?.error || `Failed to execute action: ${action}`));
+          }
         }
-      });
+      );
     });
   },
 
@@ -200,11 +203,13 @@ const scripting = {
   /**
    * Execute a script in a tab
    */
-  async executeScript<T>(tabId: number, options: chrome.scripting.ScriptInjection): Promise<T[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async executeScript<T>(tabId: number, options: any): Promise<T[]> {
     const results = await chrome.scripting.executeScript({
       target: { tabId },
       ...options,
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
     return results.map((r) => r.result as T);
   },
 };

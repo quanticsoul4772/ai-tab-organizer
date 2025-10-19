@@ -11,6 +11,7 @@ interface TabListProps {
   onSummaryRequest?: (tab: Tab) => Promise<TabSummary>;
   summariesEnabled?: boolean;
   useVirtualScrolling?: boolean;
+  densityMode?: string;
 }
 
 /**
@@ -33,7 +34,7 @@ export function TabList({
   const handleSummaryClick = async (tab: Tab, event: React.MouseEvent) => {
     event.stopPropagation();
 
-    if (!onSummaryRequest) return;
+    if (!onSummaryRequest || tab.id === undefined) return;
 
     setLoadingSummary(tab.id);
     setSummaryError(null);
@@ -94,9 +95,9 @@ export function TabList({
               className="favicon"
               alt=""
             />
-            <div className="tab-info" onClick={() => onTabClick(tab.id)}>
+            <div className="tab-info" onClick={() => tab.id !== undefined && onTabClick(tab.id)}>
               <div className="tab-title">{tab.title}</div>
-              <div className="tab-url">{new URL(tab.url).hostname}</div>
+              <div className="tab-url">{tab.url ? new URL(tab.url).hostname : ''}</div>
             </div>
             {summariesEnabled && onSummaryRequest && (
               <button
@@ -108,7 +109,10 @@ export function TabList({
                 {loadingSummary === tab.id ? '⏳' : '💬'}
               </button>
             )}
-            <button onClick={() => onTabClose(tab.id)} className="close-btn">
+            <button
+              onClick={() => tab.id !== undefined && onTabClose(tab.id)}
+              className="close-btn"
+            >
               ✕
             </button>
           </div>

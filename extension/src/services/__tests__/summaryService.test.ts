@@ -1,6 +1,26 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+/* UNUSED
+// Helper to create mock Tab objects
+function createMockTab(partial: Partial<chrome.tabs.Tab>): chrome.tabs.Tab {
+  return {
+    index: 0,
+    pinned: false,
+    highlighted: false,
+    windowId: 1,
+    active: false,
+    incognito: false,
+    selected: false,
+    discarded: false,
+    autoDiscardable: true,
+    groupId: -1,
+    ...partial,
+  } as chrome.tabs.Tab;
+}
+*/
 import { storage } from '../../utils/storage';
-import type { Tab, TabSummary, CategorySummary } from '../../types';
+
+import type { Tab } from '../../types';
 
 // Mock storage
 vi.mock('../../utils/storage');
@@ -22,7 +42,9 @@ vi.mock('../../constants/actions', () => ({
 
 // Import after mocks
 import { runtime } from '../../core/browserApi';
+
 import { BACKGROUND_ACTIONS } from '../../constants/actions';
+
 const { summaryService } = await import('../summaryService');
 
 describe('summaryService', () => {
@@ -32,14 +54,16 @@ describe('summaryService', () => {
 
   describe('summarizeTab', () => {
     it('should return cached summary if available', async () => {
-      const mockTab: Tab = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockTab: any = {
         id: 123,
         title: 'Example Page',
         url: 'https://example.com',
         favIconUrl: 'https://example.com/favicon.ico',
       };
 
-      const cachedSummary: TabSummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cachedSummary: any = {
         tabId: 123,
         summary: 'Cached summary',
         timestamp: Date.now(),
@@ -57,14 +81,16 @@ describe('summaryService', () => {
     });
 
     it('should generate new summary if not cached', async () => {
-      const mockTab: Tab = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockTab: any = {
         id: 456,
         title: 'New Page',
         url: 'https://new.com',
         favIconUrl: 'https://new.com/favicon.ico',
       };
 
-      const newSummary: TabSummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newSummary: any = {
         tabId: 456,
         summary: 'Generated summary',
         timestamp: Date.now(),
@@ -85,7 +111,8 @@ describe('summaryService', () => {
     });
 
     it('should reject if runtime error occurs', async () => {
-      const mockTab: Tab = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockTab: any = {
         id: 789,
         title: 'Error Page',
         url: 'https://error.com',
@@ -100,7 +127,8 @@ describe('summaryService', () => {
     });
 
     it('should reject if response indicates failure', async () => {
-      const mockTab: Tab = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockTab: any = {
         id: 101,
         title: 'Fail Page',
         url: 'https://fail.com',
@@ -115,7 +143,8 @@ describe('summaryService', () => {
     });
 
     it('should reject with default message if no error provided', async () => {
-      const mockTab: Tab = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockTab: any = {
         id: 202,
         title: 'No Error Page',
         url: 'https://noerror.com',
@@ -135,11 +164,12 @@ describe('summaryService', () => {
   describe('summarizeCategory', () => {
     it('should return cached summary if available and tab count matches', async () => {
       const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-        { id: 2, title: 'Tab 2', url: 'https://two.com' },
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+        { id: 2, title: 'Tab 2', url: 'https://two.com' } as chrome.tabs.Tab,
       ];
 
-      const cachedSummary: CategorySummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cachedSummary: any = {
         category: 'Work',
         summary: 'Cached category summary',
         tabCount: 2,
@@ -161,19 +191,21 @@ describe('summaryService', () => {
 
     it('should generate new summary if tab count changed', async () => {
       const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-        { id: 2, title: 'Tab 2', url: 'https://two.com' },
-        { id: 3, title: 'Tab 3', url: 'https://three.com' },
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+        { id: 2, title: 'Tab 2', url: 'https://two.com' } as chrome.tabs.Tab,
+        { id: 3, title: 'Tab 3', url: 'https://three.com' } as chrome.tabs.Tab,
       ];
 
-      const cachedSummary: CategorySummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cachedSummary: any = {
         category: 'Work',
         summary: 'Old summary',
         tabCount: 2, // Different from current tab count
         timestamp: Date.now(),
       };
 
-      const newSummary: CategorySummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newSummary: any = {
         category: 'Work',
         summary: 'New summary',
         tabCount: 3,
@@ -196,9 +228,12 @@ describe('summaryService', () => {
     });
 
     it('should generate new summary if not cached', async () => {
-      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
+      const mockTabs: Tab[] = [
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+      ];
 
-      const newSummary: CategorySummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const newSummary: any = {
         category: 'Personal',
         summary: 'Generated category summary',
         tabCount: 1,
@@ -216,7 +251,9 @@ describe('summaryService', () => {
     });
 
     it('should reject if runtime error occurs', async () => {
-      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
+      const mockTabs: Tab[] = [
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+      ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category runtime error'));
@@ -227,7 +264,9 @@ describe('summaryService', () => {
     });
 
     it('should reject if response indicates failure', async () => {
-      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
+      const mockTabs: Tab[] = [
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+      ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category API error'));
@@ -238,7 +277,9 @@ describe('summaryService', () => {
     });
 
     it('should reject with default message if no error provided', async () => {
-      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
+      const mockTabs: Tab[] = [
+        { id: 1, title: 'Tab 1', url: 'https://one.com' } as chrome.tabs.Tab,
+      ];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(runtime.sendMessage).mockRejectedValue(
@@ -253,7 +294,8 @@ describe('summaryService', () => {
 
   describe('getCachedTabSummary', () => {
     it('should return cached tab summary', async () => {
-      const cachedSummary: TabSummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cachedSummary: any = {
         tabId: 123,
         summary: 'Cached summary',
         timestamp: Date.now(),
@@ -278,7 +320,8 @@ describe('summaryService', () => {
 
   describe('getCachedCategorySummary', () => {
     it('should return cached category summary', async () => {
-      const cachedSummary: CategorySummary = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cachedSummary: any = {
         category: 'Work',
         summary: 'Cached category summary',
         tabCount: 5,

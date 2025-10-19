@@ -1,4 +1,21 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Helper to create mock Tab objects
+function createMockTab(partial: Partial<chrome.tabs.Tab>): chrome.tabs.Tab {
+  return {
+    index: 0,
+    pinned: false,
+    highlighted: false,
+    windowId: 1,
+    active: false,
+    incognito: false,
+    selected: false,
+    discarded: false,
+    autoDiscardable: true,
+    groupId: -1,
+    ...partial,
+  } as chrome.tabs.Tab;
+}
 import {
   getCachedSearch,
   cacheSearchResults,
@@ -20,9 +37,13 @@ describe('searchCache', () => {
     it('should return cached results if available', async () => {
       const mockResults: SearchResult[] = [
         {
-          tab: { id: 1, url: 'https://example.com', title: 'Test' },
+          tab: createMockTab({
+            id: 1,
+            url: 'https://example.com',
+            title: 'Test',
+          } as chrome.tabs.Tab as chrome.tabs.Tab),
           relevanceScore: 0.9,
-          matchedFields: ['title'],
+          matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
           highlights: [],
         },
       ];
@@ -54,9 +75,13 @@ describe('searchCache', () => {
     it('should normalize query for lookup', async () => {
       const mockResults: SearchResult[] = [
         {
-          tab: { id: 2, url: 'https://example.com', title: 'Test' },
+          tab: createMockTab({
+            id: 2,
+            url: 'https://example.com',
+            title: 'Test',
+          } as chrome.tabs.Tab as chrome.tabs.Tab),
           relevanceScore: 0.8,
-          matchedFields: ['title'],
+          matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
           highlights: [],
         },
       ];
@@ -74,9 +99,13 @@ describe('searchCache', () => {
     it('should cache search results with TTL', async () => {
       const mockResults: SearchResult[] = [
         {
-          tab: { id: 1, url: 'https://example.com', title: 'Test' },
+          tab: createMockTab({
+            id: 1,
+            url: 'https://example.com',
+            title: 'Test',
+          } as chrome.tabs.Tab as chrome.tabs.Tab),
           relevanceScore: 0.9,
-          matchedFields: ['title'],
+          matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
           highlights: [],
         },
       ];

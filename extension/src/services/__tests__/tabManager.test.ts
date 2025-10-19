@@ -24,7 +24,8 @@ describe('tabManager', () => {
   describe('switchToTab', () => {
     it('should switch to a tab', async () => {
       const mockTab = { id: 1, title: 'Tab 1', url: 'https://example.com' };
-      vi.mocked(chrome.tabs.update).mockResolvedValue(mockTab as chrome.tabs.Tab);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.tabs.update).mockResolvedValue(mockTab as any);
 
       await tabManager.switchToTab(1);
 

@@ -77,7 +77,7 @@ interface SearchResultItemProps {
 
 const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onSwitch, onClose }) => {
   const relevancePercent = Math.round(result.relevanceScore * 100);
-  const isJiraResult = result.matchedFields.includes('jira-ticket');
+  const isJiraResult = (result.matchedFields as string[]).includes('jira-ticket');
   const ticketInfo = isJiraResult ? JiraSearchEnhancer.getTicketInfo(result.tab) : null;
 
   return (

@@ -71,7 +71,7 @@ export class DuplicateDetectionService {
         try {
           const content = await this.contentMatcher.extractTabContent(tab);
           contents.set(tab.id!, content);
-        } catch (error) {
+        } catch {
           console.warn(`Failed to extract content for tab ${tab.id}`);
         }
       }

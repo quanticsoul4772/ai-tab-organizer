@@ -35,7 +35,7 @@ describe('TabItem', () => {
 
   const normalDensityConfig: DensityConfig = {
     mode: 'normal',
-    height: 60,
+    itemHeight: 60,
     titleLines: 1,
     showDomain: true,
     showUrl: false,
@@ -44,7 +44,7 @@ describe('TabItem', () => {
 
   const compactDensityConfig: DensityConfig = {
     mode: 'compact',
-    height: 40,
+    itemHeight: 40,
     titleLines: 1,
     showDomain: false,
     showUrl: false,
@@ -53,7 +53,7 @@ describe('TabItem', () => {
 
   const spaciousDensityConfig: DensityConfig = {
     mode: 'spacious',
-    height: 80,
+    itemHeight: 80,
     titleLines: 2,
     showDomain: true,
     showUrl: true,
@@ -64,20 +64,23 @@ describe('TabItem', () => {
     vi.clearAllMocks();
 
     // Mock chrome.runtime.sendMessage for metadata fetching
-    vi.mocked(chrome.runtime.sendMessage).mockImplementation((message, callback) => {
-      if (callback) {
-        callback({
-          success: true,
-          data: {
-            lastAccessed: Date.now(),
-            memoryUsage: 1024 * 1024 * 10, // 10MB
-            isSuspended: false,
-            duplicateCount: 1,
-          },
-        });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(chrome.runtime.sendMessage as any).mockImplementation(
+      (_message: any, callback: any) => {
+        if (callback) {
+          callback({
+            success: true,
+            data: {
+              lastAccessed: Date.now(),
+              memoryUsage: 1024 * 1024 * 10, // 10MB
+              isSuspended: false,
+              duplicateCount: 1,
+            },
+          });
+        }
+        return undefined;
       }
-      return undefined;
-    });
+    );
   });
 
   describe('Rendering - Normal Mode', () => {

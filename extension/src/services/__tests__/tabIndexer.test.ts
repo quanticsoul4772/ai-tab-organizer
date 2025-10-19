@@ -6,7 +6,6 @@ import {
   cleanupIndexedTabs,
   reindexIfNeeded,
 } from '../tabIndexer';
-import type { IndexedTab } from '../../types/search';
 import { runtime, storage } from '../../core/browserApi';
 
 // Mock browserApi
@@ -25,7 +24,8 @@ describe('tabIndexer', () => {
         title: 'Example Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'page content here' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'page content here' } as any);
       vi.mocked(storage.get).mockResolvedValue({});
       vi.mocked(storage.set).mockResolvedValue(undefined);
 
@@ -148,7 +148,8 @@ describe('tabIndexer', () => {
         title: 'Long Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: longContent });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: longContent } as any);
 
       vi.mocked(storage.get).mockResolvedValue({});
       vi.mocked(storage.set).mockResolvedValue(undefined);
@@ -156,7 +157,8 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setCall = vi.mocked(storage.set).mock.calls[0][1] as any;
       const savedContent = setCall[123].content;
 
       expect(savedContent.length).toBeLessThanOrEqual(5003); // 5000 + '...'
@@ -182,7 +184,8 @@ describe('tabIndexer', () => {
         title: 'New Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'new content' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ content: 'new content' } as any);
 
       vi.mocked(storage.get).mockResolvedValue(existingIndexedTabs);
       vi.mocked(storage.set).mockResolvedValue(undefined);
@@ -190,7 +193,8 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setCall = vi.mocked(storage.set).mock.calls[0][1] as any;
       expect(setCall[456]).toBeDefined(); // Preserved
       expect(setCall[123]).toBeDefined(); // Added
     });
@@ -268,7 +272,8 @@ describe('tabIndexer', () => {
 
       await removeIndexedTab(123);
 
-      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setCall = vi.mocked(storage.set).mock.calls[0][1] as any;
       expect(setCall[123]).toBeUndefined();
       expect(setCall[456]).toBeDefined();
     });
@@ -304,7 +309,8 @@ describe('tabIndexer', () => {
 
       await cleanupIndexedTabs();
 
-      const setCall = vi.mocked(storage.set).mock.calls[0][1];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const setCall = vi.mocked(storage.set).mock.calls[0][1] as any;
       expect(setCall['123']).toBeDefined();
       expect(setCall['456']).toBeDefined();
       expect(setCall['789']).toBeUndefined();

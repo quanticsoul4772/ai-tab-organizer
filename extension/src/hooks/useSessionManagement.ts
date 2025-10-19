@@ -38,10 +38,12 @@ export function useSessionManagement({ onError }: UseSessionManagementOptions) {
 
   useEffect(() => {
     loadSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     filterSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedWorkspace, allSessions]);
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export function useSessionManagement({ onError }: UseSessionManagementOptions) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessions.length]);
 
   const loadSessions = async () => {

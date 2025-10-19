@@ -194,7 +194,8 @@ describe('SemanticAnalyzer', () => {
                   similarity: 0,
                   reasoning: 'Different',
                   confidence: 1,
-                })
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any)
               ),
             },
           ],
@@ -253,7 +254,8 @@ describe('SemanticAnalyzer', () => {
                   similarity: 0,
                   reasoning: 'Different',
                   confidence: 1,
-                })
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any)
               ),
             },
           ],

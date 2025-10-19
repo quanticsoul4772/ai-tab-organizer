@@ -82,6 +82,7 @@ export const perfMonitor = new PerformanceMonitor();
 // Memory monitoring
 export async function checkMemoryUsage() {
   if ('memory' in performance) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const memory = (performance as any).memory;
     const usedMB = memory.usedJSHeapSize / 1048576;
 

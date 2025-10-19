@@ -38,7 +38,11 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: mockSessions });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        sessions: mockSessions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getAllSessions();
 
@@ -68,7 +72,8 @@ describe('storage - session methods', () => {
     });
 
     it('should return empty array when no sessions exist', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getAllSessions();
 
@@ -87,7 +92,11 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: mockSessions });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        sessions: mockSessions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getAllSessions();
 
@@ -119,7 +128,11 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: mockSessions });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        sessions: mockSessions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const result = await storage.getSession('session_123');
 
@@ -128,7 +141,8 @@ describe('storage - session methods', () => {
     });
 
     it('should return null if session not found', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: {} });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({ sessions: {} });
 
       const result = await storage.getSession('nonexistent');
 
@@ -136,7 +150,8 @@ describe('storage - session methods', () => {
     });
 
     it('should return null if no sessions exist', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const result = await storage.getSession('any_id');
 
@@ -155,8 +170,10 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 1 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: {} });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({ sessions: {} });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.saveSession(newSession);
 
@@ -183,10 +200,12 @@ describe('storage - session methods', () => {
         lastModified: 3000,
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_1: existingSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.saveSession(updatedSession);
 
@@ -216,10 +235,12 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 0 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_1: existingSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.saveSession(newSession);
 
@@ -253,8 +274,13 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: mockSessions });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        sessions: mockSessions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.deleteSession('session_1');
 
@@ -277,8 +303,13 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: mockSessions });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+        sessions: mockSessions,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.deleteSession('nonexistent');
 
@@ -289,8 +320,10 @@ describe('storage - session methods', () => {
     });
 
     it('should handle deleting from empty sessions', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.deleteSession('any_id');
 
@@ -310,10 +343,12 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 1 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_123: originalSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.updateSessionMetadata('session_123', { name: 'New Name' });
 
@@ -343,10 +378,12 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 0 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_123: originalSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.updateSessionMetadata('session_123', { description: 'New Description' });
 
@@ -366,10 +403,12 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 0 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_123: originalSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.updateSessionMetadata('session_123', {
         name: 'New Name',
@@ -395,10 +434,12 @@ describe('storage - session methods', () => {
         },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_123: originalSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.updateSessionMetadata('session_123', { name: 'New Name' });
 
@@ -408,8 +449,10 @@ describe('storage - session methods', () => {
     });
 
     it('should do nothing if session not found', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({ sessions: {} });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({ sessions: {} });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       await storage.updateSessionMetadata('nonexistent', { name: 'New Name' });
 
@@ -426,10 +469,12 @@ describe('storage - session methods', () => {
         metadata: { tabCount: 0 },
       };
 
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
         sessions: { session_123: originalSession },
       });
-      vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
       const beforeUpdate = Date.now();
       await storage.updateSessionMetadata('session_123', { name: 'New Name' });

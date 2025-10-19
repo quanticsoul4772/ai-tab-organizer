@@ -50,9 +50,9 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         storage.get<JiraSettings>('jiraSettings', DEFAULT_JIRA_SETTINGS),
       ]);
 
-      setApiKey(loadedApiKey);
-      setSummarySettings(loadedSummarySettings);
-      setJiraSettings(loadedJiraSettings);
+      setApiKey(loadedApiKey ?? '');
+      setSummarySettings(loadedSummarySettings ?? DEFAULT_SUMMARY_SETTINGS);
+      setJiraSettings(loadedJiraSettings ?? DEFAULT_JIRA_SETTINGS);
     };
 
     loadSettings();

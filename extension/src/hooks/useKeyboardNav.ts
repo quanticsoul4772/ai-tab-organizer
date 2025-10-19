@@ -14,7 +14,6 @@ export function useKeyboardNav({
   onSelect,
   onClose,
   enabled = true,
-  containerRef,
   throttleMs = 16, // Default 16ms (~60fps)
 }: UseKeyboardNavOptions) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -135,7 +134,7 @@ export function useKeyboardNav({
           break;
       }
     },
-    [enabled, itemCount, onSelect, onClose]
+    [enabled, itemCount, onSelect, onClose, selectedIndex, throttleMs]
   );
 
   useEffect(() => {
@@ -148,10 +147,12 @@ export function useKeyboardNav({
     // Container focus is unreliable in popup windows
     console.log('Attaching keydown listener to document');
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     document.addEventListener('keydown', handleKeyDown as any);
 
     return () => {
       console.log('Removing keydown listener from document');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       document.removeEventListener('keydown', handleKeyDown as any);
     };
   }, [enabled, handleKeyDown]);

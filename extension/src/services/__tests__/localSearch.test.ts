@@ -10,15 +10,16 @@ describe('localSearch', () => {
       url: string,
       content: string = '',
       category?: string,
-      lastAccessed?: number
+      lastAccessed?: string
     ): IndexedTab => ({
       tabId: id,
       title,
       url,
       content,
-      timestamp: Date.now(),
+      contentHash: '',
       category,
-      lastAccessed: lastAccessed || Date.now(),
+      lastAccessed: lastAccessed || new Date().toISOString(),
+      indexed: new Date().toISOString(),
     });
 
     it('should match tabs by title keywords', async () => {
@@ -29,10 +30,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'login',
+        rawQuery: 'login',
         keywords: ['login'],
-        tokens: ['login'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -48,10 +47,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'github',
+        rawQuery: 'github',
         keywords: ['github'],
-        tokens: ['github'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -67,10 +64,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'react',
+        rawQuery: 'react',
         keywords: ['react'],
-        tokens: ['react'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -87,10 +82,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'test',
+        rawQuery: 'test',
         keywords: ['test'],
-        tokens: ['test'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -110,10 +103,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'react tutorial',
+        rawQuery: 'react tutorial',
         keywords: ['react', 'tutorial'],
-        tokens: ['react', 'tutorial'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -129,10 +120,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -148,10 +137,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
         category: 'Work',
       };
 
@@ -169,10 +156,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
         domain: 'github.com',
       };
 
@@ -184,20 +169,18 @@ describe('localSearch', () => {
 
     it('should filter by temporal constraint - today', async () => {
       const now = new Date();
-      const today = now.getTime();
+      const today = now.toISOString();
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
 
       const tabs = new Map<number, IndexedTab>([
         [1, createTab(1, 'Today Tab', 'https://a.com', '', undefined, today)],
-        [2, createTab(2, 'Yesterday Tab', 'https://b.com', '', undefined, yesterday.getTime())],
+        [2, createTab(2, 'Yesterday Tab', 'https://b.com', '', undefined, yesterday.toISOString())],
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
         temporal: {
           type: 'relative',
           relative: 'today',
@@ -212,20 +195,18 @@ describe('localSearch', () => {
 
     it('should filter by temporal constraint - yesterday', async () => {
       const now = new Date();
-      const today = now.getTime();
+      const today = now.toISOString();
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
 
       const tabs = new Map<number, IndexedTab>([
         [1, createTab(1, 'Today Tab', 'https://a.com', '', undefined, today)],
-        [2, createTab(2, 'Yesterday Tab', 'https://b.com', '', undefined, yesterday.getTime())],
+        [2, createTab(2, 'Yesterday Tab', 'https://b.com', '', undefined, yesterday.toISOString())],
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
         temporal: {
           type: 'relative',
           relative: 'yesterday',
@@ -240,20 +221,18 @@ describe('localSearch', () => {
 
     it('should filter by temporal constraint - this week', async () => {
       const now = new Date();
-      const thisWeek = now.getTime();
+      const thisWeek = now.toISOString();
       const lastWeek = new Date(now);
       lastWeek.setDate(lastWeek.getDate() - 8);
 
       const tabs = new Map<number, IndexedTab>([
         [1, createTab(1, 'This Week', 'https://a.com', '', undefined, thisWeek)],
-        [2, createTab(2, 'Last Week', 'https://b.com', '', undefined, lastWeek.getTime())],
+        [2, createTab(2, 'Last Week', 'https://b.com', '', undefined, lastWeek.toISOString())],
       ]);
 
       const query: SearchQuery = {
-        originalQuery: '',
+        rawQuery: '',
         keywords: [],
-        tokens: [],
-        filters: {},
         temporal: {
           type: 'relative',
           relative: 'this-week',
@@ -273,10 +252,8 @@ describe('localSearch', () => {
       }
 
       const query: SearchQuery = {
-        originalQuery: 'test',
+        rawQuery: 'test',
         keywords: ['test'],
-        tokens: ['test'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -291,10 +268,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'nonexistent',
+        rawQuery: 'nonexistent',
         keywords: ['nonexistent'],
-        tokens: ['nonexistent'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -308,10 +283,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'uppercase',
+        rawQuery: 'uppercase',
         keywords: ['uppercase'],
-        tokens: ['uppercase'],
-        filters: {},
       };
 
       const results = await filterTabsLocally(query, tabs);
@@ -321,7 +294,7 @@ describe('localSearch', () => {
 
     it('should combine all filters correctly', async () => {
       const now = new Date();
-      const today = now.getTime();
+      const today = now.toISOString();
 
       const tabs = new Map<number, IndexedTab>([
         [
@@ -343,10 +316,8 @@ describe('localSearch', () => {
       ]);
 
       const query: SearchQuery = {
-        originalQuery: 'report',
+        rawQuery: 'report',
         keywords: ['report'],
-        tokens: ['report'],
-        filters: {},
         category: 'Work',
         domain: 'github.com',
         temporal: {

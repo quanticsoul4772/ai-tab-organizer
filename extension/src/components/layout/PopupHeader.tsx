@@ -1,4 +1,3 @@
-import React from 'react';
 import { DensityToggle } from '../DensityToggle';
 import { useDensity } from '../../context/DensityContext';
 

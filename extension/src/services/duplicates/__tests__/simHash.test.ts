@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SimHash } from '../simHash';
 
 describe('SimHash', () => {
@@ -23,7 +23,9 @@ describe('SimHash', () => {
     });
 
     it('should return 0 for null/undefined text', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(simHash.generate(null as any)).toBe('0');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(simHash.generate(undefined as any)).toBe('0');
     });
 

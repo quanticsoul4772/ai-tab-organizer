@@ -17,14 +17,17 @@ interface VirtualTabListProps {
   keyboardNavEnabled?: boolean;
 }
 
-interface RowProps {
-  index: number;
-  style: React.CSSProperties;
+interface RowDataProps {
   tabs: chrome.tabs.Tab[];
   onTabClick: (tab: chrome.tabs.Tab) => void;
   onTabClose: (tabId: number) => void;
   selectedIndex: number;
   densityConfig: DensityConfig;
+}
+
+interface RowProps extends RowDataProps {
+  index: number;
+  style: React.CSSProperties;
 }
 
 const Row = memo(
@@ -92,6 +95,7 @@ export function VirtualTabList({
     densityConfig
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const listRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -130,7 +134,7 @@ export function VirtualTabList({
 
   // Profiler callback to measure render performance
   const onRender: ProfilerOnRenderCallback = useCallback(
-    (id, phase, actualDuration, baseDuration, startTime, commitTime) => {
+    (_id, phase, actualDuration, _baseDuration, _startTime, _commitTime) => {
       console.log(`VirtualTabList ${phase}: ${actualDuration.toFixed(2)}ms (${tabs.length} tabs)`);
 
       // Record in performance monitor
@@ -177,13 +181,16 @@ export function VirtualTabList({
           rowCount={tabs.length}
           rowHeight={itemSize}
           rowComponent={Row}
-          rowProps={{
-            tabs,
-            onTabClick,
-            onTabClose,
-            selectedIndex,
-            densityConfig,
-          }}
+          rowProps={
+            {
+              tabs,
+              onTabClick,
+              onTabClose,
+              selectedIndex,
+              densityConfig,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } as any
+          }
           style={{ width: '100%' }}
           overscanCount={5}
         />

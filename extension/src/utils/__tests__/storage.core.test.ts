@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { storage } from '../storage';
-import type { TabSummary, CategorySummary, SummarySettings, JiraSettings } from '../../types';
+import type { SummarySettings, JiraSettings } from '../../types';
 import type { DensityMode } from '../../types/density';
 
 describe('storage - core methods', () => {
@@ -11,9 +11,11 @@ describe('storage - core methods', () => {
   describe('API Key Management', () => {
     describe('getApiKey', () => {
       it('should return API key if it exists', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
           anthropicApiKey: 'test-api-key-123',
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getApiKey();
 
@@ -22,7 +24,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if no API key exists', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getApiKey();
 
@@ -32,7 +35,8 @@ describe('storage - core methods', () => {
 
     describe('setApiKey', () => {
       it('should save API key to storage', async () => {
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setApiKey('new-api-key');
 
@@ -57,13 +61,32 @@ describe('storage - core methods', () => {
     describe('getSummaryCache', () => {
       it('should return existing cache', async () => {
         const mockCache = {
-          tabs: { 123: { tabId: 123, summary: 'Test', timestamp: Date.now() } },
+          tabs: {
+            123: {
+              tabId: 123,
+              url: '',
+              title: '',
+              summary: 'Test',
+              timestamp: Date.now(),
+              tokens: 0,
+            },
+          },
           categories: {
-            Work: { category: 'Work', summary: 'Work tabs', tabCount: 5, timestamp: Date.now() },
+            Work: {
+              category: 'Work',
+              summary: 'Work tabs',
+              tabCount: 5,
+              timestamp: Date.now(),
+              tokens: 0,
+            },
           },
         };
 
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getSummaryCache();
 
@@ -71,7 +94,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return empty cache if none exists', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getSummaryCache();
 
@@ -82,11 +106,21 @@ describe('storage - core methods', () => {
     describe('setSummaryCache', () => {
       it('should save cache to storage', async () => {
         const mockCache = {
-          tabs: { 456: { tabId: 456, summary: 'Test', timestamp: Date.now() } },
+          tabs: {
+            456: {
+              tabId: 456,
+              url: '',
+              title: '',
+              summary: 'Test',
+              timestamp: Date.now(),
+              tokens: 0,
+            },
+          },
           categories: {},
         };
 
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setSummaryCache(mockCache);
 
@@ -96,14 +130,19 @@ describe('storage - core methods', () => {
 
     describe('getCachedTabSummary', () => {
       it('should return cached tab summary if not expired', async () => {
-        const summary: TabSummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const summary: any = {
           tabId: 123,
           summary: 'Test summary',
           timestamp: Date.now() - 1000, // 1 second ago
         };
 
         const mockCache = { tabs: { 123: summary }, categories: {} };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getCachedTabSummary(123);
 
@@ -111,7 +150,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if tab summary not in cache', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
           summaryCache: { tabs: {}, categories: {} },
         });
 
@@ -121,15 +161,21 @@ describe('storage - core methods', () => {
       });
 
       it('should return null and remove expired tab summary', async () => {
-        const expiredSummary: TabSummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const expiredSummary: any = {
           tabId: 123,
           summary: 'Old summary',
           timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago (expired)
         };
 
         const mockCache = { tabs: { 123: expiredSummary }, categories: {} };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         const result = await storage.getCachedTabSummary(123);
 
@@ -141,15 +187,21 @@ describe('storage - core methods', () => {
 
     describe('cacheTabSummary', () => {
       it('should add tab summary to cache', async () => {
-        const summary: TabSummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const summary: any = {
           tabId: 456,
           summary: 'New summary',
           timestamp: Date.now(),
         };
 
         const existingCache = { tabs: {}, categories: {} };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: existingCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: existingCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.cacheTabSummary(summary);
 
@@ -166,14 +218,33 @@ describe('storage - core methods', () => {
       it('should remove tab summary from cache', async () => {
         const mockCache = {
           tabs: {
-            123: { tabId: 123, summary: 'Test', timestamp: Date.now() },
-            456: { tabId: 456, summary: 'Other', timestamp: Date.now() },
+            123: {
+              tabId: 123,
+              url: '',
+              title: '',
+              summary: 'Test',
+              timestamp: Date.now(),
+              tokens: 0,
+            },
+            456: {
+              tabId: 456,
+              url: '',
+              title: '',
+              summary: 'Other',
+              timestamp: Date.now(),
+              tokens: 0,
+            },
           },
           categories: {},
         };
 
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.removeCachedTabSummary(123);
 
@@ -188,7 +259,8 @@ describe('storage - core methods', () => {
 
     describe('getCachedCategorySummary', () => {
       it('should return cached category summary if not expired', async () => {
-        const summary: CategorySummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const summary: any = {
           category: 'Work',
           summary: 'Work tabs',
           tabCount: 5,
@@ -196,7 +268,11 @@ describe('storage - core methods', () => {
         };
 
         const mockCache = { tabs: {}, categories: { Work: summary } };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getCachedCategorySummary('Work');
 
@@ -204,7 +280,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if category not in cache', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
           summaryCache: { tabs: {}, categories: {} },
         });
 
@@ -214,7 +291,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return null and remove expired category summary', async () => {
-        const expiredSummary: CategorySummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const expiredSummary: any = {
           category: 'Work',
           summary: 'Old summary',
           tabCount: 3,
@@ -222,8 +300,13 @@ describe('storage - core methods', () => {
         };
 
         const mockCache = { tabs: {}, categories: { Work: expiredSummary } };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         const result = await storage.getCachedCategorySummary('Work');
 
@@ -234,7 +317,8 @@ describe('storage - core methods', () => {
 
     describe('cacheCategorySummary', () => {
       it('should add category summary to cache', async () => {
-        const summary: CategorySummary = {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const summary: any = {
           category: 'Personal',
           summary: 'Personal tabs',
           tabCount: 3,
@@ -242,8 +326,13 @@ describe('storage - core methods', () => {
         };
 
         const existingCache = { tabs: {}, categories: {} };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: existingCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: existingCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.cacheCategorySummary(summary);
 
@@ -261,7 +350,13 @@ describe('storage - core methods', () => {
         const mockCache = {
           tabs: {},
           categories: {
-            Work: { category: 'Work', summary: 'Work tabs', tabCount: 5, timestamp: Date.now() },
+            Work: {
+              category: 'Work',
+              summary: 'Work tabs',
+              tabCount: 5,
+              timestamp: Date.now(),
+              tokens: 0,
+            },
             Personal: {
               category: 'Personal',
               summary: 'Personal tabs',
@@ -271,8 +366,13 @@ describe('storage - core methods', () => {
           },
         };
 
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summaryCache: mockCache,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.removeCachedCategorySummary('Work');
 
@@ -300,7 +400,11 @@ describe('storage - core methods', () => {
     describe('getSummarySettings', () => {
       it('should return stored summary settings', async () => {
         const settings: SummarySettings = { enabled: false, cacheDuration: 48 };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summarySettings: settings });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          summarySettings: settings,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getSummarySettings();
 
@@ -308,7 +412,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return default settings if none exist', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getSummarySettings();
 
@@ -319,7 +424,8 @@ describe('storage - core methods', () => {
     describe('setSummarySettings', () => {
       it('should save summary settings', async () => {
         const settings: SummarySettings = { enabled: false, cacheDuration: 12 };
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setSummarySettings(settings);
 
@@ -330,7 +436,11 @@ describe('storage - core methods', () => {
     describe('getJiraSettings', () => {
       it('should return stored Jira settings', async () => {
         const settings: JiraSettings = { smartMode: false };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ jiraSettings: settings });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          jiraSettings: settings,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getJiraSettings();
 
@@ -338,7 +448,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return default settings if none exist', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getJiraSettings();
 
@@ -349,7 +460,8 @@ describe('storage - core methods', () => {
     describe('setJiraSettings', () => {
       it('should save Jira settings', async () => {
         const settings: JiraSettings = { smartMode: false };
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setJiraSettings(settings);
 
@@ -361,9 +473,11 @@ describe('storage - core methods', () => {
   describe('Density Mode', () => {
     describe('getDensityMode', () => {
       it('should return stored density mode', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
           densityMode: 'compact' as DensityMode,
-        });
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getDensityMode();
 
@@ -371,7 +485,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if no density mode set', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getDensityMode();
 
@@ -381,7 +496,8 @@ describe('storage - core methods', () => {
 
     describe('setDensityMode', () => {
       it('should save density mode', async () => {
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setDensityMode('spacious' as DensityMode);
 
@@ -394,7 +510,11 @@ describe('storage - core methods', () => {
     describe('getGroupStates', () => {
       it('should return stored group states', async () => {
         const states = { 'category-work': true, 'category-personal': false };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: states });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          groupStates: states,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
         const result = await storage.getGroupStates();
 
@@ -402,7 +522,8 @@ describe('storage - core methods', () => {
       });
 
       it('should return empty object if no states exist', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
         const result = await storage.getGroupStates();
 
@@ -413,8 +534,13 @@ describe('storage - core methods', () => {
     describe('setGroupState', () => {
       it('should set collapse state for a specific group', async () => {
         const existingStates = { 'category-work': false };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: existingStates });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          groupStates: existingStates,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setGroupState('category-personal', true);
 
@@ -428,8 +554,13 @@ describe('storage - core methods', () => {
 
       it('should update existing group state', async () => {
         const existingStates = { 'category-work': false };
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: existingStates });
-        vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.get as any).mockResolvedValue({
+          groupStates: existingStates,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        vi.mocked(chrome.storage.local.set as any).mockResolvedValue(undefined);
 
         await storage.setGroupState('category-work', true);
 

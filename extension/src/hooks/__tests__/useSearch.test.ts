@@ -1,7 +1,27 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Helper to create mock Tab objects
+function createMockTab(partial: Partial<chrome.tabs.Tab>): chrome.tabs.Tab {
+  return {
+    index: 0,
+    pinned: false,
+    highlighted: false,
+    windowId: 1,
+    active: false,
+    incognito: false,
+    selected: false,
+    discarded: false,
+    autoDiscardable: true,
+    groupId: -1,
+    ...partial,
+  } as chrome.tabs.Tab;
+}
 import { renderHook, act, waitFor } from '@testing-library/react';
+
 import { useSearch } from '../useSearch';
+
 import { searchTabs, switchToTab, closeTab } from '../../services/searchService';
+
 import { storage } from '../../utils/storage';
 
 // Mock dependencies
@@ -38,9 +58,9 @@ describe('useSearch', () => {
   it('should perform search when query is not empty', async () => {
     const mockResults = [
       {
-        tab: { id: 1, url: 'https://example.com', title: 'Example' },
+        tab: createMockTab({ id: 1, url: 'https://example.com', title: 'Example' }),
         relevanceScore: 0.9,
-        matchedFields: ['title'],
+        matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
         highlights: [],
       },
     ];
@@ -113,15 +133,15 @@ describe('useSearch', () => {
   it('should close tab and remove from results', async () => {
     const mockResults = [
       {
-        tab: { id: 1, url: 'https://example.com', title: 'Example 1' },
+        tab: createMockTab({ id: 1, url: 'https://example.com', title: 'Example 1' }),
         relevanceScore: 0.9,
-        matchedFields: ['title'],
+        matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
         highlights: [],
       },
       {
-        tab: { id: 2, url: 'https://example2.com', title: 'Example 2' },
+        tab: createMockTab({ id: 2, url: 'https://example2.com', title: 'Example 2' }),
         relevanceScore: 0.8,
-        matchedFields: ['title'],
+        matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
         highlights: [],
       },
     ];
@@ -151,9 +171,9 @@ describe('useSearch', () => {
   it('should handle Enter key press', async () => {
     const mockResults = [
       {
-        tab: { id: 1, url: 'https://example.com', title: 'Example' },
+        tab: createMockTab({ id: 1, url: 'https://example.com', title: 'Example' }),
         relevanceScore: 0.9,
-        matchedFields: ['title'],
+        matchedFields: ['title'] as Array<'title' | 'url' | 'content'>,
         highlights: [],
       },
     ];

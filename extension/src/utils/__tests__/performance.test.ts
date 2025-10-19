@@ -51,6 +51,7 @@ describe('PerformanceMonitor', () => {
       // Simulate slow operation exceeding 200ms budget for 'initial-render'
       monitor.measure('initial-render', () => {
         // Manually record a high duration
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (monitor as any).recordMetric('initial-render', 250);
         return 'done';
       });
@@ -103,8 +104,11 @@ describe('PerformanceMonitor', () => {
 
     it('should calculate average, max, min correctly', () => {
       // Record metrics directly for testing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('test-stats', 10);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('test-stats', 20);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('test-stats', 30);
 
       const stats = monitor.getStats('test-stats');
@@ -118,6 +122,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should handle single metric', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('single', 15);
 
       const stats = monitor.getStats('single');
@@ -177,6 +182,7 @@ describe('PerformanceMonitor', () => {
   });
 
   describe('performance budgets', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let consoleWarnSpy: any;
 
     beforeEach(() => {
@@ -188,6 +194,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should warn for initial-render exceeding 200ms', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('initial-render', 250);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -196,6 +203,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should warn for filter-operation exceeding 100ms', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('filter-operation', 150);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -204,6 +212,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should warn for category-toggle exceeding 50ms', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('category-toggle', 75);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -212,6 +221,7 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should warn for keyboard-nav exceeding 16ms', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('keyboard-nav', 20);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -220,12 +230,14 @@ describe('PerformanceMonitor', () => {
     });
 
     it('should not warn if within budget', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('initial-render', 100);
 
       expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
 
     it('should not warn for unknown operations', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (monitor as any).recordMetric('unknown-op', 1000);
 
       expect(consoleWarnSpy).not.toHaveBeenCalled();
@@ -236,6 +248,7 @@ describe('PerformanceMonitor', () => {
 describe('checkMemoryUsage', () => {
   it('should return memory usage if available', async () => {
     // Mock performance.memory
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (performance as any).memory = {
       usedJSHeapSize: 50 * 1048576, // 50MB
     };
@@ -248,12 +261,14 @@ describe('checkMemoryUsage', () => {
     });
 
     // Clean up
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (performance as any).memory;
   });
 
   it('should warn if memory usage exceeds 100MB', async () => {
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (performance as any).memory = {
       usedJSHeapSize: 150 * 1048576, // 150MB
     };
@@ -269,11 +284,13 @@ describe('checkMemoryUsage', () => {
     );
 
     consoleWarnSpy.mockRestore();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (performance as any).memory;
   });
 
   it('should return null if memory API not available', async () => {
     // Ensure no memory property
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (performance as any).memory;
 
     const result = await checkMemoryUsage();

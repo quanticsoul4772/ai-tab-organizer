@@ -48,6 +48,7 @@ export function usePopupState() {
 
   useEffect(() => {
     initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**

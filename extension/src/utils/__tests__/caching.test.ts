@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getCachedItem,
   setCachedItem,
@@ -133,7 +133,8 @@ describe('caching utility', () => {
         'myprefix:key2': 'value2',
         'otherprefix:key3': 'value3',
         'cache:key4': 'value4',
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       await clearCacheByPrefix('myprefix');
 
@@ -144,7 +145,8 @@ describe('caching utility', () => {
       vi.mocked(storage.getAll).mockResolvedValue({
         'cache:key1': 'value1',
         'otherprefix:key2': 'value2',
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       await clearCacheByPrefix('nonexistent');
 

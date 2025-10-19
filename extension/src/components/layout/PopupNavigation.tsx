@@ -1,5 +1,3 @@
-import React from 'react';
-
 type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'sessions';
 
 interface PopupNavigationProps {

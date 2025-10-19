@@ -15,7 +15,7 @@ interface GroupHeaderProps {
 }
 
 export const GroupHeader = memo(function GroupHeader({
-  categoryId,
+  categoryId: _categoryId,
   categoryName,
   tabCount,
   isCollapsed,

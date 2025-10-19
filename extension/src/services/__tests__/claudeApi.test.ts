@@ -1,5 +1,23 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Helper to create mock Tab objects
+function createMockTab(partial: Partial<chrome.tabs.Tab>): chrome.tabs.Tab {
+  return {
+    index: 0,
+    pinned: false,
+    highlighted: false,
+    windowId: 1,
+    active: false,
+    incognito: false,
+    selected: false,
+    discarded: false,
+    autoDiscardable: true,
+    groupId: -1,
+    ...partial,
+  } as chrome.tabs.Tab;
+}
 import { claudeApi } from '../claudeApi';
+
 import type { Tab } from '../../types';
 
 // Mock the browserApi module
@@ -26,8 +44,8 @@ describe('claudeApi', () => {
   describe('categorizeTabs', () => {
     it('should successfully categorize tabs', async () => {
       const tabs: Tab[] = [
-        { id: 1, url: 'https://github.com', title: 'GitHub' },
-        { id: 2, url: 'https://gmail.com', title: 'Gmail' },
+        createMockTab({ id: 1, url: 'https://github.com', title: 'GitHub' }),
+        createMockTab({ id: 2, url: 'https://gmail.com', title: 'Gmail' }),
       ];
 
       const mockResponse = {
@@ -47,7 +65,7 @@ describe('claudeApi', () => {
     });
 
     it('should handle runtime errors', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Extension context invalidated'));
 
@@ -57,7 +75,7 @@ describe('claudeApi', () => {
     });
 
     it('should handle API errors', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('API rate limit exceeded'));
 
@@ -67,7 +85,7 @@ describe('claudeApi', () => {
     });
 
     it('should handle errors without error message', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
       vi.mocked(runtime.sendMessage).mockRejectedValue(
         new Error('Failed to execute action: categorize')
@@ -79,9 +97,10 @@ describe('claudeApi', () => {
     });
 
     it('should pass API key to background worker', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
-      vi.mocked(runtime.sendMessage).mockResolvedValue({ Test: [0] });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ Test: [0] } as any);
 
       await claudeApi.categorizeTabs(tabs, 'my-secret-key');
 
@@ -93,11 +112,12 @@ describe('claudeApi', () => {
 
     it('should pass tabs to background worker', async () => {
       const tabs: Tab[] = [
-        { id: 1, url: 'https://github.com', title: 'GitHub' },
-        { id: 2, url: 'https://gitlab.com', title: 'GitLab' },
+        createMockTab({ id: 1, url: 'https://github.com', title: 'GitHub' }),
+        createMockTab({ id: 2, url: 'https://gitlab.com', title: 'GitLab' }),
       ];
 
-      vi.mocked(runtime.sendMessage).mockResolvedValue({ Development: [0, 1] });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(runtime.sendMessage).mockResolvedValue({ Development: [0, 1] } as any);
 
       await claudeApi.categorizeTabs(tabs, 'test-api-key');
 
@@ -108,7 +128,7 @@ describe('claudeApi', () => {
     });
 
     it('should include categorize action in message', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
       vi.mocked(runtime.sendMessage).mockResolvedValue({});
 
@@ -126,7 +146,7 @@ describe('claudeApi', () => {
     });
 
     it('should return category response data', async () => {
-      const tabs: Tab[] = [{ id: 1, url: 'https://example.com', title: 'Test' }];
+      const tabs: Tab[] = [createMockTab({ id: 1, url: 'https://example.com', title: 'Test' })];
 
       const categoryData = {
         Work: [0],

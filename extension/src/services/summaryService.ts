@@ -15,7 +15,7 @@ export const summaryService = {
    */
   async summarizeTab(tab: Tab, apiKey: string): Promise<TabSummary> {
     // Check cache first
-    const cached = await storage.getCachedTabSummary(tab.id);
+    const cached = tab.id !== undefined ? await storage.getCachedTabSummary(tab.id) : null;
     if (cached) {
       console.log(`[SummaryService] Using cached summary for tab ${tab.id}`);
       return cached;

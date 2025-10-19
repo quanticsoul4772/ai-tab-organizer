@@ -121,7 +121,7 @@ export class ContentMatcher {
       try {
         const content = await this.extractTabContent(tab);
         contents.push(content);
-      } catch (error) {
+      } catch {
         console.warn(`Skipping tab ${tab.id} due to extraction error`);
       }
 

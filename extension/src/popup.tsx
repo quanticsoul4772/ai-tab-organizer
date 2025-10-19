@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import './popup.css';
 
@@ -34,14 +34,12 @@ function Popup() {
     error,
     summarySettings,
     jiraSettings,
-    densityMode,
     setApiKey,
     setActiveView,
     setShowSettings,
     setError,
     setSummarySettings,
     setJiraSettings,
-    handleDensityChange,
     saveSettings,
     handleClearCache,
     handleTabClick,
@@ -76,6 +74,7 @@ function Popup() {
     <div className="popup">
       <PopupHeader onShowSettings={() => setShowSettings(true)} />
 
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <PopupNavigation activeView={activeView as any} onViewChange={setActiveView as any} />
 
       {activeView === 'categories' && (

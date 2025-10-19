@@ -102,6 +102,9 @@ describe('JiraSearchEnhancer', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
         {
           id: 2,
@@ -114,6 +117,9 @@ describe('JiraSearchEnhancer', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
       ];
 
@@ -143,6 +149,7 @@ describe('JiraSearchEnhancer', () => {
           active: false,
           incognito: false,
           selected: false,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any,
       ];
 
@@ -164,6 +171,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       },
       {
         id: 2,
@@ -176,6 +186,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       },
       {
         id: 3,
@@ -188,6 +201,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       },
     ];
 
@@ -256,6 +272,9 @@ describe('JiraSearchEnhancer', () => {
           active: false,
           incognito: false,
           selected: false,
+          discarded: false,
+          autoDiscardable: true,
+          groupId: -1,
         },
       ];
 
@@ -277,6 +296,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       };
 
       const info = JiraSearchEnhancer.getTicketInfo(tab);
@@ -303,6 +325,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       };
 
       const info = JiraSearchEnhancer.getTicketInfo(tab);
@@ -321,6 +346,7 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any;
 
       const info = JiraSearchEnhancer.getTicketInfo(tab);
@@ -341,6 +367,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       };
 
       const description = JiraSearchEnhancer.formatResultDescription(tab);
@@ -359,6 +388,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       };
 
       const description = JiraSearchEnhancer.formatResultDescription(tab);
@@ -377,6 +409,9 @@ describe('JiraSearchEnhancer', () => {
         active: false,
         incognito: false,
         selected: false,
+        discarded: false,
+        autoDiscardable: true,
+        groupId: -1,
       };
 
       const description = JiraSearchEnhancer.formatResultDescription(tab);

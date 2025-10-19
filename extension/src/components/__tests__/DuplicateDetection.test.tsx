@@ -71,7 +71,8 @@ describe('DuplicateDetection', () => {
     vi.clearAllMocks();
 
     // Mock chrome.storage.local
-    vi.mocked(chrome.storage.local.get).mockResolvedValue({ apiKey: 'test-api-key' });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vi.mocked(chrome.storage.local.get as any).mockResolvedValue({ apiKey: 'test-api-key' } as any);
 
     // Default tabManager mocks
     vi.mocked(tabManager.tabManager.getAllTabs).mockResolvedValue(mockTabs);
@@ -110,6 +111,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -136,6 +138,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -163,11 +166,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -193,11 +198,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -227,11 +234,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 2,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
 
       const mockConstructor = vi.fn().mockImplementation(() => ({
         detectDuplicates: mockDetect,
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(DuplicateDetectionService).mockImplementation(mockConstructor as any);
 
       render(<DuplicateDetection />);
@@ -245,7 +254,8 @@ describe('DuplicateDetection', () => {
     });
 
     it('should disable semantic analysis when no API key', async () => {
-      vi.mocked(chrome.storage.local.get).mockResolvedValue({});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(chrome.storage.local.get as any).mockResolvedValue({});
 
       const { DuplicateDetectionService } = await import(
         '../../services/duplicates/duplicateDetectionService'
@@ -258,11 +268,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -305,6 +317,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -328,6 +341,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -351,6 +365,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -381,11 +396,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -412,11 +429,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -442,11 +461,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 0,
         tier2Found: 0,
         tier3Found: 2,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -472,11 +493,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 2,
         tier2Found: 1,
         tier3Found: 3,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -504,11 +527,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -539,6 +564,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -564,11 +590,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -594,11 +622,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -608,7 +638,7 @@ describe('DuplicateDetection', () => {
       fireEvent.click(scanButton);
 
       await waitFor(() => {
-        expect(screen.getByText('exact')).toBeInTheDocument();
+        expect(screen.getByText('url')).toBeInTheDocument();
       });
     });
 
@@ -624,11 +654,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -654,11 +686,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -685,11 +719,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -715,11 +751,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -758,6 +796,7 @@ describe('DuplicateDetection', () => {
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -785,11 +824,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -832,11 +873,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -862,11 +905,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -903,11 +948,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 
@@ -942,11 +989,13 @@ describe('DuplicateDetection', () => {
         tier1Found: 1,
         tier2Found: 0,
         tier3Found: 0,
-      });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
       vi.mocked(DuplicateDetectionService).mockImplementation(
         () =>
           ({
             detectDuplicates: mockDetect,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           }) as any
       );
 

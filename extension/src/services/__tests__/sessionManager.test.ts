@@ -12,7 +12,8 @@ const mockDetectAtlassianTabs = vi.fn().mockResolvedValue({
   jiraTabs: [],
   confluenceTabs: [],
   otherAtlassian: [],
-});
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any);
 
 vi.mock('../jira/atlassianDetectionService', () => ({
   AtlassianDetectionService: vi.fn().mockImplementation(() => ({
@@ -31,7 +32,8 @@ describe('sessionManager', () => {
       jiraTabs: [],
       confluenceTabs: [],
       otherAtlassian: [],
-    });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
   });
 
   describe('saveCurrentSession', () => {
