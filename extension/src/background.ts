@@ -426,10 +426,12 @@ async function summarizeTab(
     }
 
     // Build content string from extracted data
-    const contentText = contentData.content || [
-      ...contentData.headings.map(h => `Heading: ${h}`),
-      ...contentData.paragraphs.slice(0, 5)
-    ].join('\n');
+    const contentText =
+      contentData.content ||
+      [
+        ...contentData.headings.map((h) => `Heading: ${h}`),
+        ...contentData.paragraphs.slice(0, 5),
+      ].join('\n');
 
     // Step 2: Build enhanced prompt with actual content
     const prompt = `Summarize this browser tab in 2-3 sentences. Focus on:
@@ -445,28 +447,25 @@ ${contentData.metaDescription ? `Meta Description: ${contentData.metaDescription
 Provide a concise, actionable summary.`;
 
     // Step 3: Call Claude API with content
-    const response = await fetch(
-      API_CONFIG.BASE_URL,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': API_CONFIG.VERSION,
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: API_CONFIG.MODEL,
-          max_tokens: 300,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-        }),
-      }
-    );
+    const response = await fetch(API_CONFIG.BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': API_CONFIG.VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: API_CONFIG.MODEL,
+        max_tokens: 300,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -543,10 +542,12 @@ async function summarizeCategory(
         }
 
         // Build content string from extracted data
-        const contentText = contentData.content || [
-          ...contentData.headings.map(h => `Heading: ${h}`),
-          ...contentData.paragraphs.slice(0, 3)
-        ].join('\n');
+        const contentText =
+          contentData.content ||
+          [
+            ...contentData.headings.map((h) => `Heading: ${h}`),
+            ...contentData.paragraphs.slice(0, 3),
+          ].join('\n');
 
         tabsWithContent.push({
           title: tab.title,
@@ -587,28 +588,25 @@ ${tabList}
 Provide a cohesive summary that captures the essence of this tab collection.`;
 
     // Step 4: Call Claude API
-    const response = await fetch(
-      API_CONFIG.BASE_URL,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': API_CONFIG.VERSION,
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: API_CONFIG.MODEL,
-          max_tokens: 500,
-          messages: [
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-        }),
-      }
-    );
+    const response = await fetch(API_CONFIG.BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': API_CONFIG.VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: API_CONFIG.MODEL,
+        max_tokens: 500,
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
