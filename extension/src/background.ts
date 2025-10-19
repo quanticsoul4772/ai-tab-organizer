@@ -7,7 +7,7 @@ import {
   type ClaudeResponse,
   type CategoryResponse,
 } from '@schemas/index';
-import type { TabSummary, CategorySummary } from '@types/index';
+import type { TabSummary, CategorySummary } from '../types/index';
 
 // Type definitions
 interface ApiConfig {
