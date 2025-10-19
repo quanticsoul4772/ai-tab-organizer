@@ -261,9 +261,7 @@ describe('caching utility', () => {
       vi.setSystemTime(now);
       vi.mocked(storage.get).mockResolvedValue(null);
 
-      const originalFn = vi.fn()
-        .mockResolvedValueOnce('result1')
-        .mockResolvedValueOnce('result2');
+      const originalFn = vi.fn().mockResolvedValueOnce('result1').mockResolvedValueOnce('result2');
 
       const cachedFn = createCachedFunction(originalFn, { ttl: 5000 });
 
@@ -290,10 +288,7 @@ describe('caching utility', () => {
     it('should use custom key prefix', async () => {
       await invalidateCache(['key1', 'key2'], 'custom');
 
-      expect(storage.removeMultiple).toHaveBeenCalledWith([
-        'custom:key1',
-        'custom:key2',
-      ]);
+      expect(storage.removeMultiple).toHaveBeenCalledWith(['custom:key1', 'custom:key2']);
     });
   });
 

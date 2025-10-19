@@ -70,7 +70,9 @@ export const GroupHeader = memo(function GroupHeader({
         >
           ▶
         </span>
-        <span>{categoryName} ({tabCount})</span>
+        <span>
+          {categoryName} ({tabCount})
+        </span>
         {memoryUsage && (
           <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 'normal' }}>
             • {Math.round(memoryUsage / (1024 * 1024))}MB

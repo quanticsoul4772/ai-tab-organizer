@@ -85,7 +85,7 @@ class Logger {
     let history = this.logHistory;
 
     if (level) {
-      history = history.filter(entry => entry.level === level);
+      history = history.filter((entry) => entry.level === level);
     }
 
     return history.slice(-limit);

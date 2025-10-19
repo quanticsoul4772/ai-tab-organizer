@@ -65,7 +65,7 @@ export function useSearch() {
   const handleCloseTab = async (tabId: number) => {
     await closeTab(tabId);
     // Remove from results
-    setResults(prev => prev.filter(r => r.tab.id !== tabId));
+    setResults((prev) => prev.filter((r) => r.tab.id !== tabId));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

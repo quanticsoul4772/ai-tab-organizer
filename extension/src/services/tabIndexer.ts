@@ -13,10 +13,12 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
   if (!tab.id || !tab.url) return;
 
   // Skip protected URLs
-  if (tab.url.startsWith('chrome://') ||
-      tab.url.startsWith('edge://') ||
-      tab.url.startsWith('about:') ||
-      tab.url.startsWith('chrome-extension://')) {
+  if (
+    tab.url.startsWith('chrome://') ||
+    tab.url.startsWith('edge://') ||
+    tab.url.startsWith('about:') ||
+    tab.url.startsWith('chrome-extension://')
+  ) {
     return;
   }
 
@@ -30,9 +32,10 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
     const content = data.content || '';
 
     // Truncate if too long
-    const truncatedContent = content.length > MAX_CONTENT_LENGTH
-      ? content.substring(0, MAX_CONTENT_LENGTH) + '...'
-      : content;
+    const truncatedContent =
+      content.length > MAX_CONTENT_LENGTH
+        ? content.substring(0, MAX_CONTENT_LENGTH) + '...'
+        : content;
 
     // Create indexed tab entry
     const indexedTab: IndexedTab = {
@@ -42,7 +45,7 @@ export async function indexTab(tab: chrome.tabs.Tab): Promise<void> {
       content: truncatedContent,
       contentHash: simpleHash(truncatedContent),
       lastAccessed: new Date().toISOString(),
-      indexed: new Date().toISOString()
+      indexed: new Date().toISOString(),
     };
 
     // Store in storage
@@ -78,7 +81,7 @@ export async function removeIndexedTab(tabId: number): Promise<void> {
  */
 export async function cleanupIndexedTabs(): Promise<void> {
   const allTabs = await chrome.tabs.query({});
-  const activeTabIds = new Set(allTabs.map(t => t.id).filter(id => id !== undefined));
+  const activeTabIds = new Set(allTabs.map((t) => t.id).filter((id) => id !== undefined));
 
   const indexed = await storage.get<Record<string, IndexedTab>>(INDEXED_TABS_KEY, {});
 
@@ -103,7 +106,7 @@ function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return hash.toString(36);

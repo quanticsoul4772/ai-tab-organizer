@@ -16,7 +16,7 @@ export const DENSITY_CONFIGS: Record<DensityMode, DensityConfig> = {
     showDomain: false,
     showUrl: false,
     showTimestamp: false,
-    titleLines: 1
+    titleLines: 1,
   },
   normal: {
     mode: 'normal',
@@ -24,7 +24,7 @@ export const DENSITY_CONFIGS: Record<DensityMode, DensityConfig> = {
     showDomain: true,
     showUrl: false,
     showTimestamp: false,
-    titleLines: 2
+    titleLines: 2,
   },
   spacious: {
     mode: 'spacious',
@@ -32,8 +32,8 @@ export const DENSITY_CONFIGS: Record<DensityMode, DensityConfig> = {
     showDomain: false,
     showUrl: true,
     showTimestamp: true,
-    titleLines: 3
-  }
+    titleLines: 3,
+  },
 };
 
 /**

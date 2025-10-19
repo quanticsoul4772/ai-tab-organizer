@@ -37,10 +37,8 @@ export function useTabMetadata(tabId: number | undefined, isPinned: boolean = fa
     setLoading(true);
     setError(null);
 
-    runtime.sendMessage<TabMetadata>(
-      BACKGROUND_ACTIONS.GET_TAB_METADATA,
-      { tabId }
-    )
+    runtime
+      .sendMessage<TabMetadata>(BACKGROUND_ACTIONS.GET_TAB_METADATA, { tabId })
       .then((data) => {
         if (isMounted) {
           setMetadata({

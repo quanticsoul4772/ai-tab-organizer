@@ -50,10 +50,12 @@ describe('sessionManager', () => {
       expect(session.description).toBe('Description');
       expect(session.tabs).toHaveLength(2);
       expect(session.metadata.tabCount).toBe(2);
-      expect(storage.saveSession).toHaveBeenCalledWith(expect.objectContaining({
-        name: 'My Session',
-        description: 'Description',
-      }));
+      expect(storage.saveSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'My Session',
+          description: 'Description',
+        })
+      );
     });
 
     it('should generate unique session ID', async () => {
@@ -89,7 +91,13 @@ describe('sessionManager', () => {
 
     it('should detect Jira workspaces in tabs', async () => {
       const mockTabs = [
-        { id: 1, url: 'https://jira.atlassian.com/browse/ENG-123', title: 'ENG-123: Bug fix', pinned: false, groupId: -1 },
+        {
+          id: 1,
+          url: 'https://jira.atlassian.com/browse/ENG-123',
+          title: 'ENG-123: Bug fix',
+          pinned: false,
+          groupId: -1,
+        },
         { id: 2, url: 'https://example.com', title: 'Example', pinned: false, groupId: -1 },
       ] as chrome.tabs.Tab[];
 
@@ -98,15 +106,17 @@ describe('sessionManager', () => {
 
       // Override the default mock for this test
       mockDetectAtlassianTabs.mockResolvedValueOnce({
-        jiraTabs: [{
-          projectKey: 'ENG',
-          ticketNumber: 123,
-          fullTicket: 'ENG-123',
-          summary: 'Bug fix',
-          status: undefined,
-          url: 'https://jira.atlassian.com/browse/ENG-123',
-          tabId: 1,
-        }],
+        jiraTabs: [
+          {
+            projectKey: 'ENG',
+            ticketNumber: 123,
+            fullTicket: 'ENG-123',
+            summary: 'Bug fix',
+            status: undefined,
+            url: 'https://jira.atlassian.com/browse/ENG-123',
+            tabId: 1,
+          },
+        ],
         confluenceTabs: [],
         otherAtlassian: [],
       });
@@ -201,9 +211,7 @@ describe('sessionManager', () => {
         name: 'Test Session',
         created: Date.now(),
         lastModified: Date.now(),
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -227,9 +235,7 @@ describe('sessionManager', () => {
         name: 'Test Session',
         created: Date.now(),
         lastModified: Date.now(),
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -255,9 +261,7 @@ describe('sessionManager', () => {
         name: 'Test Session',
         created: Date.now(),
         lastModified: Date.now(),
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -339,9 +343,7 @@ describe('sessionManager', () => {
         name: 'Original Session',
         created: 1000,
         lastModified: 2000,
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -361,17 +363,31 @@ describe('sessionManager', () => {
     it('should throw error if original session not found', async () => {
       vi.mocked(storage.getSession).mockResolvedValue(null);
 
-      await expect(
-        sessionManager.duplicateSession('invalid_id', 'Copy')
-      ).rejects.toThrow('Session not found: invalid_id');
+      await expect(sessionManager.duplicateSession('invalid_id', 'Copy')).rejects.toThrow(
+        'Session not found: invalid_id'
+      );
     });
   });
 
   describe('getAllWorkspaces', () => {
     it('should return unique workspace categories from all sessions', async () => {
       const mockSessions = [
-        { id: '1', name: 'Session 1', categories: ['ENG', 'APPS'], created: 1, lastModified: 1, tabCount: 5 },
-        { id: '2', name: 'Session 2', categories: ['ENG', 'DATA'], created: 2, lastModified: 2, tabCount: 3 },
+        {
+          id: '1',
+          name: 'Session 1',
+          categories: ['ENG', 'APPS'],
+          created: 1,
+          lastModified: 1,
+          tabCount: 5,
+        },
+        {
+          id: '2',
+          name: 'Session 2',
+          categories: ['ENG', 'DATA'],
+          created: 2,
+          lastModified: 2,
+          tabCount: 3,
+        },
         { id: '3', name: 'Session 3', created: 3, lastModified: 3, tabCount: 2 },
       ];
 
@@ -404,7 +420,7 @@ describe('sessionManager', () => {
 
       vi.mocked(storage.getAllSessions).mockResolvedValue(mockSessions);
       vi.mocked(storage.getSession).mockImplementation(async (id) => {
-        return mockFullSessions.find(s => s.id === id) || null;
+        return mockFullSessions.find((s) => s.id === id) || null;
       });
 
       const workspaces = await sessionManager.getAllWorkspaces();
@@ -439,9 +455,30 @@ describe('sessionManager', () => {
   describe('getSessionsByWorkspace', () => {
     it('should filter sessions by workspace', async () => {
       const mockSessions = [
-        { id: '1', name: 'Session 1', categories: ['ENG', 'APPS'], created: 1, lastModified: 1, tabCount: 5 },
-        { id: '2', name: 'Session 2', categories: ['DATA'], created: 2, lastModified: 2, tabCount: 3 },
-        { id: '3', name: 'Session 3', categories: ['ENG'], created: 3, lastModified: 3, tabCount: 2 },
+        {
+          id: '1',
+          name: 'Session 1',
+          categories: ['ENG', 'APPS'],
+          created: 1,
+          lastModified: 1,
+          tabCount: 5,
+        },
+        {
+          id: '2',
+          name: 'Session 2',
+          categories: ['DATA'],
+          created: 2,
+          lastModified: 2,
+          tabCount: 3,
+        },
+        {
+          id: '3',
+          name: 'Session 3',
+          categories: ['ENG'],
+          created: 3,
+          lastModified: 3,
+          tabCount: 2,
+        },
       ];
 
       const mockFullSessions: Session[] = [
@@ -473,7 +510,7 @@ describe('sessionManager', () => {
 
       vi.mocked(storage.getAllSessions).mockResolvedValue(mockSessions);
       vi.mocked(storage.getSession).mockImplementation(async (id) => {
-        return mockFullSessions.find(s => s.id === id) || null;
+        return mockFullSessions.find((s) => s.id === id) || null;
       });
 
       const engSessions = await sessionManager.getSessionsByWorkspace('ENG');
@@ -485,7 +522,14 @@ describe('sessionManager', () => {
 
     it('should return empty array if no sessions match workspace', async () => {
       const mockSessions = [
-        { id: '1', name: 'Session 1', categories: ['DATA'], created: 1, lastModified: 1, tabCount: 5 },
+        {
+          id: '1',
+          name: 'Session 1',
+          categories: ['DATA'],
+          created: 1,
+          lastModified: 1,
+          tabCount: 5,
+        },
       ];
 
       const mockFullSession: Session = {
@@ -513,9 +557,7 @@ describe('sessionManager', () => {
         name: 'Test Session',
         created: 1000,
         lastModified: 2000,
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -566,7 +608,7 @@ describe('sessionManager', () => {
 
       vi.mocked(storage.getAllSessions).mockResolvedValue(mockSessionItems);
       vi.mocked(storage.getSession).mockImplementation(async (id) => {
-        return mockFullSessions.find(s => s.id === id) || null;
+        return mockFullSessions.find((s) => s.id === id) || null;
       });
 
       const jsonData = await sessionManager.exportAllSessions();
@@ -601,9 +643,7 @@ describe('sessionManager', () => {
           name: 'Imported Session',
           created: 1000,
           lastModified: 2000,
-          tabs: [
-            { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-          ],
+          tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
           metadata: { tabCount: 1 },
         },
       };
@@ -720,9 +760,30 @@ describe('sessionManager', () => {
   describe('getWorkspaceStats', () => {
     it('should return workspace statistics', async () => {
       const mockSessions = [
-        { id: '1', name: 'Session 1', categories: ['ENG', 'APPS'], created: 1, lastModified: 1, tabCount: 5 },
-        { id: '2', name: 'Session 2', categories: ['ENG'], created: 2, lastModified: 2, tabCount: 3 },
-        { id: '3', name: 'Session 3', categories: ['DATA'], created: 3, lastModified: 3, tabCount: 2 },
+        {
+          id: '1',
+          name: 'Session 1',
+          categories: ['ENG', 'APPS'],
+          created: 1,
+          lastModified: 1,
+          tabCount: 5,
+        },
+        {
+          id: '2',
+          name: 'Session 2',
+          categories: ['ENG'],
+          created: 2,
+          lastModified: 2,
+          tabCount: 3,
+        },
+        {
+          id: '3',
+          name: 'Session 3',
+          categories: ['DATA'],
+          created: 3,
+          lastModified: 3,
+          tabCount: 2,
+        },
       ];
 
       const mockFullSessions: Session[] = [
@@ -754,7 +815,7 @@ describe('sessionManager', () => {
 
       vi.mocked(storage.getAllSessions).mockResolvedValue(mockSessions);
       vi.mocked(storage.getSession).mockImplementation(async (id) => {
-        return mockFullSessions.find(s => s.id === id) || null;
+        return mockFullSessions.find((s) => s.id === id) || null;
       });
 
       const stats = await sessionManager.getWorkspaceStats();

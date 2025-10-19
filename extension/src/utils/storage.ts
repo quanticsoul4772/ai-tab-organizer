@@ -1,4 +1,10 @@
-import type { SummaryCache, TabSummary, CategorySummary, SummarySettings, JiraSettings } from '../types';
+import type {
+  SummaryCache,
+  TabSummary,
+  CategorySummary,
+  SummarySettings,
+  JiraSettings,
+} from '../types';
 import type { DensityMode } from '../types/density';
 import type { GroupStates } from '../types/groupState';
 import type { Session, SessionListItem } from '../types/session';
@@ -42,10 +48,10 @@ export const storage = {
    * Get summary cache from storage
    */
   async getSummaryCache(): Promise<SummaryCache> {
-    return await browserStorage.get<SummaryCache>(
-      STORAGE_KEYS.SUMMARY_CACHE,
-      { tabs: {}, categories: {} }
-    );
+    return await browserStorage.get<SummaryCache>(STORAGE_KEYS.SUMMARY_CACHE, {
+      tabs: {},
+      categories: {},
+    });
   },
 
   /**
@@ -138,10 +144,10 @@ export const storage = {
    * Get summary settings
    */
   async getSummarySettings(): Promise<SummarySettings> {
-    return await browserStorage.get<SummarySettings>(
-      STORAGE_KEYS.SUMMARY_SETTINGS,
-      { enabled: true, cacheDuration: 24 }
-    );
+    return await browserStorage.get<SummarySettings>(STORAGE_KEYS.SUMMARY_SETTINGS, {
+      enabled: true,
+      cacheDuration: 24,
+    });
   },
 
   /**
@@ -155,10 +161,7 @@ export const storage = {
    * Get Jira settings
    */
   async getJiraSettings(): Promise<JiraSettings> {
-    return await browserStorage.get<JiraSettings>(
-      STORAGE_KEYS.JIRA_SETTINGS,
-      { smartMode: true }
-    );
+    return await browserStorage.get<JiraSettings>(STORAGE_KEYS.JIRA_SETTINGS, { smartMode: true });
   },
 
   /**
@@ -217,7 +220,10 @@ export const storage = {
       created: session.created,
       lastModified: session.lastModified,
       tabCount: session.metadata.tabCount,
-      preview: session.tabs.slice(0, 3).map(t => t.title).join(', '),
+      preview: session.tabs
+        .slice(0, 3)
+        .map((t) => t.title)
+        .join(', '),
       categories: session.metadata.categories,
       jiraTickets: session.metadata.jiraTickets,
     }));

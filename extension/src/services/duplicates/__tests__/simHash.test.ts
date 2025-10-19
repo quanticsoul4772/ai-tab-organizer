@@ -117,7 +117,9 @@ describe('SimHash', () => {
 
     it('should generate consistent hashes across multiple calls', () => {
       const text = 'consistency test content here';
-      const hashes = Array(10).fill(0).map(() => simHash.generate(text));
+      const hashes = Array(10)
+        .fill(0)
+        .map(() => simHash.generate(text));
 
       // All hashes should be identical
       expect(new Set(hashes).size).toBe(1);
@@ -357,8 +359,10 @@ describe('SimHash', () => {
 
   describe('real-world scenarios', () => {
     it('should detect near-duplicate articles', () => {
-      const article1 = 'React is a JavaScript library for building user interfaces. It was developed by Facebook.';
-      const article2 = 'React is a JavaScript library for building user interfaces. It is maintained by Facebook.';
+      const article1 =
+        'React is a JavaScript library for building user interfaces. It was developed by Facebook.';
+      const article2 =
+        'React is a JavaScript library for building user interfaces. It is maintained by Facebook.';
 
       const hash1 = simHash.generate(article1);
       const hash2 = simHash.generate(article2);

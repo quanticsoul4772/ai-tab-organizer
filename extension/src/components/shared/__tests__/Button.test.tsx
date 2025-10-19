@@ -76,7 +76,11 @@ describe('Button', () => {
     const handleClick = vi.fn();
     const user = userEvent.setup();
 
-    render(<Button disabled onClick={handleClick}>Disabled</Button>);
+    render(
+      <Button disabled onClick={handleClick}>
+        Disabled
+      </Button>
+    );
 
     await user.click(screen.getByText('Disabled'));
     expect(handleClick).not.toHaveBeenCalled();

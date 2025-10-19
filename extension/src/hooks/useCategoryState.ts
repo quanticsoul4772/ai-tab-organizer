@@ -22,7 +22,7 @@ interface UseCategoryStateOptions {
  */
 export function useCategoryState({
   categorizedTabs,
-  onCategorySummaryRequest
+  onCategorySummaryRequest,
 }: UseCategoryStateOptions) {
   const [activeCategorySummary, setActiveCategorySummary] = useState<CategorySummary | null>(null);
   const [loadingCategorySummary, setLoadingCategorySummary] = useState<string | null>(null);
@@ -89,13 +89,13 @@ export function useCategoryState({
 
   const toggleGroup = async (categoryId: string) => {
     const newState = !groupStates[categoryId];
-    setGroupStates(prev => ({ ...prev, [categoryId]: newState }));
+    setGroupStates((prev) => ({ ...prev, [categoryId]: newState }));
     await storage.setGroupState(categoryId, newState);
   };
 
   const collapseAll = async () => {
     const newStates: { [key: string]: boolean } = {};
-    Object.keys(categorizedTabs).forEach(key => {
+    Object.keys(categorizedTabs).forEach((key) => {
       newStates[key] = true;
     });
     setGroupStates(newStates);
@@ -108,7 +108,7 @@ export function useCategoryState({
 
   const expandAll = async () => {
     const newStates: { [key: string]: boolean } = {};
-    Object.keys(categorizedTabs).forEach(key => {
+    Object.keys(categorizedTabs).forEach((key) => {
       newStates[key] = false;
     });
     setGroupStates(newStates);

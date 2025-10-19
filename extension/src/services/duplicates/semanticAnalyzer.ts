@@ -112,16 +112,16 @@ export class SemanticAnalyzer {
 
       // Clean up the response text
       let jsonText = resultText;
-      
+
       // Remove markdown code blocks
       jsonText = jsonText.replace(/```json\s*|```\s*/g, '');
-      
+
       // Find JSON array
       const arrayMatch = jsonText.match(/\[[\s\S]*\]/);
       if (arrayMatch) {
         jsonText = arrayMatch[0];
       }
-      
+
       // Clean up common JSON issues
       jsonText = jsonText.trim();
 

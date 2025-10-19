@@ -21,7 +21,10 @@ export async function searchTabs(queryText: string, apiKey: string): Promise<Sea
   }
 
   // Try Jira-enhanced search first (for ticket patterns and project filters)
-  if (JiraSearchEnhancer.isTicketPattern(queryText) || JiraSearchEnhancer.isProjectPattern(queryText)) {
+  if (
+    JiraSearchEnhancer.isTicketPattern(queryText) ||
+    JiraSearchEnhancer.isProjectPattern(queryText)
+  ) {
     console.log('Using Jira-enhanced search');
     const allTabs = await tabs.getAll();
     const jiraResults = JiraSearchEnhancer.searchJiraTabs(queryText, allTabs);

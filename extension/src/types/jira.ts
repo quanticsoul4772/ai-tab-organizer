@@ -10,13 +10,7 @@ export interface JiraTicketInfo {
   tabId: number;
 }
 
-export type JiraStatus =
-  | 'todo'
-  | 'in-progress'
-  | 'in-review'
-  | 'done'
-  | 'blocked'
-  | 'unknown';
+export type JiraStatus = 'todo' | 'in-progress' | 'in-review' | 'done' | 'blocked' | 'unknown';
 
 export interface ConfluencePageInfo {
   spaceKey: string; // "DESIGN"

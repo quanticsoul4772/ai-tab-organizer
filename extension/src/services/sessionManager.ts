@@ -18,7 +18,7 @@ function generateSessionId(): string {
  */
 function convertToSessionTabs(tabs: chrome.tabs.Tab[]): SessionTab[] {
   return tabs
-    .filter(tab => tab.url && tab.url.startsWith('http'))
+    .filter((tab) => tab.url && tab.url.startsWith('http'))
     .map((tab, index) => ({
       url: tab.url!,
       title: tab.title || tab.url!,
@@ -42,10 +42,10 @@ async function analyzeJiraWorkspace(tabs: chrome.tabs.Tab[]): Promise<{
   }
 
   // Extract unique ticket keys
-  const tickets = jiraTabs.map(t => t.fullTicket);
+  const tickets = jiraTabs.map((t) => t.fullTicket);
 
   // Get categories (project keys)
-  const categories = Array.from(new Set(jiraTabs.map(t => t.projectKey)));
+  const categories = Array.from(new Set(jiraTabs.map((t) => t.projectKey)));
 
   return { jiraTickets: tickets, categories };
 }
@@ -90,8 +90,8 @@ export const sessionManager = {
     if (closeExisting) {
       const existingTabs = await tabManager.getAllTabs();
       const tabIds = existingTabs
-        .filter(tab => !tab.pinned) // Don't close pinned tabs
-        .map(tab => tab.id)
+        .filter((tab) => !tab.pinned) // Don't close pinned tabs
+        .map((tab) => tab.id)
         .filter((id): id is number => id !== undefined);
 
       if (tabIds.length > 0) {
@@ -174,7 +174,7 @@ export const sessionManager = {
     for (const sessionItem of sessions) {
       const session = await storage.getSession(sessionItem.id);
       if (session?.metadata.categories) {
-        session.metadata.categories.forEach(cat => workspaces.add(cat));
+        session.metadata.categories.forEach((cat) => workspaces.add(cat));
       }
     }
 
@@ -211,7 +211,7 @@ export const sessionManager = {
     for (const sessionItem of sessions) {
       const session = await storage.getSession(sessionItem.id);
       if (session?.metadata.categories) {
-        session.metadata.categories.forEach(workspace => {
+        session.metadata.categories.forEach((workspace) => {
           workspaceCounts.set(workspace, (workspaceCounts.get(workspace) || 0) + 1);
         });
       }

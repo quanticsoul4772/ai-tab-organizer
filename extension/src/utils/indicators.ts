@@ -9,14 +9,14 @@ export function getActivityStatus(lastAccessed: number, isSuspended: boolean): T
   const idleTime = Date.now() - lastAccessed;
 
   if (idleTime < 5 * 60 * 1000) {
-    return 'active';      // Less than 5 minutes
+    return 'active'; // Less than 5 minutes
   }
 
   if (idleTime < 30 * 60 * 1000) {
-    return 'idle';        // 5-30 minutes
+    return 'idle'; // 5-30 minutes
   }
 
-  return 'forgotten';     // More than 30 minutes
+  return 'forgotten'; // More than 30 minutes
 }
 
 export function getActivityColor(status: TabActivityStatus): string {
@@ -31,7 +31,7 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
     badges.push({
       type: 'duplicate',
       value: `×${metadata.duplicateCount}`,
-      icon: '🔄'
+      icon: '🔄',
     });
   }
 
@@ -40,7 +40,7 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
     badges.push({
       type: 'memory',
       value: `${Math.round(metadata.memoryUsage / (1024 * 1024))}MB`,
-      icon: '📊'
+      icon: '📊',
     });
   }
 
@@ -49,7 +49,7 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
     badges.push({
       type: 'jira-status',
       value: metadata.jiraStatus,
-      icon: ''
+      icon: '',
     });
   }
 
@@ -58,7 +58,7 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
     badges.push({
       type: 'pinned',
       value: '',
-      icon: '📌'
+      icon: '📌',
     });
   }
 
@@ -67,6 +67,6 @@ export function getTabIndicators(metadata: TabMetadata): TabIndicators {
   return {
     activityStatus,
     activityColor: getActivityColor(activityStatus),
-    badges
+    badges,
   };
 }

@@ -38,8 +38,28 @@ describe('SemanticAnalyzer', () => {
       } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Article from Source 1', url: 'https://source1.com/article', textContent: 'This is the article content about topic X', contentHash: 'hash1', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Same Article from Source 2', url: 'https://source2.com/article', textContent: 'This is the same article content about topic X', contentHash: 'hash2', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Article from Source 1',
+            url: 'https://source1.com/article',
+            textContent: 'This is the article content about topic X',
+            contentHash: 'hash1',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Same Article from Source 2',
+            url: 'https://source2.com/article',
+            textContent: 'This is the same article content about topic X',
+            contentHash: 'hash2',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       const mockApiResponse = [
@@ -82,8 +102,28 @@ describe('SemanticAnalyzer', () => {
       } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Product 1', url: 'https://example.com/product1', textContent: 'Different product A', contentHash: 'hash1', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Product 2', url: 'https://example.com/product2', textContent: 'Different product B', contentHash: 'hash2', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Product 1',
+            url: 'https://example.com/product1',
+            textContent: 'Different product A',
+            contentHash: 'hash1',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Product 2',
+            url: 'https://example.com/product2',
+            textContent: 'Different product B',
+            contentHash: 'hash2',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       const mockApiResponse = [
@@ -113,18 +153,51 @@ describe('SemanticAnalyzer', () => {
 
       // Create 15 pairs (will be processed in 2 batches: 10 + 5)
       for (let i = 0; i < 15; i++) {
-        const tab1: chrome.tabs.Tab = { id: i * 2, url: `https://example.com/${i * 2}`, title: `Tab ${i * 2}` } as chrome.tabs.Tab;
-        const tab2: chrome.tabs.Tab = { id: i * 2 + 1, url: `https://example.com/${i * 2 + 1}`, title: `Tab ${i * 2 + 1}` } as chrome.tabs.Tab;
+        const tab1: chrome.tabs.Tab = {
+          id: i * 2,
+          url: `https://example.com/${i * 2}`,
+          title: `Tab ${i * 2}`,
+        } as chrome.tabs.Tab;
+        const tab2: chrome.tabs.Tab = {
+          id: i * 2 + 1,
+          url: `https://example.com/${i * 2 + 1}`,
+          title: `Tab ${i * 2 + 1}`,
+        } as chrome.tabs.Tab;
         pairs.push([tab1, tab2]);
 
-        contents.set(i * 2, { tabId: i * 2, title: `Tab ${i * 2}`, url: `https://example.com/${i * 2}`, textContent: 'Content', contentHash: 'hash', extracted: new Date() });
-        contents.set(i * 2 + 1, { tabId: i * 2 + 1, title: `Tab ${i * 2 + 1}`, url: `https://example.com/${i * 2 + 1}`, textContent: 'Content', contentHash: 'hash', extracted: new Date() });
+        contents.set(i * 2, {
+          tabId: i * 2,
+          title: `Tab ${i * 2}`,
+          url: `https://example.com/${i * 2}`,
+          textContent: 'Content',
+          contentHash: 'hash',
+          extracted: new Date(),
+        });
+        contents.set(i * 2 + 1, {
+          tabId: i * 2 + 1,
+          title: `Tab ${i * 2 + 1}`,
+          url: `https://example.com/${i * 2 + 1}`,
+          textContent: 'Content',
+          contentHash: 'hash',
+          extracted: new Date(),
+        });
       }
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify(Array(10).fill({ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 })) }],
+          content: [
+            {
+              text: JSON.stringify(
+                Array(10).fill({
+                  areDuplicates: false,
+                  similarity: 0,
+                  reasoning: 'Different',
+                  confidence: 1,
+                })
+              ),
+            },
+          ],
         }),
       } as Response);
 
@@ -139,18 +212,51 @@ describe('SemanticAnalyzer', () => {
       const contents = new Map<number, TabContent>();
 
       for (let i = 0; i < 15; i++) {
-        const tab1: chrome.tabs.Tab = { id: i * 2, url: `https://example.com/${i}`, title: `Tab ${i}` } as chrome.tabs.Tab;
-        const tab2: chrome.tabs.Tab = { id: i * 2 + 1, url: `https://example.com/${i}`, title: `Tab ${i}` } as chrome.tabs.Tab;
+        const tab1: chrome.tabs.Tab = {
+          id: i * 2,
+          url: `https://example.com/${i}`,
+          title: `Tab ${i}`,
+        } as chrome.tabs.Tab;
+        const tab2: chrome.tabs.Tab = {
+          id: i * 2 + 1,
+          url: `https://example.com/${i}`,
+          title: `Tab ${i}`,
+        } as chrome.tabs.Tab;
         pairs.push([tab1, tab2]);
 
-        contents.set(i * 2, { tabId: i * 2, title: `Tab ${i}`, url: `https://example.com/${i}`, textContent: 'Content', contentHash: 'hash', extracted: new Date() });
-        contents.set(i * 2 + 1, { tabId: i * 2 + 1, title: `Tab ${i}`, url: `https://example.com/${i}`, textContent: 'Content', contentHash: 'hash', extracted: new Date() });
+        contents.set(i * 2, {
+          tabId: i * 2,
+          title: `Tab ${i}`,
+          url: `https://example.com/${i}`,
+          textContent: 'Content',
+          contentHash: 'hash',
+          extracted: new Date(),
+        });
+        contents.set(i * 2 + 1, {
+          tabId: i * 2 + 1,
+          title: `Tab ${i}`,
+          url: `https://example.com/${i}`,
+          textContent: 'Content',
+          contentHash: 'hash',
+          extracted: new Date(),
+        });
       }
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify(Array(10).fill({ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 })) }],
+          content: [
+            {
+              text: JSON.stringify(
+                Array(10).fill({
+                  areDuplicates: false,
+                  similarity: 0,
+                  reasoning: 'Different',
+                  confidence: 1,
+                })
+              ),
+            },
+          ],
         }),
       } as Response);
 
@@ -163,12 +269,40 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should handle API errors gracefully', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockResolvedValue({
@@ -186,12 +320,40 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should handle network errors', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockRejectedValue(new Error('Network error'));
@@ -205,15 +367,45 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should strip markdown code blocks from response', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
-      const mockResponse = [{ areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 }];
+      const mockResponse = [
+        { areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 },
+      ];
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -228,20 +420,52 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should extract JSON array from response text', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
-      const mockResponse = [{ areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 }];
+      const mockResponse = [
+        { areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 },
+      ];
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: `Here is the analysis:\n${JSON.stringify(mockResponse)}\nThat's the result.` }],
+          content: [
+            { text: `Here is the analysis:\n${JSON.stringify(mockResponse)}\nThat's the result.` },
+          ],
         }),
       } as Response);
 
@@ -253,18 +477,52 @@ describe('SemanticAnalyzer', () => {
     it('should truncate content to 500 characters', async () => {
       const longContent = 'a'.repeat(1000);
 
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: longContent, contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: longContent, contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: longContent,
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: longContent,
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -278,18 +536,52 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should use correct API endpoint and headers', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -310,18 +602,52 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should use correct model and max_tokens', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -334,15 +660,29 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should handle missing content gracefully', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>();
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: false, similarity: 0, reasoning: 'Different', confidence: 1 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -352,29 +692,95 @@ describe('SemanticAnalyzer', () => {
     });
 
     it('should assign unique IDs to groups', async () => {
-      const tab1: chrome.tabs.Tab = { id: 1, url: 'https://example.com/1', title: 'Tab 1' } as chrome.tabs.Tab;
-      const tab2: chrome.tabs.Tab = { id: 2, url: 'https://example.com/2', title: 'Tab 2' } as chrome.tabs.Tab;
-      const tab3: chrome.tabs.Tab = { id: 3, url: 'https://example.com/3', title: 'Tab 3' } as chrome.tabs.Tab;
-      const tab4: chrome.tabs.Tab = { id: 4, url: 'https://example.com/4', title: 'Tab 4' } as chrome.tabs.Tab;
+      const tab1: chrome.tabs.Tab = {
+        id: 1,
+        url: 'https://example.com/1',
+        title: 'Tab 1',
+      } as chrome.tabs.Tab;
+      const tab2: chrome.tabs.Tab = {
+        id: 2,
+        url: 'https://example.com/2',
+        title: 'Tab 2',
+      } as chrome.tabs.Tab;
+      const tab3: chrome.tabs.Tab = {
+        id: 3,
+        url: 'https://example.com/3',
+        title: 'Tab 3',
+      } as chrome.tabs.Tab;
+      const tab4: chrome.tabs.Tab = {
+        id: 4,
+        url: 'https://example.com/4',
+        title: 'Tab 4',
+      } as chrome.tabs.Tab;
 
       const contents = new Map<number, TabContent>([
-        [1, { tabId: 1, title: 'Tab 1', url: 'https://example.com/1', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [2, { tabId: 2, title: 'Tab 2', url: 'https://example.com/2', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [3, { tabId: 3, title: 'Tab 3', url: 'https://example.com/3', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
-        [4, { tabId: 4, title: 'Tab 4', url: 'https://example.com/4', textContent: 'Content', contentHash: 'hash', extracted: new Date() }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Tab 1',
+            url: 'https://example.com/1',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Tab 2',
+            url: 'https://example.com/2',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          3,
+          {
+            tabId: 3,
+            title: 'Tab 3',
+            url: 'https://example.com/3',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
+        [
+          4,
+          {
+            tabId: 4,
+            title: 'Tab 4',
+            url: 'https://example.com/4',
+            textContent: 'Content',
+            contentHash: 'hash',
+            extracted: new Date(),
+          },
+        ],
       ]);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([
-            { areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 },
-            { areDuplicates: true, similarity: 0.85, reasoning: 'Similar', confidence: 0.75 },
-          ]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: true, similarity: 0.9, reasoning: 'Same', confidence: 0.8 },
+                { areDuplicates: true, similarity: 0.85, reasoning: 'Similar', confidence: 0.75 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
-      const groups = await analyzer.analyzeUnclearPairs([[tab1, tab2], [tab3, tab4]], contents);
+      const groups = await analyzer.analyzeUnclearPairs(
+        [
+          [tab1, tab2],
+          [tab3, tab4],
+        ],
+        contents
+      );
 
       expect(groups).toHaveLength(2);
       expect(groups[0].id).not.toBe(groups[1].id);

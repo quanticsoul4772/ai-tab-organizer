@@ -43,7 +43,7 @@ export async function filterTabsLocally(
   return candidates
     .sort((a, b) => b.score - a.score)
     .slice(0, 20)
-    .map(c => c.tab);
+    .map((c) => c.tab);
 }
 
 /**
@@ -93,10 +93,7 @@ function scoreKeywordMatch(keywords: string[], tab: IndexedTab): number {
 /**
  * Check if tab matches temporal constraint
  */
-function matchesTemporal(
-  temporal: NonNullable<SearchQuery['temporal']>,
-  tab: IndexedTab
-): boolean {
+function matchesTemporal(temporal: NonNullable<SearchQuery['temporal']>, tab: IndexedTab): boolean {
   const now = new Date();
   const tabDate = new Date(tab.lastAccessed);
 
@@ -130,7 +127,11 @@ function matchesTemporal(
     }
   } else if (temporal.type === 'absolute' && temporal.absolute) {
     const targetDate = new Date(temporal.absolute);
-    const targetDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const targetDay = new Date(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate()
+    );
     const tabDay = new Date(tabDate.getFullYear(), tabDate.getMonth(), tabDate.getDate());
     return tabDay.getTime() === targetDay.getTime();
   }

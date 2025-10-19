@@ -15,7 +15,7 @@ export async function rankTabsByRelevance(
     index,
     title: tab.title,
     url: tab.url,
-    contentPreview: tab.content.substring(0, 300) // First 300 chars
+    contentPreview: tab.content.substring(0, 300), // First 300 chars
   }));
 
   const prompt = `Rank these browser tabs by relevance to the search query.
@@ -25,9 +25,13 @@ CRITICAL: Your response must be ONLY a single-line JSON array. Do not include an
 Search Query: "${query.rawQuery}"
 
 Tabs:
-${tabSummaries.map(t => `${t.index}. Title: "${t.title}"
+${tabSummaries
+  .map(
+    (t) => `${t.index}. Title: "${t.title}"
    URL: ${t.url}
-   Content: ${t.contentPreview}...`).join('\n\n')}
+   Content: ${t.contentPreview}...`
+  )
+  .join('\n\n')}
 
 Format (single line, all tabs must be included):
 [{"index":0,"relevanceScore":95,"matchReason":"Brief reason","highlights":["phrase 1","phrase 2"]},...]
@@ -47,16 +51,18 @@ Return only the JSON array as a single line, nothing else:`;
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      })
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
     });
 
     if (!response.ok) {
@@ -112,7 +118,7 @@ Return only the JSON array as a single line, nothing else:`;
           autoDiscardable: true,
           groupId: -1,
           incognito: false,
-          index: 0
+          index: 0,
         };
 
         return {
@@ -121,7 +127,7 @@ Return only the JSON array as a single line, nothing else:`;
           matchedFields: determineMatchedFields(query, tab),
           highlights: ranking.highlights || [],
           matchReason: ranking.matchReason,
-          lastAccessed: tab.lastAccessed
+          lastAccessed: tab.lastAccessed,
         };
       })
       .filter((result): result is SearchResult => result !== null)
@@ -132,7 +138,7 @@ Return only the JSON array as a single line, nothing else:`;
     console.error('AI ranking failed:', error);
 
     // Fallback: return candidates with default scores
-    return candidates.map(tab => ({
+    return candidates.map((tab) => ({
       tab: {
         id: tab.tabId,
         title: tab.title,
@@ -146,12 +152,12 @@ Return only the JSON array as a single line, nothing else:`;
         autoDiscardable: true,
         groupId: -1,
         incognito: false,
-        index: 0
+        index: 0,
       },
       relevanceScore: 0.5,
       matchedFields: determineMatchedFields(query, tab),
       highlights: [],
-      lastAccessed: tab.lastAccessed
+      lastAccessed: tab.lastAccessed,
     }));
   }
 }

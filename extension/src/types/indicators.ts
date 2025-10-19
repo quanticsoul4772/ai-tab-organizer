@@ -24,8 +24,8 @@ export interface TabMetadata {
 }
 
 export const ACTIVITY_COLORS: Record<TabActivityStatus, string> = {
-  active: '#10b981',    // Green
-  idle: '#f59e0b',      // Yellow
+  active: '#10b981', // Green
+  idle: '#f59e0b', // Yellow
   forgotten: '#ef4444', // Red
-  suspended: '#9ca3af'  // Gray
+  suspended: '#9ca3af', // Gray
 };

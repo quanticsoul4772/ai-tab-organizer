@@ -39,16 +39,18 @@ Rules:
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 500,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      })
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+      }),
     });
 
     if (!response.ok) {
@@ -59,7 +61,10 @@ Rules:
     const text = data.content[0].text;
 
     // Strip markdown code blocks if present
-    const jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const jsonText = text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
 
     const parsed = JSON.parse(jsonText);
 
@@ -68,7 +73,7 @@ Rules:
       keywords: parsed.keywords || [],
       temporal: parsed.temporal || undefined,
       category: parsed.category || undefined,
-      domain: parsed.domain || undefined
+      domain: parsed.domain || undefined,
     };
   } catch (error) {
     console.error('Query parsing failed:', error);
@@ -79,7 +84,7 @@ Rules:
       keywords: extractSimpleKeywords(rawQuery),
       temporal: extractTemporal(rawQuery),
       category: undefined,
-      domain: undefined
+      domain: undefined,
     };
   }
 }
@@ -89,15 +94,33 @@ Rules:
  */
 function extractSimpleKeywords(query: string): string[] {
   const stopWords = new Set([
-    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-    'of', 'with', 'from', 'about', 'that', 'this', 'was', 'were', 'is'
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'from',
+    'about',
+    'that',
+    'this',
+    'was',
+    'were',
+    'is',
   ]);
 
   return query
     .toLowerCase()
     .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.has(word))
+    .filter((word) => word.length > 2 && !stopWords.has(word))
     .slice(0, 5);
 }
 
@@ -127,7 +150,7 @@ export function extractTemporal(query: string): SearchQuery['temporal'] | undefi
     const fullYear = year.length === 2 ? 2000 + parseInt(year) : parseInt(year);
     return {
       type: 'absolute',
-      absolute: new Date(fullYear, parseInt(month) - 1, parseInt(day))
+      absolute: new Date(fullYear, parseInt(month) - 1, parseInt(day)),
     };
   }
 

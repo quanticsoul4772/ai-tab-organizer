@@ -45,7 +45,7 @@ describe('storage', () => {
 
   describe('Group States', () => {
     it('should get group states from storage', async () => {
-      const mockStates = { 'Work': true, 'Research': false };
+      const mockStates = { Work: true, Research: false };
       vi.mocked(chrome.storage.local.get).mockResolvedValue({ groupStates: mockStates });
 
       const result = await storage.getGroupStates();
@@ -68,20 +68,20 @@ describe('storage', () => {
       await storage.setGroupState('Work', true);
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
-        groupStates: { 'Work': true }
+        groupStates: { Work: true },
       });
     });
 
     it('should merge new group state with existing states', async () => {
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        groupStates: { 'Work': true }
+        groupStates: { Work: true },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
       await storage.setGroupState('Research', false);
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
-        groupStates: { 'Work': true, 'Research': false }
+        groupStates: { Work: true, Research: false },
       });
     });
 
@@ -135,7 +135,7 @@ describe('storage', () => {
       await storage.setJiraSettings({ smartMode: false });
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
-        jiraSettings: { smartMode: false }
+        jiraSettings: { smartMode: false },
       });
     });
   });

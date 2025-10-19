@@ -179,10 +179,10 @@ describe('ContentMatcher', () => {
       expect(content.contentHash).toBeDefined();
       expect(content.extracted).toBeInstanceOf(Date);
 
-      expect(runtime.sendMessage).toHaveBeenCalledWith(
-        'extractContent',
-        { tabId: 9, url: 'https://example.com/page' }
-      );
+      expect(runtime.sendMessage).toHaveBeenCalledWith('extractContent', {
+        tabId: 9,
+        url: 'https://example.com/page',
+      });
     });
 
     it('should handle missing meta description', async () => {
@@ -210,9 +210,7 @@ describe('ContentMatcher', () => {
         title: 'Test Page',
       } as chrome.tabs.Tab;
 
-      vi.mocked(runtime.sendMessage).mockRejectedValue(
-        new Error('Content extraction failed')
-      );
+      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Content extraction failed'));
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -296,7 +294,8 @@ describe('ContentMatcher', () => {
       vi.mocked(runtime.sendMessage).mockResolvedValue({
         success: true,
         data: {
-          content: 'This is the exact same content that appears on both pages. It has enough text to generate a good SimHash fingerprint for comparison purposes.',
+          content:
+            'This is the exact same content that appears on both pages. It has enough text to generate a good SimHash fingerprint for comparison purposes.',
           metaDescription: 'Same description for both pages',
         },
       });
@@ -394,8 +393,18 @@ describe('ContentMatcher', () => {
 
     it('should provide recommendation for duplicates', async () => {
       const tabs: chrome.tabs.Tab[] = [
-        { id: 1, url: 'https://example.com/page1', title: 'Page 1', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page2', title: 'Page 2', active: true } as chrome.tabs.Tab,
+        {
+          id: 1,
+          url: 'https://example.com/page1',
+          title: 'Page 1',
+          active: false,
+        } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page2',
+          title: 'Page 2',
+          active: true,
+        } as chrome.tabs.Tab,
       ];
 
       vi.mocked(runtime.sendMessage).mockResolvedValue({
@@ -418,8 +427,18 @@ describe('ContentMatcher', () => {
 
     it('should recommend keeping active tab', async () => {
       const tabs: chrome.tabs.Tab[] = [
-        { id: 1, url: 'https://example.com/page1', title: 'Page 1', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page2', title: 'Page 2', active: true } as chrome.tabs.Tab,
+        {
+          id: 1,
+          url: 'https://example.com/page1',
+          title: 'Page 1',
+          active: false,
+        } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page2',
+          title: 'Page 2',
+          active: true,
+        } as chrome.tabs.Tab,
       ];
 
       vi.mocked(runtime.sendMessage).mockResolvedValue({
@@ -440,7 +459,12 @@ describe('ContentMatcher', () => {
     it('should recommend keeping HTTPS over HTTP', async () => {
       const tabs: chrome.tabs.Tab[] = [
         { id: 1, url: 'http://example.com/page', title: 'HTTP', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page', title: 'HTTPS', active: false } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page',
+          title: 'HTTPS',
+          active: false,
+        } as chrome.tabs.Tab,
       ];
 
       vi.mocked(runtime.sendMessage).mockResolvedValue({

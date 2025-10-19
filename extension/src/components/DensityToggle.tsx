@@ -12,7 +12,7 @@ export const DensityToggle: React.FC<DensityToggleProps> = ({ currentMode, onCha
   const modes: { mode: DensityMode; label: string; icon: string }[] = [
     { mode: 'compact', label: 'Compact', icon: '⊟' },
     { mode: 'normal', label: 'Normal', icon: '☰' },
-    { mode: 'spacious', label: 'Spacious', icon: '≡' }
+    { mode: 'spacious', label: 'Spacious', icon: '≡' },
   ];
 
   const handleClick = (mode: DensityMode) => {

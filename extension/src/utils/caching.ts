@@ -168,11 +168,7 @@ export function createCachedFunction<TArgs extends unknown[], TResult>(
     // Use function arguments as part of the cache key
     const key = JSON.stringify(args);
 
-    return withCache(
-      key,
-      () => fetcher(...args),
-      defaultOptions
-    );
+    return withCache(key, () => fetcher(...args), defaultOptions);
   };
 }
 
@@ -180,7 +176,7 @@ export function createCachedFunction<TArgs extends unknown[], TResult>(
  * Batch invalidate multiple cache entries
  */
 export async function invalidateCache(keys: string[], keyPrefix?: string): Promise<void> {
-  const cacheKeys = keys.map(k => getCacheKey(k, keyPrefix));
+  const cacheKeys = keys.map((k) => getCacheKey(k, keyPrefix));
   await browserStorage.removeMultiple(cacheKeys);
 }
 

@@ -112,13 +112,16 @@ describe('searchService', () => {
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
-        [1, {
-          tabId: 1,
-          title: 'Different Page',
-          url: 'https://different.com',
-          content: 'some content',
-          timestamp: Date.now(),
-        }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Different Page',
+            url: 'https://different.com',
+            content: 'some content',
+            timestamp: Date.now(),
+          },
+        ],
       ]);
 
       const mockCandidates = [
@@ -154,20 +157,26 @@ describe('searchService', () => {
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
-        [1, {
-          tabId: 1,
-          title: 'Login Page',
-          url: 'https://example.com/login',
-          content: 'login page content',
-          timestamp: Date.now(),
-        }],
-        [2, {
-          tabId: 2,
-          title: 'Home',
-          url: 'https://example.com',
-          content: 'home content',
-          timestamp: Date.now(),
-        }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Login Page',
+            url: 'https://example.com/login',
+            content: 'login page content',
+            timestamp: Date.now(),
+          },
+        ],
+        [
+          2,
+          {
+            tabId: 2,
+            title: 'Home',
+            url: 'https://example.com',
+            content: 'home content',
+            timestamp: Date.now(),
+          },
+        ],
       ]);
 
       const mockCandidates = [
@@ -236,13 +245,16 @@ describe('searchService', () => {
       };
 
       const mockIndexedTabs = new Map<number, IndexedTab>([
-        [1, {
-          tabId: 1,
-          title: 'Different',
-          url: 'https://different.com',
-          content: 'different content',
-          timestamp: Date.now(),
-        }],
+        [
+          1,
+          {
+            tabId: 1,
+            title: 'Different',
+            url: 'https://different.com',
+            content: 'different content',
+            timestamp: Date.now(),
+          },
+        ],
       ]);
 
       vi.mocked(parseSearchQuery).mockResolvedValue(mockQuery);

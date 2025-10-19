@@ -27,44 +27,49 @@ interface RowProps {
   densityConfig: DensityConfig;
 }
 
-const Row = memo(({ index, style, tabs, onTabClick, onTabClose, selectedIndex, densityConfig }: RowProps) => {
-  const tab = tabs[index];
+const Row = memo(
+  ({ index, style, tabs, onTabClick, onTabClose, selectedIndex, densityConfig }: RowProps) => {
+    const tab = tabs[index];
 
-  // Memoize callbacks to prevent TabItem re-renders (must be before early return)
-  const handleClick = useCallback(() => {
-    if (tab) {
-      onTabClick(tab);
+    // Memoize callbacks to prevent TabItem re-renders (must be before early return)
+    const handleClick = useCallback(() => {
+      if (tab) {
+        onTabClick(tab);
+      }
+    }, [tab, onTabClick]);
+
+    const handleClose = useCallback(() => {
+      if (tab?.id) {
+        onTabClose(tab.id);
+      }
+    }, [tab?.id, onTabClose]);
+
+    // Safety check - skip rendering if tab is undefined
+    if (!tab || !tab.id) {
+      return <div style={style} />;
     }
-  }, [tab, onTabClick]);
 
-  const handleClose = useCallback(() => {
-    if (tab?.id) {
-      onTabClose(tab.id);
-    }
-  }, [tab?.id, onTabClose]);
-
-  // Safety check - skip rendering if tab is undefined
-  if (!tab || !tab.id) {
-    return <div style={style} />;
+    return (
+      <TabItem
+        tab={tab}
+        style={style}
+        onClick={handleClick}
+        onClose={handleClose}
+        isSelected={index === selectedIndex}
+        densityConfig={densityConfig}
+      />
+    );
+  },
+  (prev, next) => {
+    // Only re-render if the relevant data changed
+    return (
+      prev.index === next.index &&
+      prev.selectedIndex === next.selectedIndex &&
+      prev.tabs[prev.index]?.id === next.tabs[next.index]?.id &&
+      prev.densityConfig.mode === next.densityConfig.mode
+    );
   }
-
-  return (
-    <TabItem
-      tab={tab}
-      style={style}
-      onClick={handleClick}
-      onClose={handleClose}
-      isSelected={index === selectedIndex}
-      densityConfig={densityConfig}
-    />
-  );
-}, (prev, next) => {
-  // Only re-render if the relevant data changed
-  return prev.index === next.index &&
-         prev.selectedIndex === next.selectedIndex &&
-         prev.tabs[prev.index]?.id === next.tabs[next.index]?.id &&
-         prev.densityConfig.mode === next.densityConfig.mode;
-});
+);
 
 export function VirtualTabList({
   tabs,
@@ -73,12 +78,19 @@ export function VirtualTabList({
   onTabClose,
   selectedIndex: externalSelectedIndex,
   height = 500,
-  keyboardNavEnabled = true
+  keyboardNavEnabled = true,
 }: VirtualTabListProps) {
   const densityConfig = DENSITY_CONFIGS[densityMode];
   const itemSize = densityConfig.itemHeight;
 
-  console.log('VirtualTabList rendered with densityMode:', densityMode, 'itemSize:', itemSize, 'config:', densityConfig);
+  console.log(
+    'VirtualTabList rendered with densityMode:',
+    densityMode,
+    'itemSize:',
+    itemSize,
+    'config:',
+    densityConfig
+  );
 
   const listRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,7 +111,7 @@ export function VirtualTabList({
       }
     },
     enabled: keyboardNavEnabled,
-    containerRef
+    containerRef,
   });
 
   // Sync with external selected index if provided
@@ -117,36 +129,30 @@ export function VirtualTabList({
   }, [keyboardNavEnabled, tabs.length]);
 
   // Profiler callback to measure render performance
-  const onRender: ProfilerOnRenderCallback = useCallback((
-    id,
-    phase,
-    actualDuration,
-    baseDuration,
-    startTime,
-    commitTime
-  ) => {
-    console.log(`VirtualTabList ${phase}: ${actualDuration.toFixed(2)}ms (${tabs.length} tabs)`);
+  const onRender: ProfilerOnRenderCallback = useCallback(
+    (id, phase, actualDuration, baseDuration, startTime, commitTime) => {
+      console.log(`VirtualTabList ${phase}: ${actualDuration.toFixed(2)}ms (${tabs.length} tabs)`);
 
-    // Record in performance monitor
-    if (phase === 'mount') {
-      perfMonitor.measure('initial-render', () => actualDuration);
-    } else {
-      perfMonitor.measure('list-update', () => actualDuration);
-    }
+      // Record in performance monitor
+      if (phase === 'mount') {
+        perfMonitor.measure('initial-render', () => actualDuration);
+      } else {
+        perfMonitor.measure('list-update', () => actualDuration);
+      }
 
-    // Log stats periodically
-    const stats = perfMonitor.getStats(phase === 'mount' ? 'initial-render' : 'list-update');
-    if (stats && stats.count % 5 === 0) {
-      console.log(`${phase} stats: avg=${stats.avg.toFixed(2)}ms, max=${stats.max.toFixed(2)}ms, min=${stats.min.toFixed(2)}ms (${stats.count} renders)`);
-    }
-  }, [tabs.length]);
+      // Log stats periodically
+      const stats = perfMonitor.getStats(phase === 'mount' ? 'initial-render' : 'list-update');
+      if (stats && stats.count % 5 === 0) {
+        console.log(
+          `${phase} stats: avg=${stats.avg.toFixed(2)}ms, max=${stats.max.toFixed(2)}ms, min=${stats.min.toFixed(2)}ms (${stats.count} renders)`
+        );
+      }
+    },
+    [tabs.length]
+  );
 
   if (tabs.length === 0) {
-    return (
-      <div className="p-4 text-center text-gray-500">
-        No tabs to display
-      </div>
-    );
+    return <div className="p-4 text-center text-gray-500">No tabs to display</div>;
   }
 
   return (
@@ -176,7 +182,7 @@ export function VirtualTabList({
             onTabClick,
             onTabClose,
             selectedIndex,
-            densityConfig
+            densityConfig,
           }}
           style={{ width: '100%' }}
           overscanCount={5}

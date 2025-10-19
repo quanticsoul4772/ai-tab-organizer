@@ -23,15 +23,15 @@ export function Input({ label, error, style, ...props }: InputProps) {
   return (
     <div style={{ marginBottom: '8px' }}>
       {label && (
-        <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>
+        <label
+          style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}
+        >
           {label}
         </label>
       )}
       <input style={baseStyle} {...props} />
       {error && (
-        <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', margin: 0 }}>
-          {error}
-        </p>
+        <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', margin: 0 }}>{error}</p>
       )}
     </div>
   );
@@ -59,15 +59,15 @@ export function TextArea({ label, error, style, ...props }: TextAreaProps) {
   return (
     <div style={{ marginBottom: '8px' }}>
       {label && (
-        <label style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>
+        <label
+          style={{ display: 'block', fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}
+        >
           {label}
         </label>
       )}
       <textarea style={baseStyle} {...props} />
       {error && (
-        <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', margin: 0 }}>
-          {error}
-        </p>
+        <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '4px', margin: 0 }}>{error}</p>
       )}
     </div>
   );

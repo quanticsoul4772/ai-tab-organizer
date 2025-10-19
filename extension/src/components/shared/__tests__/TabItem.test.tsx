@@ -8,8 +8,8 @@ vi.mock('../../../utils/indicators', () => ({
   getTabIndicators: vi.fn(() => ({
     badges: [],
     activityColor: '#10b981',
-    activityStatus: 'active'
-  }))
+    activityStatus: 'active',
+  })),
 }));
 
 describe('TabItem', () => {

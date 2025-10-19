@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getCachedSearch, cacheSearchResults, clearSearchCache, cleanupSearchCache } from '../searchCache';
+import {
+  getCachedSearch,
+  cacheSearchResults,
+  clearSearchCache,
+  cleanupSearchCache,
+} from '../searchCache';
 import * as caching from '../caching';
 import type { SearchResult } from '../../types/search';
 

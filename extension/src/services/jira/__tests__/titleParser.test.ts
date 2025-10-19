@@ -68,7 +68,7 @@ describe('JiraTitleParser', () => {
 
     it('should handle complex summaries with special characters', () => {
       const result = JiraTitleParser.parseTitle(
-        '[ENG-789] Fix bug: User can\'t login with @email.com - Blocked'
+        "[ENG-789] Fix bug: User can't login with @email.com - Blocked"
       );
       expect(result).toEqual({
         fullTicket: 'ENG-789',
@@ -177,16 +177,12 @@ describe('JiraTitleParser', () => {
     });
 
     it('should extract ticket from middle of text', () => {
-      const result = JiraTitleParser.extractTicketNumber(
-        'Some text ENG-123 more text'
-      );
+      const result = JiraTitleParser.extractTicketNumber('Some text ENG-123 more text');
       expect(result).toBe('ENG-123');
     });
 
     it('should extract first ticket if multiple exist', () => {
-      const result = JiraTitleParser.extractTicketNumber(
-        '[ENG-123] Related to DESIGN-45'
-      );
+      const result = JiraTitleParser.extractTicketNumber('[ENG-123] Related to DESIGN-45');
       expect(result).toBe('ENG-123');
     });
 

@@ -28,7 +28,7 @@ export const BACKGROUND_ACTIONS = {
 /**
  * Type for valid background actions
  */
-export type BackgroundAction = typeof BACKGROUND_ACTIONS[keyof typeof BACKGROUND_ACTIONS];
+export type BackgroundAction = (typeof BACKGROUND_ACTIONS)[keyof typeof BACKGROUND_ACTIONS];
 
 /**
  * Type guard to check if a string is a valid background action

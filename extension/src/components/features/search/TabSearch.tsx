@@ -41,11 +41,7 @@ export const TabSearch: React.FC = () => {
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="search-error">
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <div className="search-error">⚠️ {error}</div>}
 
       {/* Results */}
       {results.length > 0 && (
@@ -67,9 +63,7 @@ export const TabSearch: React.FC = () => {
 
       {/* No Results */}
       {!isSearching && query && results.length === 0 && !error && (
-        <div className="no-results">
-          No tabs found matching "{query}"
-        </div>
+        <div className="no-results">No tabs found matching "{query}"</div>
       )}
     </div>
   );
@@ -94,7 +88,7 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onSwitch, o
           className="relevance-bar"
           style={{
             width: `${relevancePercent}%`,
-            backgroundColor: getRelevanceColor(result.relevanceScore)
+            backgroundColor: getRelevanceColor(result.relevanceScore),
           }}
         />
       </div>
@@ -134,8 +128,11 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onSwitch, o
         {/* Matched Fields */}
         {!isJiraResult && result.matchedFields.length > 0 && (
           <div className="matched-fields">
-            Matched: {result.matchedFields.map(field => (
-              <span key={field} className="field-badge">{field}</span>
+            Matched:{' '}
+            {result.matchedFields.map((field) => (
+              <span key={field} className="field-badge">
+                {field}
+              </span>
             ))}
           </div>
         )}
@@ -144,17 +141,15 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ result, onSwitch, o
         {!isJiraResult && result.highlights.length > 0 && (
           <div className="highlights">
             {result.highlights.map((highlight, i) => (
-              <span key={i} className="highlight">"{highlight}"</span>
+              <span key={i} className="highlight">
+                "{highlight}"
+              </span>
             ))}
           </div>
         )}
 
         {/* Match Reason */}
-        {result.matchReason && (
-          <div className="match-reason">
-            💡 {result.matchReason}
-          </div>
-        )}
+        {result.matchReason && <div className="match-reason">💡 {result.matchReason}</div>}
       </div>
 
       {/* Actions */}

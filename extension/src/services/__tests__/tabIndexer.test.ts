@@ -33,10 +33,10 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(runtime.sendMessage).toHaveBeenCalledWith(
-        'extractContent',
-        { tabId: 123, url: 'https://example.com' }
-      );
+      expect(runtime.sendMessage).toHaveBeenCalledWith('extractContent', {
+        tabId: 123,
+        url: 'https://example.com',
+      });
 
       expect(storage.set).toHaveBeenCalledWith(
         'indexed_tabs',
@@ -136,10 +136,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to index tab 123:',
-        expect.any(Error)
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to index tab 123:', expect.any(Error));
       expect(storage.set).not.toHaveBeenCalled();
     });
 
@@ -211,10 +208,7 @@ describe('tabIndexer', () => {
 
       await indexTab(mockTab);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to index tab 123:',
-        expect.any(Error)
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to index tab 123:', expect.any(Error));
     });
   });
 
@@ -318,9 +312,7 @@ describe('tabIndexer', () => {
     });
 
     it('should not update storage if nothing to clean', async () => {
-      const activeTabs = [
-        { id: 123, url: 'https://page1.com' },
-      ] as chrome.tabs.Tab[];
+      const activeTabs = [{ id: 123, url: 'https://page1.com' }] as chrome.tabs.Tab[];
 
       const mockIndexedTabs = {
         '123': { tabId: 123, title: 'Active 1' },

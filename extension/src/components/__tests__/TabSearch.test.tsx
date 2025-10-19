@@ -236,7 +236,7 @@ describe('TabSearch', () => {
   describe('Loading State', () => {
     it('should show loading indicator during search', async () => {
       vi.mocked(searchService.searchTabs).mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve([]), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
       );
 
       render(<TabSearch />);
@@ -253,7 +253,7 @@ describe('TabSearch', () => {
 
     it('should disable search button while searching', async () => {
       vi.mocked(searchService.searchTabs).mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve([]), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
       );
 
       render(<TabSearch />);
@@ -291,7 +291,7 @@ describe('TabSearch', () => {
 
     it('should not show no results while searching', async () => {
       vi.mocked(searchService.searchTabs).mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve([]), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
       );
 
       render(<TabSearch />);
@@ -449,10 +449,12 @@ describe('TabSearch', () => {
     });
 
     it('should handle tabs without title', async () => {
-      const resultWithoutTitle = [{
-        ...mockSearchResults[0],
-        tab: { ...mockSearchResults[0].tab, title: undefined },
-      }];
+      const resultWithoutTitle = [
+        {
+          ...mockSearchResults[0],
+          tab: { ...mockSearchResults[0].tab, title: undefined },
+        },
+      ];
 
       vi.mocked(searchService.searchTabs).mockResolvedValue(resultWithoutTitle);
 
@@ -481,10 +483,12 @@ describe('TabSearch', () => {
     });
 
     it('should use yellow for medium relevance', async () => {
-      const mediumResult = [{
-        ...mockSearchResults[0],
-        relevanceScore: 0.65,
-      }];
+      const mediumResult = [
+        {
+          ...mockSearchResults[0],
+          relevanceScore: 0.65,
+        },
+      ];
 
       vi.mocked(searchService.searchTabs).mockResolvedValue(mediumResult);
 

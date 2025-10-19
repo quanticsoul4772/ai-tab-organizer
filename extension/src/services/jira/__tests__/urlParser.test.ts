@@ -15,9 +15,7 @@ describe('AtlassianUrlParser', () => {
     });
 
     it('should parse Jira Server URLs', () => {
-      const result = AtlassianUrlParser.parseJiraUrl(
-        'https://jira.company.com/browse/DESIGN-45'
-      );
+      const result = AtlassianUrlParser.parseJiraUrl('https://jira.company.com/browse/DESIGN-45');
       expect(result).toEqual({
         projectKey: 'DESIGN',
         ticketNumber: 45,

@@ -59,11 +59,7 @@ export class DuplicateDetectionService {
     let tier3Groups: DuplicateGroup[] = [];
 
     // TIER 3: Semantic analysis (optional)
-    if (
-      options.enableSemanticAnalysis &&
-      this.semanticAnalyzer &&
-      tier3Tabs.length > 1
-    ) {
+    if (options.enableSemanticAnalysis && this.semanticAnalyzer && tier3Tabs.length > 1) {
       console.log(`Tier 3: AI semantic analysis for ${tier3Tabs.length} unclear tabs...`);
 
       // Only analyze tabs with moderate similarity (0.70-0.89)
@@ -103,10 +99,7 @@ export class DuplicateDetectionService {
 
       if (uncertainPairs.length > 0) {
         console.log(`📊 Analyzing ${uncertainPairs.length} uncertain pairs with AI...`);
-        tier3Groups = await this.semanticAnalyzer.analyzeUnclearPairs(
-          uncertainPairs,
-          contents
-        );
+        tier3Groups = await this.semanticAnalyzer.analyzeUnclearPairs(uncertainPairs, contents);
 
         // Estimate API cost
         const batches = Math.ceil(uncertainPairs.length / 10);

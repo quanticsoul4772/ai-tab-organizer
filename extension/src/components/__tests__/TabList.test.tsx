@@ -29,8 +29,18 @@ vi.mock('../shared/VirtualTabList', () => ({
 
 describe('TabList', () => {
   const mockTabs: Tab[] = [
-    { id: 1, url: 'https://example.com', title: 'Example Site', favIconUrl: 'https://example.com/favicon.ico' },
-    { id: 2, url: 'https://github.com', title: 'GitHub', favIconUrl: 'https://github.com/favicon.ico' },
+    {
+      id: 1,
+      url: 'https://example.com',
+      title: 'Example Site',
+      favIconUrl: 'https://example.com/favicon.ico',
+    },
+    {
+      id: 2,
+      url: 'https://github.com',
+      title: 'GitHub',
+      favIconUrl: 'https://github.com/favicon.ico',
+    },
   ];
 
   const mockOnTabClick = vi.fn();
@@ -264,7 +274,9 @@ describe('TabList', () => {
     });
 
     it('should show loading state while fetching summary', async () => {
-      mockOnSummaryRequest.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 1000)));
+      mockOnSummaryRequest.mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 1000))
+      );
 
       renderWithDensity(
         <TabList
@@ -369,9 +381,9 @@ describe('TabList', () => {
         expect(screen.getAllByText('Test error').length).toBeGreaterThan(0);
       });
 
-      const errorCloseButtons = screen.getAllByRole('button').filter(btn =>
-        btn.textContent === '✕' && btn.className === 'error-close-btn'
-      );
+      const errorCloseButtons = screen
+        .getAllByRole('button')
+        .filter((btn) => btn.textContent === '✕' && btn.className === 'error-close-btn');
       fireEvent.click(errorCloseButtons[0]);
 
       await waitFor(() => {
@@ -436,16 +448,15 @@ describe('TabList', () => {
       );
 
       const favicons = container.querySelectorAll('.favicon');
-      expect(favicons[0]).toHaveAttribute('src', 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>');
+      expect(favicons[0]).toHaveAttribute(
+        'src',
+        'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'
+      );
     });
 
     it('should use default props when optional props not provided', () => {
       renderWithDensity(
-        <TabList
-          tabs={mockTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
+        <TabList tabs={mockTabs} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />
       );
 
       // Should use virtual scrolling by default

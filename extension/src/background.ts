@@ -86,93 +86,97 @@ const API_CONFIG: ApiConfig = {
   JITTER_PERCENT: 30, // 30% jitter to prevent thundering herd
 };
 
-chrome.runtime.onMessage.addListener((
-  request: BackgroundRequest,
-  sender: chrome.runtime.MessageSender,
-  sendResponse: (response: BackgroundResponse) => void
-) => {
-  if (request.action === 'categorize') {
-    categorizeTabs(request.tabs, request.apiKey)
-      .then(result => sendResponse({ success: true, data: result }))
-      .catch(error => {
-        console.error('Categorization error:', error);
-        sendResponse({ success: false, error: error.message });
+chrome.runtime.onMessage.addListener(
+  (
+    request: BackgroundRequest,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response: BackgroundResponse) => void
+  ) => {
+    if (request.action === 'categorize') {
+      categorizeTabs(request.tabs, request.apiKey)
+        .then((result) => sendResponse({ success: true, data: result }))
+        .catch((error) => {
+          console.error('Categorization error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'summarizeTab') {
+      summarizeTab(request.tab, request.apiKey)
+        .then((result) => sendResponse({ success: true, data: result }))
+        .catch((error) => {
+          console.error('Tab summarization error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'summarizeCategory') {
+      summarizeCategory(request.tabs, request.categoryName, request.apiKey)
+        .then((result) => sendResponse({ success: true, data: result }))
+        .catch((error) => {
+          console.error('Category summarization error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'extractContent') {
+      extractTabContent(request.tabId, request.url)
+        .then((result) => sendResponse({ success: true, data: result }))
+        .catch((error) => {
+          console.error('Content extraction error:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+    }
+
+    if (request.action === 'getTabMetadata') {
+      const { tabId } = request;
+
+      // Get tab info and all tabs for duplicate detection
+      chrome.tabs.get(tabId, async (tab) => {
+        if (chrome.runtime.lastError) {
+          console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
+          sendResponse({ success: false, error: chrome.runtime.lastError.message });
+          return;
+        }
+
+        // Get all tabs for duplicate detection
+        const allTabs = await chrome.tabs.query({});
+
+        // Build full metadata object
+        const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
+        const idleTime = Date.now() - lastAccessed;
+        const idleMinutes = Math.round(idleTime / (60 * 1000));
+
+        console.log(
+          `🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`
+        );
+
+        // Extract Jira status from page content
+        console.log(`📞 About to call extractJiraStatus for tab ${tabId}, url: ${tab.url}`);
+        const jiraStatus = await extractJiraStatus(tabId, tab.url || '');
+        console.log(`📞 extractJiraStatus returned: ${jiraStatus}`);
+
+        const metadata = {
+          lastAccessed: lastAccessed,
+          isSuspended: tab.discarded || false,
+          duplicateCount: countDuplicates(tab, allTabs),
+          jiraStatus: jiraStatus,
+          // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
+        };
+
+        console.log(`✅ Tab ${tabId} metadata complete: jiraStatus=${jiraStatus}`);
+
+        sendResponse({ success: true, data: metadata });
       });
-    return true; // Keep channel open for async response
+
+      return true; // Keep channel open for async response
+    }
   }
-
-  if (request.action === 'summarizeTab') {
-    summarizeTab(request.tab, request.apiKey)
-      .then(result => sendResponse({ success: true, data: result }))
-      .catch(error => {
-        console.error('Tab summarization error:', error);
-        sendResponse({ success: false, error: error.message });
-      });
-    return true; // Keep channel open for async response
-  }
-
-  if (request.action === 'summarizeCategory') {
-    summarizeCategory(request.tabs, request.categoryName, request.apiKey)
-      .then(result => sendResponse({ success: true, data: result }))
-      .catch(error => {
-        console.error('Category summarization error:', error);
-        sendResponse({ success: false, error: error.message });
-      });
-    return true; // Keep channel open for async response
-  }
-
-  if (request.action === 'extractContent') {
-    extractTabContent(request.tabId, request.url)
-      .then(result => sendResponse({ success: true, data: result }))
-      .catch(error => {
-        console.error('Content extraction error:', error);
-        sendResponse({ success: false, error: error.message });
-      });
-    return true; // Keep channel open for async response
-  }
-
-  if (request.action === 'getTabMetadata') {
-    const { tabId } = request;
-
-    // Get tab info and all tabs for duplicate detection
-    chrome.tabs.get(tabId, async (tab) => {
-      if (chrome.runtime.lastError) {
-        console.warn(`Failed to get tab ${tabId}:`, chrome.runtime.lastError);
-        sendResponse({ success: false, error: chrome.runtime.lastError.message });
-        return;
-      }
-
-      // Get all tabs for duplicate detection
-      const allTabs = await chrome.tabs.query({});
-
-      // Build full metadata object
-      const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
-      const idleTime = Date.now() - lastAccessed;
-      const idleMinutes = Math.round(idleTime / (60 * 1000));
-
-      console.log(`🔍 Tab ${tabId} metadata: lastAccessed=${new Date(lastAccessed).toISOString()}, idle=${idleMinutes}min`);
-
-      // Extract Jira status from page content
-      console.log(`📞 About to call extractJiraStatus for tab ${tabId}, url: ${tab.url}`);
-      const jiraStatus = await extractJiraStatus(tabId, tab.url || '');
-      console.log(`📞 extractJiraStatus returned: ${jiraStatus}`);
-
-      const metadata = {
-        lastAccessed: lastAccessed,
-        isSuspended: tab.discarded || false,
-        duplicateCount: countDuplicates(tab, allTabs),
-        jiraStatus: jiraStatus,
-        // memoryUsage: undefined, // Requires chrome.processes API (dev channel only)
-      };
-
-      console.log(`✅ Tab ${tabId} metadata complete: jiraStatus=${jiraStatus}`);
-
-      sendResponse({ success: true, data: metadata });
-    });
-
-    return true; // Keep channel open for async response
-  }
-});
+);
 
 /**
  * Categorize tabs using Claude API with retry logic and validation
@@ -327,10 +331,10 @@ function isAccessibleUrl(url: string): boolean {
     'file://',
     'view-source:',
     'data:',
-    'javascript:'
+    'javascript:',
   ];
 
-  return !protectedProtocols.some(protocol => url.startsWith(protocol));
+  return !protectedProtocols.some((protocol) => url.startsWith(protocol));
 }
 
 /**
@@ -376,7 +380,7 @@ async function extractTabContent(tabId: number, url: string): Promise<ExtractedC
     // Inject and execute content extraction script
     const results = await chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ['content-extractor.js']
+      files: ['content-extractor.js'],
     });
 
     if (!results || results.length === 0) {
@@ -402,7 +406,10 @@ async function extractTabContent(tabId: number, url: string): Promise<ExtractedC
  * @param {string} apiKey - Anthropic API key
  * @returns {Promise<Object>} Tab summary
  */
-async function summarizeTab(tab: chrome.tabs.Tab | undefined, apiKey: string | undefined): Promise<TabSummary> {
+async function summarizeTab(
+  tab: chrome.tabs.Tab | undefined,
+  apiKey: string | undefined
+): Promise<TabSummary> {
   if (!tab || !apiKey) {
     throw new Error('Missing required parameters');
   }
@@ -418,7 +425,7 @@ async function summarizeTab(tab: chrome.tabs.Tab | undefined, apiKey: string | u
       timestamp: Date.now(),
       tokens: 0,
       contentLength: 0,
-      protected: true
+      protected: true,
     };
   }
 
@@ -448,16 +455,18 @@ Provide a concise, actionable summary.`;
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
           'anthropic-version': API_CONFIG.VERSION,
-          'anthropic-dangerous-direct-browser-access': 'true'
+          'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
           model: API_CONFIG.MODEL,
           max_tokens: 300,
-          messages: [{
-            role: 'user',
-            content: prompt
-          }]
-        })
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       },
       API_CONFIG.TIMEOUT_MS
     );
@@ -485,7 +494,7 @@ Provide a concise, actionable summary.`;
       summary: summary,
       timestamp: Date.now(),
       tokens: tokens,
-      contentLength: contentData.contentLength
+      contentLength: contentData.contentLength,
     };
   } catch (error) {
     console.error('Failed to summarize tab:', error);
@@ -500,7 +509,11 @@ Provide a concise, actionable summary.`;
  * @param {string} apiKey - Anthropic API key
  * @returns {Promise<Object>} Category summary
  */
-async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryName: string | undefined, apiKey: string | undefined): Promise<CategorySummary> {
+async function summarizeCategory(
+  tabs: chrome.tabs.Tab[] | undefined,
+  categoryName: string | undefined,
+  apiKey: string | undefined
+): Promise<CategorySummary> {
   if (!tabs || !categoryName || !apiKey) {
     throw new Error('Missing required parameters');
   }
@@ -509,14 +522,15 @@ async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryNa
     // Step 1: Extract content from all tabs (with rate limiting)
     const tabsWithContent = [];
 
-    for (const tab of tabs.slice(0, 10)) { // Limit to 10 tabs max
+    for (const tab of tabs.slice(0, 10)) {
+      // Limit to 10 tabs max
       // Check if URL is accessible before attempting extraction
       if (!isAccessibleUrl(tab.url)) {
         console.log(`Skipping protected URL: ${tab.url}`);
         tabsWithContent.push({
           title: tab.title,
           url: tab.url,
-          contentPreview: '(Protected page - cannot access)'
+          contentPreview: '(Protected page - cannot access)',
         });
         continue;
       }
@@ -526,7 +540,7 @@ async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryNa
         tabsWithContent.push({
           title: tab.title,
           url: tab.url,
-          contentPreview: contentData.content.substring(0, 500) // Limit per-tab content
+          contentPreview: contentData.content.substring(0, 500), // Limit per-tab content
         });
       } catch (error) {
         console.warn(`Failed to extract content from tab ${tab.id}:`, error);
@@ -535,7 +549,7 @@ async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryNa
         tabsWithContent.push({
           title: tab.title,
           url: tab.url,
-          contentPreview: `(${errorMessage})`
+          contentPreview: `(${errorMessage})`,
         });
       }
 
@@ -544,9 +558,9 @@ async function summarizeCategory(tabs: chrome.tabs.Tab[] | undefined, categoryNa
     }
 
     // Step 2: Build tab list with content
-    const tabList = tabsWithContent.map((t, i) =>
-      `${i + 1}. ${t.title}\n   URL: ${t.url}\n   Preview: ${t.contentPreview}`
-    ).join('\n\n');
+    const tabList = tabsWithContent
+      .map((t, i) => `${i + 1}. ${t.title}\n   URL: ${t.url}\n   Preview: ${t.contentPreview}`)
+      .join('\n\n');
 
     // Step 3: Build prompt
     const prompt = `Summarize this group of ${tabs.length} browser tabs in a single paragraph. Explain:
@@ -570,16 +584,18 @@ Provide a cohesive summary that captures the essence of this tab collection.`;
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
           'anthropic-version': API_CONFIG.VERSION,
-          'anthropic-dangerous-direct-browser-access': 'true'
+          'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
           model: API_CONFIG.MODEL,
           max_tokens: 500,
-          messages: [{
-            role: 'user',
-            content: prompt
-          }]
-        })
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       },
       API_CONFIG.TIMEOUT_MS
     );
@@ -604,7 +620,7 @@ Provide a cohesive summary that captures the essence of this tab collection.`;
       summary: summary,
       tabCount: tabs.length,
       timestamp: Date.now(),
-      tokens: tokens
+      tokens: tokens,
     };
   } catch (error) {
     console.error('Failed to summarize category:', error);
@@ -639,9 +655,10 @@ async function indexTabForSearch(tab: chrome.tabs.Tab): Promise<void> {
     const content = contentData.content || '';
 
     // Truncate content if too long
-    const truncatedContent = content.length > MAX_CONTENT_LENGTH
-      ? content.substring(0, MAX_CONTENT_LENGTH) + '...'
-      : content;
+    const truncatedContent =
+      content.length > MAX_CONTENT_LENGTH
+        ? content.substring(0, MAX_CONTENT_LENGTH) + '...'
+        : content;
 
     // Create indexed tab entry
     const indexedTab = {
@@ -651,7 +668,7 @@ async function indexTabForSearch(tab: chrome.tabs.Tab): Promise<void> {
       content: truncatedContent,
       contentHash: simpleHash(truncatedContent),
       lastAccessed: new Date().toISOString(),
-      indexed: new Date().toISOString()
+      indexed: new Date().toISOString(),
     };
 
     // Get existing indexed tabs object
@@ -694,7 +711,7 @@ async function removeIndexedTab(tabId: number): Promise<void> {
 async function cleanupIndexedTabs(): Promise<void> {
   try {
     const allTabs = await chrome.tabs.query({});
-    const activeTabIds = new Set(allTabs.map(t => t.id).filter(id => id !== undefined));
+    const activeTabIds = new Set(allTabs.map((t) => t.id).filter((id) => id !== undefined));
 
     const result = await chrome.storage.local.get(INDEXED_TABS_KEY);
     const indexed = result[INDEXED_TABS_KEY] || {};
@@ -726,7 +743,7 @@ function simpleHash(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   return hash.toString(36);
@@ -780,9 +797,12 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   // Wait 3 seconds for page to load before indexing
   setTimeout(() => {
     if (tab.id) {
-      chrome.tabs.get(tab.id).then(indexTabForSearch).catch(() => {
-        console.log(`Tab ${tab.id} was closed before indexing`);
-      });
+      chrome.tabs
+        .get(tab.id)
+        .then(indexTabForSearch)
+        .catch(() => {
+          console.log(`Tab ${tab.id} was closed before indexing`);
+        });
     }
   }, 3000);
 });
@@ -985,7 +1005,7 @@ async function extractJiraStatus(tabId: number, url: string): Promise<string | u
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ['jira-content-extractor.js']
+      files: ['jira-content-extractor.js'],
     });
 
     console.log(`📦 Injection result for tab ${tabId}:`, results);

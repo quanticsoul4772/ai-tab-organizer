@@ -10,12 +10,7 @@ describe('EmptyState', () => {
   });
 
   it('should render description when provided', () => {
-    render(
-      <EmptyState
-        title="No sessions"
-        description="Click 'Save Current' to save your tabs"
-      />
-    );
+    render(<EmptyState title="No sessions" description="Click 'Save Current' to save your tabs" />);
     expect(screen.getByText('No sessions')).toBeInTheDocument();
     expect(screen.getByText("Click 'Save Current' to save your tabs")).toBeInTheDocument();
   });
@@ -26,12 +21,7 @@ describe('EmptyState', () => {
   });
 
   it('should render action button when provided', () => {
-    render(
-      <EmptyState
-        title="No data"
-        action={<Button>Create New</Button>}
-      />
-    );
+    render(<EmptyState title="No data" action={<Button>Create New</Button>} />);
     expect(screen.getByText('Create New')).toBeInTheDocument();
   });
 

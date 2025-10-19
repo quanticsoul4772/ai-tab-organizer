@@ -77,7 +77,7 @@ describe('DensityToggle', () => {
       render(<DensityToggle currentMode="normal" onChange={mockOnChange} />);
 
       const buttons = screen.getAllByRole('button');
-      buttons.forEach(button => {
+      buttons.forEach((button) => {
         expect(button).toHaveClass('density-btn');
       });
     });

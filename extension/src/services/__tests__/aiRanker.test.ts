@@ -73,8 +73,8 @@ describe('aiRanker', () => {
       expect(results[0].highlights).toEqual(['Login']);
       expect(results[0].matchedFields).toEqual(['title', 'url', 'content']);
 
-      expect(results[1].relevanceScore).toBe(0.20);
-      expect(results[2].relevanceScore).toBe(0.10);
+      expect(results[1].relevanceScore).toBe(0.2);
+      expect(results[2].relevanceScore).toBe(0.1);
 
       expect(fetch).toHaveBeenCalledWith(
         'https://api.anthropic.com/v1/messages',
@@ -90,9 +90,7 @@ describe('aiRanker', () => {
     });
 
     it('should strip markdown code blocks from API response', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'test content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'test content')];
 
       const query = createQuery('test', ['test']);
 
@@ -112,13 +110,11 @@ describe('aiRanker', () => {
       const results = await rankTabsByRelevance(query, candidates, 'api-key');
 
       expect(results).toHaveLength(1);
-      expect(results[0].relevanceScore).toBe(0.80);
+      expect(results[0].relevanceScore).toBe(0.8);
     });
 
     it('should extract JSON array from response with additional text', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
@@ -129,9 +125,11 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: `Here are the ranked results:\n${JSON.stringify(mockApiResponse)}\nThese are sorted by relevance.`
-          }],
+          content: [
+            {
+              text: `Here are the ranked results:\n${JSON.stringify(mockApiResponse)}\nThese are sorted by relevance.`,
+            },
+          ],
         }),
       } as Response);
 
@@ -144,13 +142,12 @@ describe('aiRanker', () => {
     });
 
     it('should clean trailing commas from JSON', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
-      const malformedJson = '[{"index":0,"relevanceScore":70,"matchReason":"Match","highlights":[],}]';
+      const malformedJson =
+        '[{"index":0,"relevanceScore":70,"matchReason":"Match","highlights":[],}]';
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -164,17 +161,16 @@ describe('aiRanker', () => {
       const results = await rankTabsByRelevance(query, candidates, 'api-key');
 
       expect(results).toHaveLength(1);
-      expect(results[0].relevanceScore).toBe(0.70);
+      expect(results[0].relevanceScore).toBe(0.7);
     });
 
     it('should remove control characters from JSON', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
-      const jsonWithControlChars = '[{"index":0,\x00"relevanceScore":65,\x1F"matchReason":"Match","highlights":[]}]';
+      const jsonWithControlChars =
+        '[{"index":0,\x00"relevanceScore":65,\x1F"matchReason":"Match","highlights":[]}]';
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -219,9 +215,7 @@ describe('aiRanker', () => {
     });
 
     it('should fallback on network error', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
@@ -237,9 +231,7 @@ describe('aiRanker', () => {
     });
 
     it('should fallback on invalid JSON from API', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
@@ -292,9 +284,7 @@ describe('aiRanker', () => {
     });
 
     it('should handle missing highlights in API response', async () => {
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', 'content'),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', 'content')];
 
       const query = createQuery('test', ['test']);
 
@@ -356,11 +346,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -368,19 +360,16 @@ describe('aiRanker', () => {
 
       await rankTabsByRelevance(query, candidates, 'my-api-key');
 
-      expect(fetch).toHaveBeenCalledWith(
-        'https://api.anthropic.com/v1/messages',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'my-api-key',
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: expect.stringContaining('claude-3-5-sonnet-20241022'),
-        }
-      );
+      expect(fetch).toHaveBeenCalledWith('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'my-api-key',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: expect.stringContaining('claude-3-5-sonnet-20241022'),
+      });
 
       const requestBody = JSON.parse(vi.mocked(fetch).mock.calls[0][1]?.body as string);
       expect(requestBody.model).toBe('claude-3-5-sonnet-20241022');
@@ -392,20 +381,20 @@ describe('aiRanker', () => {
 
     it('should truncate content preview to 300 chars', async () => {
       const longContent = 'a'.repeat(500);
-      const candidates = [
-        createIndexedTab(1, 'Test', 'https://test.com', longContent),
-      ];
+      const candidates = [createIndexedTab(1, 'Test', 'https://test.com', longContent)];
 
       const query = createQuery('test', ['test']);
 
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -438,11 +427,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -477,11 +468,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -514,11 +507,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -551,11 +546,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -588,11 +585,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -627,11 +626,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -664,11 +665,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -677,7 +680,7 @@ describe('aiRanker', () => {
       const results = await rankTabsByRelevance(query, candidates, 'api-key');
 
       // Should only have 'title' once even though both keywords matched
-      expect(results[0].matchedFields.filter(f => f === 'title').length).toBe(1);
+      expect(results[0].matchedFields.filter((f) => f === 'title').length).toBe(1);
     });
 
     it('should return empty array when no keywords match', async () => {
@@ -702,11 +705,13 @@ describe('aiRanker', () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{
-            text: JSON.stringify([
-              { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] }
-            ])
-          }],
+          content: [
+            {
+              text: JSON.stringify([
+                { index: 0, relevanceScore: 80, matchReason: 'Match', highlights: [] },
+              ]),
+            },
+          ],
         }),
       } as Response);
 

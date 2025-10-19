@@ -229,7 +229,9 @@ describe('SettingsPanel', () => {
         />
       );
 
-      expect(screen.getByText('Summaries are cached for 72 hours to reduce API usage')).toBeInTheDocument();
+      expect(
+        screen.getByText('Summaries are cached for 72 hours to reduce API usage')
+      ).toBeInTheDocument();
     });
 
     it('should call onClearCache when clear cache button clicked', () => {

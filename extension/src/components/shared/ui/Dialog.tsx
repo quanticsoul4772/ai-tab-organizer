@@ -23,10 +23,15 @@ export function Dialog({ show, title, children, onClose, footer }: DialogProps) 
         borderBottom: '1px solid #374151',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 600, margin: 0, color: '#f3f4f6' }}>
-          {title}
-        </h3>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '12px',
+        }}
+      >
+        <h3 style={{ fontSize: '14px', fontWeight: 600, margin: 0, color: '#f3f4f6' }}>{title}</h3>
         <button
           onClick={onClose}
           style={{
@@ -43,11 +48,7 @@ export function Dialog({ show, title, children, onClose, footer }: DialogProps) 
         </button>
       </div>
       <div>{children}</div>
-      {footer && (
-        <div style={{ marginTop: '12px' }}>
-          {footer}
-        </div>
-      )}
+      {footer && <div style={{ marginTop: '12px' }}>{footer}</div>}
     </div>
   );
 }
@@ -57,9 +58,5 @@ interface DialogActionsProps {
 }
 
 export function DialogActions({ children }: DialogActionsProps) {
-  return (
-    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-      {children}
-    </div>
-  );
+  return <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>{children}</div>;
 }

@@ -52,9 +52,7 @@ describe('summaryService', () => {
 
       expect(result).toEqual(cachedSummary);
       expect(storage.getCachedTabSummary).toHaveBeenCalledWith(123);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[SummaryService] Using cached summary for tab 123'
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('[SummaryService] Using cached summary for tab 123');
       expect(runtime.sendMessage).not.toHaveBeenCalled();
     });
 
@@ -79,10 +77,10 @@ describe('summaryService', () => {
       const result = await summaryService.summarizeTab(mockTab, 'test-api-key');
 
       expect(result).toEqual(newSummary);
-      expect(runtime.sendMessage).toHaveBeenCalledWith(
-        'summarizeTab',
-        { tab: mockTab, apiKey: 'test-api-key' }
-      );
+      expect(runtime.sendMessage).toHaveBeenCalledWith('summarizeTab', {
+        tab: mockTab,
+        apiKey: 'test-api-key',
+      });
       expect(storage.cacheTabSummary).toHaveBeenCalledWith(newSummary);
     });
 
@@ -124,7 +122,9 @@ describe('summaryService', () => {
       };
 
       vi.mocked(storage.getCachedTabSummary).mockResolvedValue(null);
-      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Failed to execute action: summarizeTab'));
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('Failed to execute action: summarizeTab')
+      );
 
       await expect(summaryService.summarizeTab(mockTab, 'test-api-key')).rejects.toThrow(
         'Failed to execute action: summarizeTab'
@@ -187,17 +187,16 @@ describe('summaryService', () => {
       const result = await summaryService.summarizeCategory('Work', mockTabs, 'test-api-key');
 
       expect(result).toEqual(newSummary);
-      expect(runtime.sendMessage).toHaveBeenCalledWith(
-        BACKGROUND_ACTIONS.SUMMARIZE_CATEGORY,
-        { tabs: mockTabs, categoryName: 'Work', apiKey: 'test-api-key' }
-      );
+      expect(runtime.sendMessage).toHaveBeenCalledWith(BACKGROUND_ACTIONS.SUMMARIZE_CATEGORY, {
+        tabs: mockTabs,
+        categoryName: 'Work',
+        apiKey: 'test-api-key',
+      });
       expect(storage.cacheCategorySummary).toHaveBeenCalledWith(newSummary);
     });
 
     it('should generate new summary if not cached', async () => {
-      const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-      ];
+      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
 
       const newSummary: CategorySummary = {
         category: 'Personal',
@@ -217,9 +216,7 @@ describe('summaryService', () => {
     });
 
     it('should reject if runtime error occurs', async () => {
-      const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-      ];
+      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category runtime error'));
@@ -230,9 +227,7 @@ describe('summaryService', () => {
     });
 
     it('should reject if response indicates failure', async () => {
-      const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-      ];
+      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
       vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Category API error'));
@@ -243,12 +238,12 @@ describe('summaryService', () => {
     });
 
     it('should reject with default message if no error provided', async () => {
-      const mockTabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://one.com' },
-      ];
+      const mockTabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://one.com' }];
 
       vi.mocked(storage.getCachedCategorySummary).mockResolvedValue(null);
-      vi.mocked(runtime.sendMessage).mockRejectedValue(new Error('Failed to execute action: summarizeCategory'));
+      vi.mocked(runtime.sendMessage).mockRejectedValue(
+        new Error('Failed to execute action: summarizeCategory')
+      );
 
       await expect(
         summaryService.summarizeCategory('Work', mockTabs, 'test-api-key')

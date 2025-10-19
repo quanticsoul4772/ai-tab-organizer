@@ -56,7 +56,7 @@ describe('PerformanceMonitor', () => {
       });
 
       expect(consoleWarnSpy).toHaveBeenCalled();
-      const warnCall = consoleWarnSpy.mock.calls.find(call =>
+      const warnCall = consoleWarnSpy.mock.calls.find((call) =>
         call[0].includes('initial-render exceeded budget')
       );
       expect(warnCall).toBeDefined();
@@ -66,7 +66,7 @@ describe('PerformanceMonitor', () => {
   describe('measureAsync', () => {
     it('should measure async function execution time', async () => {
       const result = await monitor.measureAsync('test-async', async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
         return 'done';
       });
 
@@ -82,7 +82,7 @@ describe('PerformanceMonitor', () => {
     it('should record time even if async function throws', async () => {
       await expect(
         monitor.measureAsync('test-async-error', async () => {
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise((resolve) => setTimeout(resolve, 5));
           throw new Error('Test error');
         })
       ).rejects.toThrow('Test error');

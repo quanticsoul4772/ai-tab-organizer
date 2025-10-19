@@ -30,7 +30,7 @@ export function hasRecentActivity(tabs: Tab[], lastAccessedMap: Map<number, numb
   const RECENT_THRESHOLD = 5 * 60 * 1000; // 5 minutes
   const now = Date.now();
 
-  return tabs.some(tab => {
+  return tabs.some((tab) => {
     const lastAccessed = lastAccessedMap.get(tab.id);
     if (!lastAccessed) return false;
     return now - lastAccessed < RECENT_THRESHOLD;

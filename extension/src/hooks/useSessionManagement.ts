@@ -98,8 +98,8 @@ export function useSessionManagement({ onError }: UseSessionManagementOptions) {
     if (!selectedWorkspace) {
       setSessions(allSessions);
     } else {
-      const filtered = allSessions.filter(s =>
-        s.categories && s.categories.includes(selectedWorkspace)
+      const filtered = allSessions.filter(
+        (s) => s.categories && s.categories.includes(selectedWorkspace)
       );
       setSessions(filtered);
     }

@@ -92,16 +92,13 @@ export function SettingsPanel({
           <input
             type="checkbox"
             checked={jiraSettings.smartMode}
-            onChange={(e) =>
-              onJiraSettingsChange({ ...jiraSettings, smartMode: e.target.checked })
-            }
+            onChange={(e) => onJiraSettingsChange({ ...jiraSettings, smartMode: e.target.checked })}
           />
           <span>Enable Jira Mode</span>
         </label>
         <p className="settings-help">
-          Groups Jira tickets by project and Confluence pages by space.
-          Search supports ticket patterns like "ENG-123" or "eng 123".
-          Works with Atlassian Cloud, Server, and Data Center.
+          Groups Jira tickets by project and Confluence pages by space. Search supports ticket
+          patterns like "ENG-123" or "eng 123". Works with Atlassian Cloud, Server, and Data Center.
         </p>
       </div>
 

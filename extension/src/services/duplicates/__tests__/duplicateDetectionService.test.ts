@@ -28,7 +28,11 @@ describe('DuplicateDetectionService', () => {
 
       const tabs: chrome.tabs.Tab[] = [
         { id: 1, url: 'https://example.com/page', title: 'Page 1' } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page?utm_source=fb', title: 'Page 2' } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page?utm_source=fb',
+          title: 'Page 2',
+        } as chrome.tabs.Tab,
         { id: 3, url: 'https://other.com', title: 'Other' } as chrome.tabs.Tab,
       ];
 
@@ -52,7 +56,8 @@ describe('DuplicateDetectionService', () => {
       ];
 
       vi.mocked(runtime.sendMessage).mockResolvedValue({
-        content: 'This is the exact same article content that appears on both pages with enough text to generate good similarity.',
+        content:
+          'This is the exact same article content that appears on both pages with enough text to generate good similarity.',
         metaDescription: 'Same meta description',
       });
 
@@ -78,7 +83,9 @@ describe('DuplicateDetectionService', () => {
 
       // Both tabs should be caught by Tier 1, so Tier 2 should process 0 tabs
       expect(result.tier1Found).toBeGreaterThan(0);
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Tier 2: Content fingerprinting 0 tabs'));
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Tier 2: Content fingerprinting 0 tabs')
+      );
     });
 
     it('should perform semantic analysis when enabled (Tier 3)', async () => {
@@ -102,7 +109,18 @@ describe('DuplicateDetectionService', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: true, similarity: 0.85, reasoning: 'Similar articles', confidence: 0.8 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                {
+                  areDuplicates: true,
+                  similarity: 0.85,
+                  reasoning: 'Similar articles',
+                  confidence: 0.8,
+                },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -244,7 +262,13 @@ describe('DuplicateDetectionService', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: false, similarity: 0.7, reasoning: 'Different', confidence: 0.8 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: false, similarity: 0.7, reasoning: 'Different', confidence: 0.8 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 
@@ -298,7 +322,9 @@ describe('DuplicateDetectionService', () => {
 
       expect(result.duplicateGroups).toBeDefined();
       expect(Array.isArray(result.duplicateGroups)).toBe(true);
-      expect(result.tier1Found + result.tier2Found + result.tier3Found).toBe(result.duplicateGroups.length);
+      expect(result.tier1Found + result.tier2Found + result.tier3Found).toBe(
+        result.duplicateGroups.length
+      );
     });
 
     it('should track processing time', async () => {
@@ -353,7 +379,13 @@ describe('DuplicateDetectionService', () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
-          content: [{ text: JSON.stringify([{ areDuplicates: true, similarity: 0.85, reasoning: 'Similar', confidence: 0.8 }]) }],
+          content: [
+            {
+              text: JSON.stringify([
+                { areDuplicates: true, similarity: 0.85, reasoning: 'Similar', confidence: 0.8 },
+              ]),
+            },
+          ],
         }),
       } as Response);
 

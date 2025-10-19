@@ -13,9 +13,9 @@ export const claudeApi = {
    * @returns Promise resolving to category mapping (category -> tab indices)
    */
   async categorizeTabs(tabs: Tab[], apiKey: string): Promise<CategoryResponse> {
-    return await runtime.sendMessage<CategoryResponse>(
-      BACKGROUND_ACTIONS.CATEGORIZE,
-      { tabs, apiKey }
-    );
+    return await runtime.sendMessage<CategoryResponse>(BACKGROUND_ACTIONS.CATEGORIZE, {
+      tabs,
+      apiKey,
+    });
   },
 };

@@ -16,9 +16,7 @@ describe('groupDefaults', () => {
     });
 
     it('should collapse single tab groups', () => {
-      const tabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://example.com' },
-      ];
+      const tabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://example.com' }];
 
       const result = getDefaultCollapseState('Test', tabs);
 
@@ -70,9 +68,7 @@ describe('groupDefaults', () => {
 
   describe('hasRecentActivity', () => {
     it('should return true for tabs accessed within 5 minutes', () => {
-      const tabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://example.com' },
-      ];
+      const tabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://example.com' }];
 
       const lastAccessedMap = new Map<number, number>();
       lastAccessedMap.set(1, Date.now() - 2 * 60 * 1000); // 2 minutes ago
@@ -83,9 +79,7 @@ describe('groupDefaults', () => {
     });
 
     it('should return false for tabs accessed over 5 minutes ago', () => {
-      const tabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://example.com' },
-      ];
+      const tabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://example.com' }];
 
       const lastAccessedMap = new Map<number, number>();
       lastAccessedMap.set(1, Date.now() - 10 * 60 * 1000); // 10 minutes ago
@@ -96,9 +90,7 @@ describe('groupDefaults', () => {
     });
 
     it('should return false when no access times are tracked', () => {
-      const tabs: Tab[] = [
-        { id: 1, title: 'Tab 1', url: 'https://example.com' },
-      ];
+      const tabs: Tab[] = [{ id: 1, title: 'Tab 1', url: 'https://example.com' }];
 
       const lastAccessedMap = new Map<number, number>();
 

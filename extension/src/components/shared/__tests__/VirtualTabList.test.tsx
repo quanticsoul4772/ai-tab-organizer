@@ -60,24 +60,14 @@ describe('VirtualTabList', () => {
 
   describe('Rendering', () => {
     it('should render empty state when no tabs', () => {
-      render(
-        <VirtualTabList
-          tabs={[]}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
-      );
+      render(<VirtualTabList tabs={[]} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />);
 
       expect(screen.getByText('No tabs to display')).toBeInTheDocument();
     });
 
     it('should render with tabs', () => {
       const { container } = render(
-        <VirtualTabList
-          tabs={mockTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
+        <VirtualTabList tabs={mockTabs} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />
       );
 
       // Should render the list container
@@ -86,11 +76,7 @@ describe('VirtualTabList', () => {
 
     it('should have correct ARIA attributes', () => {
       render(
-        <VirtualTabList
-          tabs={mockTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
+        <VirtualTabList tabs={mockTabs} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />
       );
 
       const listbox = screen.getByRole('listbox');
@@ -102,11 +88,7 @@ describe('VirtualTabList', () => {
   describe('Density Modes', () => {
     it('should render in normal mode by default', () => {
       render(
-        <VirtualTabList
-          tabs={mockTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
+        <VirtualTabList tabs={mockTabs} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />
       );
 
       const listbox = screen.getByRole('listbox');
@@ -208,11 +190,7 @@ describe('VirtualTabList', () => {
       }));
 
       render(
-        <VirtualTabList
-          tabs={manyTabs}
-          onTabClick={mockOnTabClick}
-          onTabClose={mockOnTabClose}
-        />
+        <VirtualTabList tabs={manyTabs} onTabClick={mockOnTabClick} onTabClose={mockOnTabClose} />
       );
 
       const listbox = screen.getByRole('listbox');

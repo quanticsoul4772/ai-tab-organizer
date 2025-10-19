@@ -24,9 +24,7 @@ export function SessionsHeader({
       }}
     >
       <div>
-        <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: '#f3f4f6' }}>
-          Sessions
-        </h2>
+        <h2 style={{ fontSize: '18px', fontWeight: 600, margin: 0, color: '#f3f4f6' }}>Sessions</h2>
         <p style={{ fontSize: '12px', color: '#9ca3af', margin: '4px 0 0 0' }}>
           Save and restore your browser sessions
         </p>

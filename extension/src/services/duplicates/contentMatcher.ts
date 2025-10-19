@@ -21,10 +21,10 @@ export class ContentMatcher {
       'file://',
       'view-source:',
       'data:',
-      'javascript:'
+      'javascript:',
     ];
 
-    return !protectedProtocols.some(protocol => url.startsWith(protocol));
+    return !protectedProtocols.some((protocol) => url.startsWith(protocol));
   }
 
   /**

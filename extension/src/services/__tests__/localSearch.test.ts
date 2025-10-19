@@ -4,7 +4,14 @@ import type { SearchQuery, IndexedTab } from '../../types/search';
 
 describe('localSearch', () => {
   describe('filterTabsLocally', () => {
-    const createTab = (id: number, title: string, url: string, content: string = '', category?: string, lastAccessed?: number): IndexedTab => ({
+    const createTab = (
+      id: number,
+      title: string,
+      url: string,
+      content: string = '',
+      category?: string,
+      lastAccessed?: number
+    ): IndexedTab => ({
       tabId: id,
       title,
       url,
@@ -151,7 +158,7 @@ describe('localSearch', () => {
       const results = await filterTabsLocally(query, tabs);
 
       expect(results).toHaveLength(2);
-      expect(results.every(t => t.category === 'Work')).toBe(true);
+      expect(results.every((t) => t.category === 'Work')).toBe(true);
     });
 
     it('should filter by domain', async () => {
@@ -172,7 +179,7 @@ describe('localSearch', () => {
       const results = await filterTabsLocally(query, tabs);
 
       expect(results).toHaveLength(2);
-      expect(results.every(t => t.url.includes('github.com'))).toBe(true);
+      expect(results.every((t) => t.url.includes('github.com'))).toBe(true);
     });
 
     it('should filter by temporal constraint - today', async () => {
@@ -317,9 +324,22 @@ describe('localSearch', () => {
       const today = now.getTime();
 
       const tabs = new Map<number, IndexedTab>([
-        [1, createTab(1, 'Work Report', 'https://github.com/work/report', 'report content', 'Work', today)],
+        [
+          1,
+          createTab(
+            1,
+            'Work Report',
+            'https://github.com/work/report',
+            'report content',
+            'Work',
+            today
+          ),
+        ],
         [2, createTab(2, 'Personal Note', 'https://notes.com', 'note content', 'Personal', today)],
-        [3, createTab(3, 'Work Code', 'https://gitlab.com/work/code', 'code content', 'Work', today)],
+        [
+          3,
+          createTab(3, 'Work Code', 'https://gitlab.com/work/code', 'code content', 'Work', today),
+        ],
       ]);
 
       const query: SearchQuery = {

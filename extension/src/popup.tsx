@@ -17,7 +17,9 @@ import './components/JiraView.css';
 
 // Lazy load heavy components
 const TabSearch = lazy(() => import('./components/features/search/TabSearch'));
-const DuplicateDetection = lazy(() => import('./components/features/duplicates/DuplicateDetection'));
+const DuplicateDetection = lazy(
+  () => import('./components/features/duplicates/DuplicateDetection')
+);
 const JiraView = lazy(() => import('./components/features/jira/JiraView'));
 const SessionsView = lazy(() => import('./components/features/sessions/SessionsView'));
 
@@ -74,13 +76,12 @@ function Popup() {
     <div className="popup">
       <PopupHeader onShowSettings={() => setShowSettings(true)} />
 
-      <PopupNavigation
-        activeView={activeView as any}
-        onViewChange={setActiveView as any}
-      />
+      <PopupNavigation activeView={activeView as any} onViewChange={setActiveView as any} />
 
       {activeView === 'categories' && (
-        <ErrorBoundary fallback={<div className="error">Failed to load categories view. Try refreshing.</div>}>
+        <ErrorBoundary
+          fallback={<div className="error">Failed to load categories view. Try refreshing.</div>}
+        >
           <>
             <div className="stats">{tabs.length} tabs open</div>
             {error && <div className="error">{error}</div>}
@@ -97,7 +98,9 @@ function Popup() {
       )}
 
       {activeView === 'search' && (
-        <ErrorBoundary fallback={<div className="error">Search failed to load. Try refreshing.</div>}>
+        <ErrorBoundary
+          fallback={<div className="error">Search failed to load. Try refreshing.</div>}
+        >
           <Suspense fallback={<div className="loading">Loading search...</div>}>
             <TabSearch />
           </Suspense>
@@ -105,7 +108,9 @@ function Popup() {
       )}
 
       {activeView === 'jira' && (
-        <ErrorBoundary fallback={<div className="error">Jira view failed to load. Try refreshing.</div>}>
+        <ErrorBoundary
+          fallback={<div className="error">Jira view failed to load. Try refreshing.</div>}
+        >
           <Suspense fallback={<div className="loading">Loading Jira view...</div>}>
             <JiraView />
           </Suspense>
@@ -113,7 +118,11 @@ function Popup() {
       )}
 
       {activeView === 'duplicates' && (
-        <ErrorBoundary fallback={<div className="error">Duplicate detection failed to load. Try refreshing.</div>}>
+        <ErrorBoundary
+          fallback={
+            <div className="error">Duplicate detection failed to load. Try refreshing.</div>
+          }
+        >
           <Suspense fallback={<div className="loading">Loading duplicate detection...</div>}>
             <DuplicateDetection />
           </Suspense>
@@ -121,7 +130,9 @@ function Popup() {
       )}
 
       {activeView === 'sessions' && (
-        <ErrorBoundary fallback={<div className="error">Sessions view failed to load. Try refreshing.</div>}>
+        <ErrorBoundary
+          fallback={<div className="error">Sessions view failed to load. Try refreshing.</div>}
+        >
           <Suspense fallback={<div className="loading">Loading sessions...</div>}>
             <SessionsView onError={setError} />
           </Suspense>

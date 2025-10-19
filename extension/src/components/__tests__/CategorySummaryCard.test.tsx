@@ -34,7 +34,9 @@ describe('CategorySummaryCard', () => {
     it('should render summary text', () => {
       render(<CategorySummaryCard summary={baseSummary} onClose={mockOnClose} />);
 
-      expect(screen.getByText('Summary of development tabs covering various projects.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Summary of development tabs covering various projects.')
+      ).toBeInTheDocument();
     });
 
     it('should render token count', () => {

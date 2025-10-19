@@ -29,9 +29,7 @@ export function WorkspaceFilter({
         flexWrap: 'wrap',
       }}
     >
-      <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>
-        Workspaces:
-      </span>
+      <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>Workspaces:</span>
       <button
         onClick={() => onSelectWorkspace(null)}
         style={{
@@ -62,7 +60,7 @@ export function WorkspaceFilter({
             fontWeight: 500,
           }}
         >
-          {workspace} ({allSessions.filter(s => s.categories?.includes(workspace)).length})
+          {workspace} ({allSessions.filter((s) => s.categories?.includes(workspace)).length})
         </button>
       ))}
     </div>

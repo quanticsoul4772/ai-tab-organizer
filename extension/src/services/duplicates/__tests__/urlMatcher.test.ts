@@ -50,17 +50,13 @@ describe('URLMatcher', () => {
     });
 
     it('should remove fbclid parameter', () => {
-      const withFbclid = matcher.normalizeUrl(
-        'https://example.com/page?fbclid=abc123&id=456'
-      );
+      const withFbclid = matcher.normalizeUrl('https://example.com/page?fbclid=abc123&id=456');
 
       expect(withFbclid).toBe('example.com/page?id=456');
     });
 
     it('should remove gclid parameter', () => {
-      const withGclid = matcher.normalizeUrl(
-        'https://example.com/page?gclid=xyz789&id=456'
-      );
+      const withGclid = matcher.normalizeUrl('https://example.com/page?gclid=xyz789&id=456');
 
       expect(withGclid).toBe('example.com/page?id=456');
     });
@@ -74,9 +70,7 @@ describe('URLMatcher', () => {
     });
 
     it('should preserve non-tracking query parameters', () => {
-      const url = matcher.normalizeUrl(
-        'https://example.com/search?q=test&page=2&sort=date'
-      );
+      const url = matcher.normalizeUrl('https://example.com/search?q=test&page=2&sort=date');
 
       expect(url).toContain('q=test');
       expect(url).toContain('page=2');
@@ -311,8 +305,18 @@ describe('URLMatcher', () => {
 
     it('should provide recommendation for duplicates', () => {
       const tabs: chrome.tabs.Tab[] = [
-        { id: 1, url: 'https://example.com/page', title: 'Page 1', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page', title: 'Page 2', active: true } as chrome.tabs.Tab,
+        {
+          id: 1,
+          url: 'https://example.com/page',
+          title: 'Page 1',
+          active: false,
+        } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page',
+          title: 'Page 2',
+          active: true,
+        } as chrome.tabs.Tab,
       ];
 
       const groups = matcher.findURLDuplicates(tabs);
@@ -325,8 +329,18 @@ describe('URLMatcher', () => {
 
     it('should recommend keeping active tab', () => {
       const tabs: chrome.tabs.Tab[] = [
-        { id: 1, url: 'https://example.com/page', title: 'Page 1', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page', title: 'Page 2', active: true } as chrome.tabs.Tab,
+        {
+          id: 1,
+          url: 'https://example.com/page',
+          title: 'Page 1',
+          active: false,
+        } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page',
+          title: 'Page 2',
+          active: true,
+        } as chrome.tabs.Tab,
       ];
 
       const groups = matcher.findURLDuplicates(tabs);
@@ -338,7 +352,12 @@ describe('URLMatcher', () => {
     it('should recommend keeping HTTPS over HTTP', () => {
       const tabs: chrome.tabs.Tab[] = [
         { id: 1, url: 'http://example.com/page', title: 'HTTP', active: false } as chrome.tabs.Tab,
-        { id: 2, url: 'https://example.com/page', title: 'HTTPS', active: false } as chrome.tabs.Tab,
+        {
+          id: 2,
+          url: 'https://example.com/page',
+          title: 'HTTPS',
+          active: false,
+        } as chrome.tabs.Tab,
       ];
 
       const groups = matcher.findURLDuplicates(tabs);

@@ -49,11 +49,7 @@ export function CategorySummaryCard({ summary, onClose }: CategorySummaryCardPro
           >
             {copied ? '✓' : '📋'}
           </button>
-          <button
-            onClick={onClose}
-            className="summary-action-btn"
-            title="Close"
-          >
+          <button onClick={onClose} className="summary-action-btn" title="Close">
             ✕
           </button>
         </div>

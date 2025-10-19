@@ -233,7 +233,7 @@ describe('CategoryView', () => {
 
       await waitFor(() => {
         const tabLists = screen.getAllByTestId('tab-list');
-        tabLists.forEach(list => {
+        tabLists.forEach((list) => {
           expect(list).toHaveAttribute('data-density', 'normal');
         });
       });

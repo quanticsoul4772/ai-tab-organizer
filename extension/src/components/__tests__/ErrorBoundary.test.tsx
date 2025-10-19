@@ -87,10 +87,7 @@ describe('ErrorBoundary', () => {
         </ErrorBoundary>
       );
 
-      expect(mockOnError).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.any(Object)
-      );
+      expect(mockOnError).toHaveBeenCalledWith(expect.any(Error), expect.any(Object));
     });
 
     it('should not call onError when no error occurs', () => {

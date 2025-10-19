@@ -135,19 +135,16 @@ describe('queryParser', () => {
 
       await parseSearchQuery('test', 'my-api-key');
 
-      expect(fetch).toHaveBeenCalledWith(
-        'https://api.anthropic.com/v1/messages',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': 'my-api-key',
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
-          },
-          body: expect.stringContaining('claude-3-5-sonnet-20241022'),
-        }
-      );
+      expect(fetch).toHaveBeenCalledWith('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'my-api-key',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: expect.stringContaining('claude-3-5-sonnet-20241022'),
+      });
     });
   });
 
@@ -279,7 +276,7 @@ describe('queryParser', () => {
 
       const result = await parseSearchQuery('IMPORTANT SEARCH TERMS', 'api-key');
 
-      expect(result.keywords.every(k => k === k.toLowerCase())).toBe(true);
+      expect(result.keywords.every((k) => k === k.toLowerCase())).toBe(true);
     });
 
     it('should remove punctuation', async () => {

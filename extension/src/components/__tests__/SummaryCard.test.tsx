@@ -62,7 +62,9 @@ describe('SummaryCard', () => {
       const collapseButton = screen.getByTitle('Collapse');
       fireEvent.click(collapseButton);
 
-      expect(screen.queryByText('This is a test summary of the tab content.')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('This is a test summary of the tab content.')
+      ).not.toBeInTheDocument();
       expect(screen.getByTitle('Expand')).toHaveTextContent('▶');
     });
 
@@ -253,7 +255,9 @@ describe('SummaryCard', () => {
         timestamp: Date.now(),
       } as TabSummary;
 
-      const { container } = render(<SummaryCard summary={summaryWithoutTokens} onClose={mockOnClose} />);
+      const { container } = render(
+        <SummaryCard summary={summaryWithoutTokens} onClose={mockOnClose} />
+      );
 
       expect(screen.getByText('Test summary')).toBeInTheDocument();
       // Component will render "undefined tokens" when tokens property is missing

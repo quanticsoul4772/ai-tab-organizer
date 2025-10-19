@@ -213,9 +213,10 @@ export class JiraSearchEnhancer {
     const ticketInfo = this.getTicketInfo(tab);
     if (!ticketInfo) return tab.title || 'Untitled';
 
-    const statusText = ticketInfo.status && ticketInfo.status !== 'unknown'
-      ? ` [${JiraTitleParser.getStatusDisplayName(ticketInfo.status)}]`
-      : '';
+    const statusText =
+      ticketInfo.status && ticketInfo.status !== 'unknown'
+        ? ` [${JiraTitleParser.getStatusDisplayName(ticketInfo.status)}]`
+        : '';
 
     return `${ticketInfo.fullTicket}: ${ticketInfo.summary}${statusText}`;
   }

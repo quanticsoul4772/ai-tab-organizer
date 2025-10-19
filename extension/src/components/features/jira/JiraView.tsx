@@ -26,8 +26,7 @@ export function JiraView() {
       const tabs = await chrome.tabs.query({});
       const service = new AtlassianDetectionService();
 
-      const { jiraTabs, confluenceTabs, otherAtlassian } =
-        await service.detectAtlassianTabs(tabs);
+      const { jiraTabs, confluenceTabs, otherAtlassian } = await service.detectAtlassianTabs(tabs);
 
       const grouped = service.groupAtlassianTabs(jiraTabs, confluenceTabs, otherAtlassian);
       setGrouping(grouped);
@@ -203,10 +202,7 @@ export function JiraView() {
             ) : (
               Array.from(filteredJiraProjects.entries()).map(([projectKey, tickets]) => (
                 <div key={projectKey} className="project-group">
-                  <div
-                    className="project-header"
-                    onClick={() => toggleProject(projectKey)}
-                  >
+                  <div className="project-header" onClick={() => toggleProject(projectKey)}>
                     <span className="expand-icon">
                       {expandedProjects.has(projectKey) ? '▼' : '▶'}
                     </span>
@@ -219,29 +215,21 @@ export function JiraView() {
                       {tickets.map((ticket) => (
                         <div key={ticket.tabId} className="ticket-item">
                           <div className="ticket-main">
-                            <span
-                              className="ticket-number"
-                              onClick={() => openTab(ticket.tabId)}
-                            >
+                            <span className="ticket-number" onClick={() => openTab(ticket.tabId)}>
                               {ticket.fullTicket}
                             </span>
                             {ticket.status && ticket.status !== 'unknown' && (
                               <span
                                 className="ticket-status"
                                 style={{
-                                  backgroundColor: JiraTitleParser.getStatusColor(
-                                    ticket.status
-                                  ),
+                                  backgroundColor: JiraTitleParser.getStatusColor(ticket.status),
                                 }}
                               >
                                 {JiraTitleParser.getStatusDisplayName(ticket.status)}
                               </span>
                             )}
                           </div>
-                          <div
-                            className="ticket-summary"
-                            onClick={() => openTab(ticket.tabId)}
-                          >
+                          <div className="ticket-summary" onClick={() => openTab(ticket.tabId)}>
                             {ticket.summary}
                           </div>
                           <button
@@ -269,9 +257,7 @@ export function JiraView() {
               Array.from(filteredConfluenceSpaces.entries()).map(([spaceKey, pages]) => (
                 <div key={spaceKey} className="space-group">
                   <div className="space-header" onClick={() => toggleSpace(spaceKey)}>
-                    <span className="expand-icon">
-                      {expandedSpaces.has(spaceKey) ? '▼' : '▶'}
-                    </span>
+                    <span className="expand-icon">{expandedSpaces.has(spaceKey) ? '▼' : '▶'}</span>
                     <span className="space-name">{spaceKey}</span>
                     <span className="space-count">{pages.length}</span>
                   </div>
@@ -280,10 +266,7 @@ export function JiraView() {
                     <div className="pages-list">
                       {pages.map((page) => (
                         <div key={page.tabId} className="page-item">
-                          <div
-                            className="page-title"
-                            onClick={() => openTab(page.tabId)}
-                          >
+                          <div className="page-title" onClick={() => openTab(page.tabId)}>
                             {page.pageTitle}
                           </div>
                           <button

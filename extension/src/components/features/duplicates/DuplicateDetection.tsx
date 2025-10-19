@@ -87,20 +87,14 @@ export function DuplicateDetection() {
       <div className="duplicate-header">
         <div className="header-content">
           <h2>🔍 Duplicate Detection</h2>
-          <p className="header-description">
-            Find and remove duplicate or near-duplicate tabs
-          </p>
+          <p className="header-description">Find and remove duplicate or near-duplicate tabs</p>
         </div>
         <button onClick={handleScan} className="scan-button">
           Scan for Duplicates
         </button>
       </div>
 
-      {error && (
-        <div className="duplicate-error">
-          ⚠️ {error}
-        </div>
-      )}
+      {error && <div className="duplicate-error">⚠️ {error}</div>}
 
       {!scanning && results.length === 0 && stats && (
         <div className="no-duplicates">
@@ -156,9 +150,7 @@ export function DuplicateDetection() {
                       )}
                       <div className="tab-info">
                         <div className="tab-title">{tab.title || 'Untitled'}</div>
-                        <div className="tab-url">
-                          {tab.url ? new URL(tab.url).hostname : ''}
-                        </div>
+                        <div className="tab-url">{tab.url ? new URL(tab.url).hostname : ''}</div>
                       </div>
                       {group.recommendation.keepTabId === tab.id && (
                         <span className="keep-badge">✓ Keep</span>
@@ -175,10 +167,7 @@ export function DuplicateDetection() {
                     Close {group.recommendation.closeTabIds.length} duplicate
                     {group.recommendation.closeTabIds.length > 1 ? 's' : ''}
                   </button>
-                  <button
-                    onClick={() => handleKeepAll(group)}
-                    className="keep-all-button"
-                  >
+                  <button onClick={() => handleKeepAll(group)} className="keep-all-button">
                     Keep All
                   </button>
                 </div>

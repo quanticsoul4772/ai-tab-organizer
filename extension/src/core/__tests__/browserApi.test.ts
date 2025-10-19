@@ -291,7 +291,9 @@ describe('browserApi - runtime', () => {
         callback(mockResponse);
       });
 
-      await expect(runtime.sendMessage('testAction')).rejects.toThrow('Failed to execute action: testAction');
+      await expect(runtime.sendMessage('testAction')).rejects.toThrow(
+        'Failed to execute action: testAction'
+      );
     });
   });
 

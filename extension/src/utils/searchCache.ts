@@ -22,10 +22,7 @@ export async function getCachedSearch(query: string): Promise<SearchResult[] | n
 /**
  * Cache search results
  */
-export async function cacheSearchResults(
-  query: string,
-  results: SearchResult[]
-): Promise<void> {
+export async function cacheSearchResults(query: string, results: SearchResult[]): Promise<void> {
   const normalizedQuery = normalizeQuery(query);
   await setCachedItem(normalizedQuery, results, CACHE_TTL, SEARCH_CACHE_PREFIX);
 }

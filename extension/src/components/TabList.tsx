@@ -70,9 +70,7 @@ export function TabList({
           onTabClick={handleTabClickWrapper}
           onTabClose={onTabClose}
         />
-        {activeSummary && (
-          <SummaryCard summary={activeSummary} onClose={handleCloseSummary} />
-        )}
+        {activeSummary && <SummaryCard summary={activeSummary} onClose={handleCloseSummary} />}
         {summaryError && (
           <div className="summary-error">
             {summaryError}

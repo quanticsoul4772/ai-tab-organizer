@@ -83,7 +83,9 @@ describe('DuplicateDetection', () => {
       render(<DuplicateDetection />);
 
       expect(screen.getByText('🔍 Duplicate Detection')).toBeInTheDocument();
-      expect(screen.getByText('Find and remove duplicate or near-duplicate tabs')).toBeInTheDocument();
+      expect(
+        screen.getByText('Find and remove duplicate or near-duplicate tabs')
+      ).toBeInTheDocument();
       expect(screen.getByText('Scan for Duplicates')).toBeInTheDocument();
     });
 

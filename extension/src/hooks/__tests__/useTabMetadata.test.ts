@@ -50,10 +50,9 @@ describe('useTabMetadata', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(runtime.sendMessage).toHaveBeenCalledWith(
-      BACKGROUND_ACTIONS.GET_TAB_METADATA,
-      { tabId: 123 }
-    );
+    expect(runtime.sendMessage).toHaveBeenCalledWith(BACKGROUND_ACTIONS.GET_TAB_METADATA, {
+      tabId: 123,
+    });
 
     expect(result.current.metadata).toEqual({
       lastAccessed: mockMetadata.lastAccessed,
@@ -143,7 +142,7 @@ describe('useTabMetadata', () => {
     unmount();
 
     // Wait to ensure no state updates after unmount
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise((resolve) => setTimeout(resolve, 150));
 
     // No assertions needed - test passes if no errors are thrown
   });

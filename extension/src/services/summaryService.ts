@@ -22,10 +22,10 @@ export const summaryService = {
     }
 
     // Call background worker to generate summary
-    const summary = await runtime.sendMessage<TabSummary>(
-      BACKGROUND_ACTIONS.SUMMARIZE_TAB,
-      { tab, apiKey }
-    );
+    const summary = await runtime.sendMessage<TabSummary>(BACKGROUND_ACTIONS.SUMMARIZE_TAB, {
+      tab,
+      apiKey,
+    });
 
     // Cache the summary
     await storage.cacheTabSummary(summary);
@@ -39,11 +39,7 @@ export const summaryService = {
    * @param apiKey - Anthropic API key
    * @returns Promise resolving to category summary
    */
-  async summarizeCategory(
-    category: string,
-    tabs: Tab[],
-    apiKey: string
-  ): Promise<CategorySummary> {
+  async summarizeCategory(category: string, tabs: Tab[], apiKey: string): Promise<CategorySummary> {
     // Check cache first
     const cached = await storage.getCachedCategorySummary(category);
     if (cached && cached.tabCount === tabs.length) {

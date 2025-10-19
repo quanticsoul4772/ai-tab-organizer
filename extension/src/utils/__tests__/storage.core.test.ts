@@ -58,7 +58,9 @@ describe('storage - core methods', () => {
       it('should return existing cache', async () => {
         const mockCache = {
           tabs: { 123: { tabId: 123, summary: 'Test', timestamp: Date.now() } },
-          categories: { Work: { category: 'Work', summary: 'Work tabs', tabCount: 5, timestamp: Date.now() } },
+          categories: {
+            Work: { category: 'Work', summary: 'Work tabs', tabCount: 5, timestamp: Date.now() },
+          },
         };
 
         vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: mockCache });
@@ -109,7 +111,9 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if tab summary not in cache', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: { tabs: {}, categories: {} } });
+        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+          summaryCache: { tabs: {}, categories: {} },
+        });
 
         const result = await storage.getCachedTabSummary(123);
 
@@ -120,7 +124,7 @@ describe('storage - core methods', () => {
         const expiredSummary: TabSummary = {
           tabId: 123,
           summary: 'Old summary',
-          timestamp: Date.now() - (25 * 60 * 60 * 1000), // 25 hours ago (expired)
+          timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago (expired)
         };
 
         const mockCache = { tabs: { 123: expiredSummary }, categories: {} };
@@ -200,7 +204,9 @@ describe('storage - core methods', () => {
       });
 
       it('should return null if category not in cache', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ summaryCache: { tabs: {}, categories: {} } });
+        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+          summaryCache: { tabs: {}, categories: {} },
+        });
 
         const result = await storage.getCachedCategorySummary('Work');
 
@@ -212,7 +218,7 @@ describe('storage - core methods', () => {
           category: 'Work',
           summary: 'Old summary',
           tabCount: 3,
-          timestamp: Date.now() - (25 * 60 * 60 * 1000), // 25 hours ago
+          timestamp: Date.now() - 25 * 60 * 60 * 1000, // 25 hours ago
         };
 
         const mockCache = { tabs: {}, categories: { Work: expiredSummary } };
@@ -256,7 +262,12 @@ describe('storage - core methods', () => {
           tabs: {},
           categories: {
             Work: { category: 'Work', summary: 'Work tabs', tabCount: 5, timestamp: Date.now() },
-            Personal: { category: 'Personal', summary: 'Personal tabs', tabCount: 3, timestamp: Date.now() },
+            Personal: {
+              category: 'Personal',
+              summary: 'Personal tabs',
+              tabCount: 3,
+              timestamp: Date.now(),
+            },
           },
         };
 
@@ -350,7 +361,9 @@ describe('storage - core methods', () => {
   describe('Density Mode', () => {
     describe('getDensityMode', () => {
       it('should return stored density mode', async () => {
-        vi.mocked(chrome.storage.local.get).mockResolvedValue({ densityMode: 'compact' as DensityMode });
+        vi.mocked(chrome.storage.local.get).mockResolvedValue({
+          densityMode: 'compact' as DensityMode,
+        });
 
         const result = await storage.getDensityMode();
 

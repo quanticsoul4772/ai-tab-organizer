@@ -10,7 +10,7 @@ describe('storage - session methods', () => {
   describe('getAllSessions', () => {
     it('should return list of all sessions with preview', async () => {
       const mockSessions = {
-        'session_1': {
+        session_1: {
           id: 'session_1',
           name: 'Work Session',
           description: 'My work tabs',
@@ -28,14 +28,12 @@ describe('storage - session methods', () => {
             jiraTickets: ['ENG-123'],
           },
         },
-        'session_2': {
+        session_2: {
           id: 'session_2',
           name: 'Personal',
           created: 3000,
           lastModified: 4000,
-          tabs: [
-            { url: 'https://personal.com', title: 'Personal', pinned: false, index: 0 },
-          ],
+          tabs: [{ url: 'https://personal.com', title: 'Personal', pinned: false, index: 0 }],
           metadata: { tabCount: 1 },
         },
       };
@@ -79,14 +77,12 @@ describe('storage - session methods', () => {
 
     it('should handle sessions with fewer than 3 tabs in preview', async () => {
       const mockSessions = {
-        'session_1': {
+        session_1: {
           id: 'session_1',
           name: 'Small Session',
           created: 1000,
           lastModified: 2000,
-          tabs: [
-            { url: 'https://single.com', title: 'Single', pinned: false, index: 0 },
-          ],
+          tabs: [{ url: 'https://single.com', title: 'Single', pinned: false, index: 0 }],
           metadata: { tabCount: 1 },
         },
       };
@@ -107,15 +103,13 @@ describe('storage - session methods', () => {
         description: 'Test description',
         created: 1000,
         lastModified: 2000,
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
       const mockSessions = {
-        'session_123': mockSession,
-        'session_456': {
+        session_123: mockSession,
+        session_456: {
           id: 'session_456',
           name: 'Other Session',
           created: 3000,
@@ -157,9 +151,7 @@ describe('storage - session methods', () => {
         name: 'New Session',
         created: Date.now(),
         lastModified: Date.now(),
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
@@ -170,7 +162,7 @@ describe('storage - session methods', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         sessions: {
-          'session_new': newSession,
+          session_new: newSession,
         },
       });
     });
@@ -192,7 +184,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_1': existingSession },
+        sessions: { session_1: existingSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -200,7 +192,7 @@ describe('storage - session methods', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         sessions: {
-          'session_1': updatedSession,
+          session_1: updatedSession,
         },
       });
     });
@@ -225,7 +217,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_1': existingSession },
+        sessions: { session_1: existingSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -233,8 +225,8 @@ describe('storage - session methods', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         sessions: {
-          'session_1': existingSession,
-          'session_2': newSession,
+          session_1: existingSession,
+          session_2: newSession,
         },
       });
     });
@@ -243,7 +235,7 @@ describe('storage - session methods', () => {
   describe('deleteSession', () => {
     it('should delete a session by ID', async () => {
       const mockSessions = {
-        'session_1': {
+        session_1: {
           id: 'session_1',
           name: 'Session 1',
           created: 1000,
@@ -251,7 +243,7 @@ describe('storage - session methods', () => {
           tabs: [],
           metadata: { tabCount: 0 },
         },
-        'session_2': {
+        session_2: {
           id: 'session_2',
           name: 'Session 2',
           created: 3000,
@@ -268,14 +260,14 @@ describe('storage - session methods', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         sessions: {
-          'session_2': mockSessions['session_2'],
+          session_2: mockSessions['session_2'],
         },
       });
     });
 
     it('should handle deleting nonexistent session', async () => {
       const mockSessions = {
-        'session_1': {
+        session_1: {
           id: 'session_1',
           name: 'Session 1',
           created: 1000,
@@ -314,14 +306,12 @@ describe('storage - session methods', () => {
         description: 'Description',
         created: 1000,
         lastModified: 2000,
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: false, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: false, index: 0 }],
         metadata: { tabCount: 1 },
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_123': originalSession },
+        sessions: { session_123: originalSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -335,7 +325,7 @@ describe('storage - session methods', () => {
 
       expect(chrome.storage.local.set).toHaveBeenCalledWith({
         sessions: {
-          'session_123': expectedUpdated,
+          session_123: expectedUpdated,
         },
       });
 
@@ -354,7 +344,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_123': originalSession },
+        sessions: { session_123: originalSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -377,7 +367,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_123': originalSession },
+        sessions: { session_123: originalSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -397,9 +387,7 @@ describe('storage - session methods', () => {
         name: 'Name',
         created: 1000,
         lastModified: 2000,
-        tabs: [
-          { url: 'https://example.com', title: 'Example', pinned: true, index: 0 },
-        ],
+        tabs: [{ url: 'https://example.com', title: 'Example', pinned: true, index: 0 }],
         metadata: {
           tabCount: 1,
           categories: ['ENG'],
@@ -408,7 +396,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_123': originalSession },
+        sessions: { session_123: originalSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 
@@ -439,7 +427,7 @@ describe('storage - session methods', () => {
       };
 
       vi.mocked(chrome.storage.local.get).mockResolvedValue({
-        sessions: { 'session_123': originalSession },
+        sessions: { session_123: originalSession },
       });
       vi.mocked(chrome.storage.local.set).mockResolvedValue(undefined);
 

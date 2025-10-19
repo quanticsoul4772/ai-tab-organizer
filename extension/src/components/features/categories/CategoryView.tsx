@@ -45,12 +45,15 @@ export function CategoryView({
     onCategorySummaryRequest,
   });
 
-  const handleCloseAll = useCallback(async (category: string, tabs: Tab[]) => {
-    for (const tab of tabs) {
-      await chrome.tabs.remove(tab.id);
-      onTabClose(tab.id);
-    }
-  }, [onTabClose]);
+  const handleCloseAll = useCallback(
+    async (category: string, tabs: Tab[]) => {
+      for (const tab of tabs) {
+        await chrome.tabs.remove(tab.id);
+        onTabClose(tab.id);
+      }
+    },
+    [onTabClose]
+  );
 
   const handleBookmarkAll = useCallback(async (category: string, tabs: Tab[]) => {
     const folderName = `${category} - ${new Date().toLocaleDateString()}`;
@@ -79,13 +82,16 @@ export function CategoryView({
   return (
     <div className="categories">
       {hasMultipleGroups && (
-        <div className="group-controls" style={{
-          display: 'flex',
-          gap: '8px',
-          padding: '8px 12px',
-          borderBottom: '1px solid #e5e7eb',
-          backgroundColor: '#f9fafb'
-        }}>
+        <div
+          className="group-controls"
+          style={{
+            display: 'flex',
+            gap: '8px',
+            padding: '8px 12px',
+            borderBottom: '1px solid #e5e7eb',
+            backgroundColor: '#f9fafb',
+          }}
+        >
           <button
             onClick={collapseAll}
             style={{
@@ -95,7 +101,7 @@ export function CategoryView({
               border: '1px solid #d1d5db',
               borderRadius: '4px',
               backgroundColor: 'white',
-              color: '#374151'
+              color: '#374151',
             }}
           >
             Collapse All
@@ -109,7 +115,7 @@ export function CategoryView({
               border: '1px solid #d1d5db',
               borderRadius: '4px',
               backgroundColor: 'white',
-              color: '#374151'
+              color: '#374151',
             }}
           >
             Expand All
