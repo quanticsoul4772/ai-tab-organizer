@@ -12,6 +12,7 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json}\"",
+    "type-check": "tsc --noEmit",
     "prepare": "cd .. && husky extension/.husky"
   },
   "dependencies": {
@@ -53,8 +54,7 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --fix",
-      "prettier --write",
-      "bash -c 'tsc --noEmit'"
+      "prettier --write"
     ],
     "*.{json,md}": [
       "prettier --write"
