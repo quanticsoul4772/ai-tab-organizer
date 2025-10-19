@@ -7,7 +7,7 @@ describe('CategorySummaryCard', () => {
   const mockOnClose = vi.fn();
 
   const baseSummary: CategorySummary = {
-    categoryName: 'Development',
+    category: 'Development',
     summary: 'Summary of development tabs covering various projects.',
     timestamp: Date.now(),
     tokens: 200,

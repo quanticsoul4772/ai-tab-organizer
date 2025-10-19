@@ -182,7 +182,7 @@ export async function retryWithValidation<T extends z.ZodTypeAny>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(
-        `Validation failed: ${error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+        `Validation failed: ${error.errors.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
       );
     }
     throw error;

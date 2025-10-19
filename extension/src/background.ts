@@ -660,6 +660,10 @@ async function indexTabForSearch(tab: chrome.tabs.Tab): Promise<void> {
   try {
     // Extract content
     const contentData = await extractTabContent(tab.id, tab.url);
+    if (!contentData) {
+      console.warn(`No content extracted for tab ${tab.id}`);
+      return;
+    }
     const content = contentData.content || '';
 
     // Truncate content if too long
@@ -691,7 +695,8 @@ async function indexTabForSearch(tab: chrome.tabs.Tab): Promise<void> {
 
     console.log(`✅ Indexed tab ${tab.id}: ${tab.title}`);
   } catch (error) {
-    console.warn(`Failed to index tab ${tab.id}:`, error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn(`Failed to index tab ${tab.id}:`, errorMessage);
   }
 }
 
@@ -903,7 +908,7 @@ async function loadAccessTimes(): Promise<void> {
 async function saveAccessTimes(): Promise<void> {
   try {
     // Convert Map to plain object for storage
-    const toStore = {};
+    const toStore: Record<string, number> = {};
     for (const [tabId, timestamp] of tabAccessTimes.entries()) {
       toStore[tabId] = timestamp;
     }
@@ -1021,18 +1026,20 @@ async function extractJiraStatus(tabId: number, url: string): Promise<string | u
     if (results && results[0] && results[0].result) {
       console.log(`📊 Extraction result for tab ${tabId}:`, results[0].result);
 
-      if (results[0].result.success) {
-        const status = results[0].result.status || undefined;
+      const result = results[0].result as { success?: boolean; status?: string; error?: string };
+      if (result.success) {
+        const status = result.status || undefined;
         console.log(`✅ Jira status extracted for tab ${tabId}: ${status}`);
         return status;
       } else {
-        console.warn(`❌ Extraction failed for tab ${tabId}:`, results[0].result.error);
+        console.warn(`❌ Extraction failed for tab ${tabId}:`, result.error);
       }
     } else {
       console.warn(`❌ No result from injection for tab ${tabId}`);
     }
   } catch (error) {
-    console.error(`💥 Failed to inject Jira extractor into tab ${tabId}:`, error.message, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`💥 Failed to inject Jira extractor into tab ${tabId}:`, errorMessage, error);
   }
 
   return undefined;

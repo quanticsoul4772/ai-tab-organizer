@@ -219,7 +219,7 @@ describe('ErrorBoundary', () => {
     });
 
     it('should catch errors with different error messages', () => {
-      function CustomError() {
+      function CustomError(): null {
         throw new Error('Custom error message');
       }
 

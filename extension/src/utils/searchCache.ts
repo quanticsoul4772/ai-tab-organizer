@@ -1,5 +1,5 @@
 import type { SearchResult } from '../types/search';
-import { withCache, getCachedItem, setCachedItem, clearCacheByPrefix } from './caching';
+import { getCachedItem, setCachedItem, clearCacheByPrefix } from './caching';
 
 const SEARCH_CACHE_PREFIX = 'search';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours

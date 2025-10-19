@@ -67,7 +67,7 @@ export class PerformanceMonitor {
 
   getAllStats() {
     const stats: Record<string, { avg: number; max: number; min: number; count: number }> = {};
-    for (const [name, values] of this.metrics.entries()) {
+    for (const [name] of this.metrics.entries()) {
       const result = this.getStats(name);
       if (result) {
         stats[name] = result;

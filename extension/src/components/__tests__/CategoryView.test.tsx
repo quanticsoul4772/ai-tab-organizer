@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CategoryView } from '../features/categories/CategoryView';
-import type { CategorizedTabs, Tab, TabSummary, CategorySummary } from '../../types';
+import type { CategorizedTabs, Tab, CategorySummary } from '../../types';
 import * as storage from '../../utils/storage';
 import { DensityProvider } from '../../context/DensityContext';
 
@@ -121,7 +121,6 @@ describe('CategoryView', () => {
 
   const mockOnTabClick = vi.fn();
   const mockOnTabClose = vi.fn();
-  const mockOnTabSummaryRequest = vi.fn();
   const mockOnCategorySummaryRequest = vi.fn();
 
   let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -420,7 +419,8 @@ describe('CategoryView', () => {
       category: 'Development',
       tabCount: 2,
       summary: 'React and Vue documentation',
-      generatedAt: Date.now(),
+      timestamp: Date.now(),
+      tokens: 150,
     };
 
     it('should request category summary when Summarize clicked', async () => {

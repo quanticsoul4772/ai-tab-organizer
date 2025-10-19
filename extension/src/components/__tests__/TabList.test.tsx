@@ -27,20 +27,22 @@ vi.mock('../shared/VirtualTabList', () => ({
   ),
 }));
 
+import { createMockTab } from '../../__tests__/testHelpers';
+
 describe('TabList', () => {
   const mockTabs: Tab[] = [
-    {
+    createMockTab({
       id: 1,
       url: 'https://example.com',
       title: 'Example Site',
       favIconUrl: 'https://example.com/favicon.ico',
-    },
-    {
+    }),
+    createMockTab({
       id: 2,
       url: 'https://github.com',
       title: 'GitHub',
       favIconUrl: 'https://github.com/favicon.ico',
-    },
+    }),
   ];
 
   const mockOnTabClick = vi.fn();
@@ -247,8 +249,11 @@ describe('TabList', () => {
     it('should request and display summary when summary button clicked', async () => {
       const mockSummary: TabSummary = {
         tabId: 1,
+        url: 'https://example.com',
+        title: 'Example Site',
         summary: 'This is a test summary',
         timestamp: Date.now(),
+        tokens: 100,
       };
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
@@ -328,8 +333,11 @@ describe('TabList', () => {
     it('should close summary when close button clicked', async () => {
       const mockSummary: TabSummary = {
         tabId: 1,
+        url: 'https://example.com',
+        title: 'Example Site',
         summary: 'This is a test summary',
         timestamp: Date.now(),
+        tokens: 100,
       };
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
@@ -394,8 +402,11 @@ describe('TabList', () => {
     it('should stop event propagation when summary button clicked', async () => {
       const mockSummary: TabSummary = {
         tabId: 1,
+        url: 'https://example.com',
+        title: 'Example Site',
         summary: 'Test',
         timestamp: Date.now(),
+        tokens: 100,
       };
 
       mockOnSummaryRequest.mockResolvedValue(mockSummary);
@@ -435,7 +446,12 @@ describe('TabList', () => {
 
     it('should handle missing favIconUrl', () => {
       const tabsWithoutFavicon: Tab[] = [
-        { id: 1, url: 'https://example.com', title: 'No Favicon' },
+        createMockTab({
+          id: 1,
+          url: 'https://example.com',
+          title: 'No Favicon',
+          favIconUrl: undefined,
+        }),
       ];
 
       const { container } = renderWithDensity(

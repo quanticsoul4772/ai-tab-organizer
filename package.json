@@ -1,0 +1,23 @@
+{
+  "name": "ai-tab-organizer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered tab organization Chrome extension",
+  "scripts": {
+    "dev": "cd extension && npm run dev",
+    "build": "cd extension && npm run build",
+    "test": "cd extension && npm test",
+    "test:watch": "cd extension && npm run test:watch",
+    "test:coverage": "cd extension && npm run test:coverage",
+    "lint": "cd extension && npm run lint",
+    "lint:fix": "cd extension && npm run lint:fix",
+    "format": "cd extension && npm run format",
+    "format:check": "cd extension && npm run format:check",
+    "type-check": "cd extension && npm run type-check",
+    "install:all": "cd extension && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quanticsoul4772/ai-tab-organizer.git"
+  }
+}

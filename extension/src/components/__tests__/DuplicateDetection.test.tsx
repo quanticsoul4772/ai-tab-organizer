@@ -59,11 +59,11 @@ describe('DuplicateDetection', () => {
     tabs: mockTabs,
     similarity: 0.95,
     reason: 'Same domain and similar titles',
-    detectionMethod: 'exact',
+    detectionMethod: 'url',
     recommendation: {
       keepTabId: 1,
       closeTabIds: [2],
-      reason: 'Keep tab 1 as it was opened first',
+      confidence: 0.9,
     },
   };
 
@@ -817,7 +817,7 @@ describe('DuplicateDetection', () => {
         recommendation: {
           keepTabId: 1,
           closeTabIds: [2, 3],
-          reason: 'Keep oldest',
+          confidence: 0.9,
         },
       };
 

@@ -33,7 +33,14 @@ This project uses Husky and lint-staged for automated checks:
 - ⚠️ TypeScript type checking (`npm run type-check`)
 - ⚠️ Tests (`npm test`)
 
-> **Note**: TypeScript type checking is not automated in pre-commit hooks due to 300+ pre-existing type errors in test files. We're working on fixing these incrementally. Please ensure your changes don't introduce new type errors by running `npm run type-check` manually.
+> **Note**: TypeScript type checking is not automated in pre-commit hooks due to 269 pre-existing type errors (down from 307) in test files. We're working on fixing these incrementally. Please ensure your changes don't introduce new type errors by running `npm run type-check` manually.
+>
+> **Progress**: 38 type errors fixed:
+> - ✅ Fixed all 7 errors in background.ts
+> - ✅ Fixed all errors in utils/ source files
+> - ✅ Created test helpers for proper Tab object mocks
+> - ✅ Fixed type errors in several component tests
+> - ⏳ Remaining: 269 errors (mostly in test files requiring chrome.storage mocks)
 
 ### Build and Test
 

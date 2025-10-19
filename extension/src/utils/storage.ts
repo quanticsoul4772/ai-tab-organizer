@@ -48,10 +48,11 @@ export const storage = {
    * Get summary cache from storage
    */
   async getSummaryCache(): Promise<SummaryCache> {
-    return await browserStorage.get<SummaryCache>(STORAGE_KEYS.SUMMARY_CACHE, {
+    const cache = await browserStorage.get<SummaryCache>(STORAGE_KEYS.SUMMARY_CACHE, {
       tabs: {},
       categories: {},
     });
+    return cache ?? { tabs: {}, categories: {} };
   },
 
   /**
@@ -144,10 +145,11 @@ export const storage = {
    * Get summary settings
    */
   async getSummarySettings(): Promise<SummarySettings> {
-    return await browserStorage.get<SummarySettings>(STORAGE_KEYS.SUMMARY_SETTINGS, {
+    const settings = await browserStorage.get<SummarySettings>(STORAGE_KEYS.SUMMARY_SETTINGS, {
       enabled: true,
       cacheDuration: 24,
     });
+    return settings ?? { enabled: true, cacheDuration: 24 };
   },
 
   /**
@@ -161,7 +163,10 @@ export const storage = {
    * Get Jira settings
    */
   async getJiraSettings(): Promise<JiraSettings> {
-    return await browserStorage.get<JiraSettings>(STORAGE_KEYS.JIRA_SETTINGS, { smartMode: true });
+    const settings = await browserStorage.get<JiraSettings>(STORAGE_KEYS.JIRA_SETTINGS, {
+      smartMode: true,
+    });
+    return settings ?? { smartMode: true };
   },
 
   /**
@@ -189,7 +194,8 @@ export const storage = {
    * Get group collapse states
    */
   async getGroupStates(): Promise<GroupStates> {
-    return await browserStorage.get<GroupStates>(STORAGE_KEYS.GROUP_STATES, {});
+    const states = await browserStorage.get<GroupStates>(STORAGE_KEYS.GROUP_STATES, {});
+    return states ?? {};
   },
 
   /**
@@ -213,7 +219,8 @@ export const storage = {
    */
   async getAllSessions(): Promise<SessionListItem[]> {
     const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
-    return Object.values(sessions).map((session: Session) => ({
+    const sessionsObj = sessions ?? {};
+    return Object.values(sessionsObj).map((session: Session) => ({
       id: session.id,
       name: session.name,
       description: session.description,
@@ -234,7 +241,8 @@ export const storage = {
    */
   async getSession(sessionId: string): Promise<Session | null> {
     const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
-    return sessions[sessionId] || null;
+    const sessionsObj = sessions ?? {};
+    return sessionsObj[sessionId] || null;
   },
 
   /**
@@ -242,8 +250,9 @@ export const storage = {
    */
   async saveSession(session: Session): Promise<void> {
     const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
-    sessions[session.id] = session;
-    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessions);
+    const sessionsObj = sessions ?? {};
+    sessionsObj[session.id] = session;
+    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessionsObj);
   },
 
   /**
@@ -251,8 +260,9 @@ export const storage = {
    */
   async deleteSession(sessionId: string): Promise<void> {
     const sessions = await browserStorage.get<Record<string, Session>>(STORAGE_KEYS.SESSIONS, {});
-    delete sessions[sessionId];
-    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessions);
+    const sessionsObj = sessions ?? {};
+    delete sessionsObj[sessionId];
+    await browserStorage.set(STORAGE_KEYS.SESSIONS, sessionsObj);
   },
 
   /**

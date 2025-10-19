@@ -8,6 +8,8 @@ describe('SummaryCard', () => {
 
   const baseSummary: TabSummary = {
     tabId: 1,
+    url: 'https://example.com',
+    title: 'Example Page',
     summary: 'This is a test summary of the tab content.',
     timestamp: Date.now(),
     tokens: 150,

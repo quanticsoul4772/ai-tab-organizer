@@ -6,7 +6,7 @@ import type { GroupMetadata } from '../types/groupState';
  * based on smart heuristics
  */
 export function getDefaultCollapseState(
-  categoryId: string,
+  _categoryId: string,
   tabs: Tab[],
   metadata?: GroupMetadata
 ): boolean {
@@ -31,6 +31,7 @@ export function hasRecentActivity(tabs: Tab[], lastAccessedMap: Map<number, numb
   const now = Date.now();
 
   return tabs.some((tab) => {
+    if (!tab.id) return false;
     const lastAccessed = lastAccessedMap.get(tab.id);
     if (!lastAccessed) return false;
     return now - lastAccessed < RECENT_THRESHOLD;
