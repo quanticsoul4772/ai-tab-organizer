@@ -199,12 +199,8 @@ ai-tab-organizer/
 │   ├── manifest.json         # Extension manifest
 │   ├── vite.config.ts        # Build configuration
 │   └── package.json
-├── docs/
 ├── ARCHITECTURE.md           # Architecture documentation
-├── CONTRIBUTING.md           # Contribution guidelines
-├── DEVELOPMENT.md            # Developer setup guide
-├── ROADMAP.md                # Feature roadmap
-├── CHANGELOG.md              # Version history
+├── CLAUDE.md                 # AI assistant context
 └── README.md                 # This file
 ```
 
@@ -278,8 +274,6 @@ npm run test:watch
 - Comprehensive unit and integration tests
 - Performance benchmarks included
 - Run with `npm test` from extension directory
-
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed development guidelines.
 
 ## Configuration
 
@@ -407,9 +401,8 @@ MIT License - See [LICENSE](LICENSE) for details.
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/ai-tab-organizer/issues)
-- **Documentation**: See docs folder
-- **Development**: See [DEVELOPMENT.md](DEVELOPMENT.md)
-- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
+- **AI Context**: See [CLAUDE.md](CLAUDE.md)
 
 ---
 

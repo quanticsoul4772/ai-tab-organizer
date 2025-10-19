@@ -322,5 +322,4 @@ src/
 
 ---
 
-For development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
-For contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+**Development**: See README.md for setup instructions and development workflow.

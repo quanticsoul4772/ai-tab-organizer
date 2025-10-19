@@ -112,7 +112,7 @@ Health check: `http://localhost:3000/health`
 ```
 Popup (popup.tsx)
     ↓ chrome.runtime.sendMessage({action, ...params})
-Background Worker (background.js)
+Background Worker (`src/background.ts`)
     ↓ fetch() with AbortController timeout
 Anthropic Claude API (claude-3-5-sonnet-20241022)
     ↓ JSON response
@@ -144,7 +144,7 @@ Popup receives data and updates UI
 ### Pattern 1: Service Worker for API Calls
 - Chrome extensions can't make fetch() from popup context (CSP restrictions)
 - Solution: Background service worker acts as proxy
-- All API calls route through `background.js` which has `host_permissions`
+- All API calls route through background worker which has `host_permissions`
 
 ### Pattern 2: Token Optimization
 - Sends tab **indices** instead of full tab objects to Claude API
