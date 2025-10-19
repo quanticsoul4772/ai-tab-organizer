@@ -183,16 +183,18 @@ jobs:
           node -e "
             const fs = require('fs');
             const path = require('path');
-            const glob = require('glob');
 
-            // Find popup bundle
-            const popupFiles = glob.sync('dist/assets/popup-*.js');
+            // Find popup bundle using fs.readdirSync (no dependencies needed)
+            const assetsDir = 'dist/assets';
+            const files = fs.readdirSync(assetsDir);
+            const popupFiles = files.filter(f => f.startsWith('popup-') && f.endsWith('.js'));
+
             if (popupFiles.length === 0) {
               console.error('❌ No popup bundle found');
               process.exit(1);
             }
 
-            const popupSize = fs.statSync(popupFiles[0]).size;
+            const popupSize = fs.statSync(path.join(assetsDir, popupFiles[0])).size;
             const bgSize = fs.statSync('dist/background.js').size;
 
             console.log(\`📦 Popup bundle: \${(popupSize / 1024).toFixed(2)} KB\`);
@@ -208,6 +210,35 @@ jobs:
             }
           "
 
+      - name: Validate Zod schemas exist
+        run: |
+          REQUIRED_SCHEMAS="src/schemas/api.ts src/schemas/chrome.ts src/schemas/index.ts"
+          for schema in $REQUIRED_SCHEMAS; do
+            if [ ! -f "$schema" ]; then
+              echo "❌ Missing required Zod schema: $schema"
+              exit 1
+            fi
+            echo "✅ Schema exists: $schema"
+          done
+
+      - name: Validate retry logic implementation
+        run: |
+          # Check for retry logic with exponential backoff
+          if ! grep -r "retryWithBackoff\|exponential.*backoff\|retry.*delay" src/utils/ src/services/; then
+            echo "❌ Retry logic with exponential backoff not found"
+            exit 1
+          fi
+          echo "✅ Retry logic implementation found"
+
+      - name: Validate state checkpointing
+        run: |
+          # Check for state checkpointing implementation
+          if [ ! -f "src/services/stateCheckpoint.ts" ]; then
+            echo "❌ State checkpointing not implemented"
+            exit 1
+          fi
+          echo "✅ State checkpointing exists"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -215,11 +246,11 @@ jobs:
           path: extension/dist/
           retention-days: 7
 
-  # Auto-fix workflow - creates PR with fixes
+  # Auto-fix workflow - creates commit with fixes
   auto-fix:
     name: Auto-fix Issues
     runs-on: ubuntu-latest
-    if: failure() && github.event_name == 'pull_request'
+    if: needs.lint.result == 'failure' && github.event_name == 'pull_request'
     needs: [lint]
     permissions:
       contents: write
@@ -244,12 +275,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check for auto-fix loop
+        id: loop_check
+        run: |
+          # Prevent auto-fix loops - check if last commit was by bot
+          LAST_AUTHOR=$(git log -1 --format='%an')
+          if [[ "$LAST_AUTHOR" == "github-actions[bot]" ]]; then
+            echo "⚠️ Last commit was auto-fix - preventing loop"
+            echo "is_loop=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_loop=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run auto-fix
+        if: steps.loop_check.outputs.is_loop == 'false'
         run: |
           npm run lint -- --fix || true
           npm run format || true
 
       - name: Check for changes
+        if: steps.loop_check.outputs.is_loop == 'false'
         id: changes
         run: |
           if [[ -n $(git status --porcelain) ]]; then
@@ -259,7 +304,7 @@ jobs:
           fi
 
       - name: Commit and push fixes
-        if: steps.changes.outputs.has_changes == 'true'
+        if: steps.loop_check.outputs.is_loop == 'false' && steps.changes.outputs.has_changes == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
