@@ -194,7 +194,7 @@ ai-tab-organizer/
 │   │   ├── types/            # TypeScript definitions
 │   │   ├── utils/            # Helper functions
 │   │   └── popup.tsx         # Main entry point
-│   ├── background.js         # Service worker
+│   ├── src/background.ts     # Service worker (TypeScript)
 │   ├── content-extractor.js  # Content extraction
 │   ├── manifest.json         # Extension manifest
 │   ├── vite.config.ts        # Build configuration
@@ -218,7 +218,7 @@ The extension uses a three-component architecture:
 - Communicates with background worker via `chrome.runtime.sendMessage()`
 - Cannot make fetch requests directly (Chrome security)
 
-### 2. Background Service Worker (background.js)
+### 2. Background Service Worker (TypeScript)
 - Runs in separate execution context (Manifest v3)
 - Handles all API calls to Anthropic Claude
 - Implements retry logic (max 2 retries, exponential backoff)
