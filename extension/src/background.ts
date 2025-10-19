@@ -1,5 +1,14 @@
 // Background service worker for AI Tab Organizer
 
+import { retryWithValidation, isRetryableHttpError } from '@utils/retry';
+import {
+  ClaudeResponseSchema,
+  CategoryResponseSchema,
+  MessageSchema,
+  type ClaudeResponse,
+  type CategoryResponse,
+} from '@schemas/index';
+
 // Type definitions
 interface ApiConfig {
   BASE_URL: string;
@@ -8,7 +17,8 @@ interface ApiConfig {
   VERSION: string;
   TIMEOUT_MS: number;
   MAX_RETRIES: number;
-  RETRY_DELAY_MS: number;
+  INITIAL_DELAY_MS: number;
+  JITTER_PERCENT: number;
 }
 
 interface BackgroundRequest {
@@ -27,9 +37,7 @@ interface BackgroundResponse<T = any> {
   error?: string;
 }
 
-interface CategoryResponse {
-  [category: string]: number[];
-}
+// CategoryResponse now imported from schemas
 
 interface TabSummary {
   tabId: number;
@@ -65,21 +73,7 @@ interface ExtractedContent {
   metaDescription: string | null;
 }
 
-interface ClaudeApiResponse {
-  id: string;
-  type: string;
-  role: string;
-  content: Array<{
-    type: string;
-    text: string;
-  }>;
-  model: string;
-  stop_reason: string;
-  usage: {
-    input_tokens: number;
-    output_tokens: number;
-  };
-}
+// ClaudeResponse now imported from schemas (as ClaudeResponse type)
 
 const API_CONFIG: ApiConfig = {
   BASE_URL: 'https://api.anthropic.com/v1/messages',
@@ -87,8 +81,9 @@ const API_CONFIG: ApiConfig = {
   MAX_TOKENS: 1024,
   VERSION: '2023-06-01',
   TIMEOUT_MS: 30000, // 30 seconds
-  MAX_RETRIES: 2,
-  RETRY_DELAY_MS: 1000,
+  MAX_RETRIES: 3, // Increased from 2 to 3 with exponential backoff
+  INITIAL_DELAY_MS: 1000, // 1 second initial delay
+  JITTER_PERCENT: 30, // 30% jitter to prevent thundering herd
 };
 
 chrome.runtime.onMessage.addListener((
@@ -180,7 +175,7 @@ chrome.runtime.onMessage.addListener((
 });
 
 /**
- * Categorize tabs using Claude API with retry logic
+ * Categorize tabs using Claude API with retry logic and validation
  */
 async function categorizeTabs(
   tabs: chrome.tabs.Tab[] | undefined,
@@ -191,67 +186,62 @@ async function categorizeTabs(
   }
   const tabInfo = tabs.map((t, i) => `${i}: ${t.title} - ${t.url}`).join('\n');
 
-  let lastError: Error | undefined;
-  for (let attempt = 0; attempt <= API_CONFIG.MAX_RETRIES; attempt++) {
-    try {
-      if (attempt > 0) {
-        console.log(`Retry attempt ${attempt}/${API_CONFIG.MAX_RETRIES}`);
-        await sleep(API_CONFIG.RETRY_DELAY_MS * attempt);
-      }
-
-      const result = await fetchWithTimeout(
-        API_CONFIG.BASE_URL,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': API_CONFIG.VERSION,
-            'anthropic-dangerous-direct-browser-access': 'true'
+  // Use retryWithValidation for automatic retry with exponential backoff and schema validation
+  const apiCall = async () => {
+    const response = await fetch(API_CONFIG.BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': API_CONFIG.VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: API_CONFIG.MODEL,
+        max_tokens: API_CONFIG.MAX_TOKENS,
+        messages: [
+          {
+            role: 'user',
+            content: buildPrompt(tabInfo),
           },
-          body: JSON.stringify({
-            model: API_CONFIG.MODEL,
-            max_tokens: API_CONFIG.MAX_TOKENS,
-            messages: [{
-              role: 'user',
-              content: buildPrompt(tabInfo)
-            }]
-          })
-        },
-        API_CONFIG.TIMEOUT_MS
-      );
+        ],
+      }),
+    });
 
-      if (!result.ok) {
-        const errorText = await result.text();
-        const error = new Error(`API Error: ${result.status} - ${errorText}`);
+    // Check for HTTP errors
+    if (!response.ok) {
+      const errorText = await response.text();
+      const error = new Error(`API Error: ${response.status} - ${errorText}`);
 
-        // Don't retry on authentication errors
-        if (result.status === 401 || result.status === 403) {
-          throw error;
-        }
-
-        lastError = error;
-        continue;
+      // Don't retry on authentication errors (401, 403)
+      if (response.status === 401 || response.status === 403) {
+        throw error;
       }
 
-      const data = await result.json();
-      return parseApiResponse(data);
-    } catch (error) {
-      lastError = error;
-
-      // Don't retry on timeout or network errors beyond max retries
-      if (error.name === 'AbortError') {
-        console.error('Request timeout');
+      // Throw retryable error for 429, 5xx
+      if (isRetryableHttpError(response.status)) {
+        throw error;
       }
 
-      // If this is the last attempt, throw the error
-      if (attempt === API_CONFIG.MAX_RETRIES) {
-        throw lastError;
-      }
+      throw error;
     }
-  }
 
-  throw lastError;
+    return response.json();
+  };
+
+  // Validate response with ClaudeResponseSchema first
+  const claudeResponse = await retryWithValidation(apiCall, ClaudeResponseSchema, {
+    maxRetries: API_CONFIG.MAX_RETRIES,
+    initialDelay: API_CONFIG.INITIAL_DELAY_MS,
+    jitterPercent: API_CONFIG.JITTER_PERCENT,
+    timeout: API_CONFIG.TIMEOUT_MS,
+    onRetry: (error, attempt) => {
+      console.log(`🔄 Retry attempt ${attempt}/${API_CONFIG.MAX_RETRIES}: ${error.message}`);
+    },
+  });
+
+  // Parse and validate the categorization result
+  return parseApiResponse(claudeResponse);
 }
 
 /**
@@ -274,13 +264,8 @@ Return only the JSON object as a single line, nothing else:`;
 /**
  * Parse and validate API response
  */
-function parseApiResponse(data: ClaudeApiResponse): CategoryResponse {
-  // Validate response structure
-  if (!data.content || !data.content[0] || !data.content[0].text) {
-    console.error('Unexpected API response:', data);
-    throw new Error('Invalid API response format');
-  }
-
+function parseApiResponse(data: ClaudeResponse): CategoryResponse {
+  // ClaudeResponse already validated by Zod schema
   const rawText = data.content[0].text;
   console.log('Raw API response:', rawText);
 
@@ -311,18 +296,11 @@ function parseApiResponse(data: ClaudeApiResponse): CategoryResponse {
   try {
     const categories = JSON.parse(jsonText);
 
-    // Validate that all values are arrays of numbers
-    for (const [category, indices] of Object.entries(categories)) {
-      if (!Array.isArray(indices)) {
-        throw new Error(`Category "${category}" does not contain an array`);
-      }
-      if (!indices.every(i => typeof i === 'number')) {
-        throw new Error(`Category "${category}" contains non-numeric indices`);
-      }
-    }
+    // Validate with Zod schema
+    const validatedCategories = CategoryResponseSchema.parse(categories);
 
-    console.log('Parsed categories:', categories);
-    return categories;
+    console.log('✅ Validated categories:', validatedCategories);
+    return validatedCategories;
   } catch (error) {
     console.error('Failed to parse JSON response:', jsonText);
     console.error('Original response:', rawText);
@@ -330,38 +308,7 @@ function parseApiResponse(data: ClaudeApiResponse): CategoryResponse {
   }
 }
 
-/**
- * Fetch with timeout support
- */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit,
-  timeout: number
-): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
-
-/**
- * Sleep utility for retry delays
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise<void>}
- */
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+// fetchWithTimeout and sleep are now handled by retryWithBackoff utility
 
 /**
  * Check if a URL can be accessed for content extraction

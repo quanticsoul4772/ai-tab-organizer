@@ -28,6 +28,7 @@
     "paths": {
       "@components/*": ["src/components/*"],
       "@services/*": ["src/services/*"],
+      "@schemas/*": ["src/schemas/*"],
       "@types": ["src/types"],
       "@utils/*": ["src/utils/*"]
     }
