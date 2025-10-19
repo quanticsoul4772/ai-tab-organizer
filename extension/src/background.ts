@@ -284,6 +284,7 @@ function parseApiResponse(data: ClaudeResponse): CategoryResponse {
   // Fix common JSON issues from Claude
   jsonText = jsonText
     // Remove any control characters and unescaped newlines within strings
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
     // Remove trailing commas before } and ]
     .replace(/,\s*}/g, '}')

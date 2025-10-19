@@ -30,19 +30,23 @@ interface RowProps {
 const Row = memo(({ index, style, tabs, onTabClick, onTabClose, selectedIndex, densityConfig }: RowProps) => {
   const tab = tabs[index];
 
+  // Memoize callbacks to prevent TabItem re-renders (must be before early return)
+  const handleClick = useCallback(() => {
+    if (tab) {
+      onTabClick(tab);
+    }
+  }, [tab, onTabClick]);
+
+  const handleClose = useCallback(() => {
+    if (tab?.id) {
+      onTabClose(tab.id);
+    }
+  }, [tab?.id, onTabClose]);
+
   // Safety check - skip rendering if tab is undefined
   if (!tab || !tab.id) {
     return <div style={style} />;
   }
-
-  // Memoize callbacks to prevent TabItem re-renders
-  const handleClick = useCallback(() => {
-    onTabClick(tab);
-  }, [tab, onTabClick]);
-
-  const handleClose = useCallback(() => {
-    onTabClose(tab.id!);
-  }, [tab.id, onTabClose]);
 
   return (
     <TabItem

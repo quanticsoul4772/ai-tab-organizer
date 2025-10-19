@@ -59,7 +59,7 @@ Rules:
     const text = data.content[0].text;
 
     // Strip markdown code blocks if present
-    let jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const jsonText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     const parsed = JSON.parse(jsonText);
 

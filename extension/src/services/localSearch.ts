@@ -108,19 +108,22 @@ function matchesTemporal(
       case 'today':
         return tabDay.getTime() === today.getTime();
 
-      case 'yesterday':
+      case 'yesterday': {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         return tabDay.getTime() === yesterday.getTime();
+      }
 
-      case 'this-week':
+      case 'this-week': {
         const weekStart = new Date(today);
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
         return tabDate >= weekStart;
+      }
 
-      case 'this-month':
+      case 'this-month': {
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
         return tabDate >= monthStart;
+      }
 
       default:
         return true;

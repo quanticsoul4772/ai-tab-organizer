@@ -26,7 +26,7 @@ export class URLMatcher {
       trackingParams.forEach((param) => parsed.searchParams.delete(param));
 
       // Normalize protocol and www
-      let normalized = parsed
+      const normalized = parsed
         .toString()
         .replace(/^https?:\/\//, '')
         .replace(/^www\./, '')

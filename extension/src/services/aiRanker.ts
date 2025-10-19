@@ -82,6 +82,7 @@ Return only the JSON array as a single line, nothing else:`;
     // Clean up common JSON issues
     jsonText = jsonText
       // Remove control characters
+      // eslint-disable-next-line no-control-regex
       .replace(/[\x00-\x1F\x7F-\x9F]/g, '')
       // Remove trailing commas
       .replace(/,\s*]/g, ']')
