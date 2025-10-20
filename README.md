@@ -270,7 +270,7 @@ npm run test:watch
 
 ### Testing
 
-- 1000 passing tests with 59% code coverage
+- 1150 passing tests with 71% code coverage
 - Comprehensive unit and integration tests
 - Performance benchmarks included
 - Run with `npm test` from extension directory
