@@ -217,7 +217,7 @@ The extension uses a three-component architecture:
 ### 2. Background Service Worker (TypeScript)
 - Runs in separate execution context (Manifest v3)
 - Handles all API calls to Anthropic Claude
-- Implements retry logic (max 2 retries, exponential backoff)
+- Implements retry logic (max 3 retries, exponential backoff)
 - 30-second timeout per request with AbortController
 - Auto-indexes tabs for search feature
 - Listens for tab events (create, update, remove)
@@ -270,7 +270,7 @@ npm run test:watch
 
 ### Testing
 
-- 788 passing tests with 71% code coverage
+- 918 passing tests with 57% code coverage
 - Comprehensive unit and integration tests
 - Performance benchmarks included
 - Run with `npm test` from extension directory
@@ -301,7 +301,7 @@ npm run test:watch
 
 - **Model**: claude-3-5-sonnet-20241022
 - **Timeout**: 30 seconds
-- **Max Retries**: 2 attempts
+- **Max Retries**: 3 attempts
 - **Retry Delay**: 1 second with exponential backoff
 - **Token Optimization**: Uses tab indices instead of full objects
 
