@@ -15,7 +15,7 @@ const mockSession: SessionListItem = {
   preview: 'Tab 1, Tab 2, Tab 3',
 };
 
-const mockFormatDate = vi.fn((timestamp: number) => '2024-01-15');
+const mockFormatDate = vi.fn((_timestamp: number) => '2024-01-15');
 
 describe('SessionCard', () => {
   describe('Display Mode', () => {
@@ -141,7 +141,7 @@ describe('SessionCard', () => {
     });
 
     it('calls formatDate with lastModified', () => {
-      const formatDate = vi.fn((timestamp: number) => '2024-01-15');
+      const formatDate = vi.fn((_timestamp: number) => '2024-01-15');
 
       render(
         <SessionCard

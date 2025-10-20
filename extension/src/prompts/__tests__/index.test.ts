@@ -91,6 +91,9 @@ describe('TAB_SUMMARY_V1', () => {
       pinned: false,
       groupId: -1,
       incognito: false,
+      selected: false,
+      discarded: false,
+      autoDiscardable: true,
     };
 
     const prompt = TAB_SUMMARY_V1.template(tab);
@@ -112,6 +115,9 @@ describe('TAB_SUMMARY_V1', () => {
       pinned: false,
       groupId: -1,
       incognito: false,
+      selected: false,
+      discarded: false,
+      autoDiscardable: true,
     };
 
     const prompt = TAB_SUMMARY_V1.template(tab);
@@ -137,6 +143,9 @@ describe('TAB_SUMMARY_V1', () => {
       index: 0,
       windowId: 1,
       highlighted: false,
+      selected: false,
+      discarded: false,
+      autoDiscardable: true,
       active: false,
       pinned: false,
       groupId: -1,
@@ -161,6 +170,9 @@ describe('TAB_SUMMARY_V1', () => {
       pinned: false,
       groupId: -1,
       incognito: false,
+      selected: false,
+      discarded: false,
+      autoDiscardable: true,
     };
 
     const tab2: Tab = {
@@ -168,6 +180,9 @@ describe('TAB_SUMMARY_V1', () => {
       title: 'Amazon',
       url: 'https://amazon.com',
       index: 1,
+      selected: false,
+      discarded: false,
+      autoDiscardable: true,
       windowId: 1,
       highlighted: false,
       active: false,
