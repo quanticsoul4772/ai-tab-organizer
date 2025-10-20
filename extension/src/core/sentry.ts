@@ -3,9 +3,14 @@ import { retryWithValidation, type RetryOptions } from '@utils/retry';
 import { z } from 'zod';
 
 export function initSentry() {
+  if (!process.env.SENTRY_DSN) {
+    console.warn('SENTRY_DSN not set - error tracking disabled');
+    return;
+  }
+
   Sentry.init({
-    dsn: process.env.SENTRY_DSN || '',
-    tracesSampleRate: 1.0,
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     environment: process.env.NODE_ENV || 'production',
     beforeSend(event) {
       // Remove sensitive data

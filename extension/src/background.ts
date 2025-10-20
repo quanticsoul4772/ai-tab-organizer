@@ -1,5 +1,6 @@
 // Background service worker for AI Tab Organizer
 
+import pLimit from 'p-limit';
 import { initSentry, tracedRetryWithValidation, captureError } from '@core/sentry';
 import { isRetryableHttpError } from '@utils/retry';
 import {
@@ -66,6 +67,9 @@ const API_CONFIG: ApiConfig = {
   INITIAL_DELAY_MS: 1000, // 1 second initial delay
   JITTER_PERCENT: 30, // 30% jitter to prevent thundering herd
 };
+
+// Tab indexing configuration constants
+const TAB_INDEX_DELAY_MS = 3000; // Wait 3 seconds for page to load before indexing
 
 chrome.runtime.onMessage.addListener(
   (
@@ -140,7 +144,7 @@ chrome.runtime.onMessage.addListener(
         const allTabs = await chrome.tabs.query({});
 
         // Build full metadata object
-        const lastAccessed = tabAccessTimes.get(tabId) || Date.now();
+        const lastAccessed = (await getAccessTime(tabId)) || Date.now();
         const idleTime = Date.now() - lastAccessed;
         const idleMinutes = Math.round(idleTime / (60 * 1000));
 
@@ -815,7 +819,7 @@ async function shouldReindexTab(tab: chrome.tabs.Tab): Promise<boolean> {
 // Index new tabs (with delay to let page load)
 chrome.tabs.onCreated.addListener(async (tab) => {
   console.log(`📝 Tab created: ${tab.id}`);
-  // Wait 3 seconds for page to load before indexing
+  // Wait for page to load before indexing
   setTimeout(() => {
     if (tab.id) {
       chrome.tabs
@@ -825,7 +829,7 @@ chrome.tabs.onCreated.addListener(async (tab) => {
           console.log(`Tab ${tab.id} was closed before indexing`);
         });
     }
-  }, 3000);
+  }, TAB_INDEX_DELAY_MS);
 });
 
 // Re-index updated tabs (when page finishes loading)
@@ -856,15 +860,13 @@ chrome.runtime.onStartup.addListener(async () => {
   const allTabs = await chrome.tabs.query({});
   console.log(`Found ${allTabs.length} existing tabs to index`);
 
-  // Index tabs with staggered delays to avoid overwhelming the browser
-  for (let i = 0; i < allTabs.length; i++) {
-    const tab = allTabs[i];
-    setTimeout(() => {
-      if (tab.status === 'complete' && tab.url) {
-        indexTabForSearch(tab);
-      }
-    }, i * 500); // 500ms delay between each tab
-  }
+  // Index tabs concurrently (5 at a time) instead of sequential delays
+  const limit = pLimit(5);
+  const indexPromises = allTabs
+    .filter((tab) => tab.status === 'complete' && tab.url)
+    .map((tab) => limit(() => indexTabForSearch(tab)));
+
+  await Promise.all(indexPromises);
 });
 
 // Also index on install (first time)
@@ -875,15 +877,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   const allTabs = await chrome.tabs.query({});
   console.log(`Found ${allTabs.length} existing tabs to index`);
 
-  // Index tabs with staggered delays
-  for (let i = 0; i < allTabs.length; i++) {
-    const tab = allTabs[i];
-    setTimeout(() => {
-      if (tab.status === 'complete' && tab.url) {
-        indexTabForSearch(tab);
-      }
-    }, i * 500); // 500ms delay between each tab
-  }
+  // Index tabs concurrently (5 at a time) instead of sequential delays
+  const limit = pLimit(5);
+  const indexPromises = allTabs
+    .filter((tab) => tab.status === 'complete' && tab.url)
+    .map((tab) => limit(() => indexTabForSearch(tab)));
+
+  await Promise.all(indexPromises);
 });
 
 console.log('✅ Tab search indexing initialized');
@@ -893,86 +893,71 @@ console.log('✅ Tab search indexing initialized');
 // ============================================================================
 
 const TAB_ACCESS_TIMES_KEY = 'tab_access_times';
-const tabAccessTimes = new Map();
 
-// Load persisted access times from storage
-async function loadAccessTimes(): Promise<void> {
-  try {
-    const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
-    const stored = result[TAB_ACCESS_TIMES_KEY] || {};
-
-    // Convert stored object back to Map
-    for (const [tabIdStr, timestamp] of Object.entries(stored)) {
-      tabAccessTimes.set(parseInt(tabIdStr), timestamp);
-    }
-
-    console.log(`📥 Loaded ${tabAccessTimes.size} tab access times from storage`);
-  } catch (error) {
-    console.error('Failed to load tab access times:', error);
-  }
+// Get access time for a specific tab from storage
+async function getAccessTime(tabId: number): Promise<number | undefined> {
+  const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
+  const times = result[TAB_ACCESS_TIMES_KEY] || {};
+  return times[tabId];
 }
 
-// Save access times to storage
-async function saveAccessTimes(): Promise<void> {
-  try {
-    // Convert Map to plain object for storage
-    const toStore: Record<string, number> = {};
-    for (const [tabId, timestamp] of tabAccessTimes.entries()) {
-      toStore[tabId] = timestamp;
-    }
+// Set access time for a specific tab in storage
+async function setAccessTime(tabId: number, timestamp: number): Promise<void> {
+  const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
+  const times = result[TAB_ACCESS_TIMES_KEY] || {};
+  times[tabId] = timestamp;
+  await chrome.storage.local.set({ [TAB_ACCESS_TIMES_KEY]: times });
+}
 
-    await chrome.storage.local.set({ [TAB_ACCESS_TIMES_KEY]: toStore });
-  } catch (error) {
-    console.error('Failed to save tab access times:', error);
-  }
+// Delete access time for a specific tab from storage
+async function deleteAccessTime(tabId: number): Promise<void> {
+  const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
+  const times = result[TAB_ACCESS_TIMES_KEY] || {};
+  delete times[tabId];
+  await chrome.storage.local.set({ [TAB_ACCESS_TIMES_KEY]: times });
 }
 
 // Initialize activity tracking for all existing tabs on startup
 async function initializeActivityTracking(): Promise<void> {
-  await loadAccessTimes();
-
   const allTabs = await chrome.tabs.query({});
   const now = Date.now();
 
   console.log(`🕐 Initializing activity tracking for ${allTabs.length} tabs`);
 
+  const result = await chrome.storage.local.get(TAB_ACCESS_TIMES_KEY);
+  const times = result[TAB_ACCESS_TIMES_KEY] || {};
+
   for (const tab of allTabs) {
     if (tab.id) {
       // If we don't have a stored time for this tab, set it to now
-      if (!tabAccessTimes.has(tab.id)) {
-        tabAccessTimes.set(tab.id, now);
-      }
-
-      // Always update the currently active tab to now
-      if (tab.active) {
-        tabAccessTimes.set(tab.id, now);
-        console.log(`📍 Active tab ${tab.id} set to current time`);
+      if (!times[tab.id] || tab.active) {
+        times[tab.id] = now;
+        if (tab.active) {
+          console.log(`📍 Active tab ${tab.id} set to current time`);
+        }
       }
     }
   }
 
-  await saveAccessTimes();
+  await chrome.storage.local.set({ [TAB_ACCESS_TIMES_KEY]: times });
 }
 
 // Track when tabs are activated
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
-  tabAccessTimes.set(tabId, Date.now());
+  await setAccessTime(tabId, Date.now());
   console.log(`📍 Tab ${tabId} accessed at ${Date.now()}`);
-  await saveAccessTimes();
 });
 
 // Track new tabs
 chrome.tabs.onCreated.addListener(async (tab) => {
   if (tab.id) {
-    tabAccessTimes.set(tab.id, Date.now());
-    await saveAccessTimes();
+    await setAccessTime(tab.id, Date.now());
   }
 });
 
 // Clean up closed tabs
 chrome.tabs.onRemoved.addListener(async (tabId) => {
-  tabAccessTimes.delete(tabId);
-  await saveAccessTimes();
+  await deleteAccessTime(tabId);
 });
 
 /**
