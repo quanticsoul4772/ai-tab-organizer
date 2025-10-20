@@ -182,8 +182,7 @@ export async function retryWithValidation<T extends z.ZodTypeAny>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw new Error(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        `Validation failed: ${(error as any).errors.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
+        `Validation failed: ${error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')}`
       );
     }
     throw error;

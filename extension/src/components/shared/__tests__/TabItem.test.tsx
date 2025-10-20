@@ -66,6 +66,7 @@ describe('TabItem', () => {
     // Mock chrome.runtime.sendMessage for metadata fetching
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(chrome.runtime.sendMessage as any).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (_message: any, callback: any) => {
         if (callback) {
           callback({
