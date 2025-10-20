@@ -135,6 +135,53 @@ describe('browserApi - tabs', () => {
       expect(mockChrome.tabs.create).toHaveBeenCalledWith({ url: 'https://new.com' });
     });
   });
+
+  describe('update', () => {
+    it('should update a tab with new properties', async () => {
+      const mockUpdatedTab = { id: 1, url: 'https://updated.com', title: 'Updated' };
+      mockChrome.tabs.update.mockResolvedValue(mockUpdatedTab);
+
+      const result = await tabs.update(1, { url: 'https://updated.com' });
+
+      expect(result).toEqual(mockUpdatedTab);
+      expect(mockChrome.tabs.update).toHaveBeenCalledWith(1, { url: 'https://updated.com' });
+    });
+
+    it('should update tab with multiple properties', async () => {
+      const mockUpdatedTab = { id: 2, pinned: true, muted: true };
+      mockChrome.tabs.update.mockResolvedValue(mockUpdatedTab);
+
+      const result = await tabs.update(2, { pinned: true, muted: true });
+
+      expect(result).toEqual(mockUpdatedTab);
+      expect(mockChrome.tabs.update).toHaveBeenCalledWith(2, { pinned: true, muted: true });
+    });
+  });
+
+  describe('query', () => {
+    it('should query tabs with criteria', async () => {
+      const mockTabs = [
+        { id: 1, url: 'https://example.com' },
+        { id: 2, url: 'https://example.org' },
+      ];
+      mockChrome.tabs.query.mockResolvedValue(mockTabs);
+
+      const result = await tabs.query({ url: '*://example.com/*' });
+
+      expect(result).toEqual(mockTabs);
+      expect(mockChrome.tabs.query).toHaveBeenCalledWith({ url: '*://example.com/*' });
+    });
+
+    it('should query tabs with multiple criteria', async () => {
+      const mockTabs = [{ id: 1, active: true, pinned: true }];
+      mockChrome.tabs.query.mockResolvedValue(mockTabs);
+
+      const result = await tabs.query({ active: true, pinned: true });
+
+      expect(result).toEqual(mockTabs);
+      expect(mockChrome.tabs.query).toHaveBeenCalledWith({ active: true, pinned: true });
+    });
+  });
 });
 
 describe('browserApi - storage', () => {

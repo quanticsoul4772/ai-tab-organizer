@@ -71,10 +71,14 @@ export function JiraView() {
   };
 
   const openTab = async (tabId: number) => {
-    await chrome.tabs.update(tabId, { active: true });
-    const tab = await chrome.tabs.get(tabId);
-    if (tab.windowId) {
-      await chrome.windows.update(tab.windowId, { focused: true });
+    try {
+      await chrome.tabs.update(tabId, { active: true });
+      const tab = await chrome.tabs.get(tabId);
+      if (tab.windowId) {
+        await chrome.windows.update(tab.windowId, { focused: true });
+      }
+    } catch (error) {
+      console.error('Failed to open tab:', error);
     }
   };
 
