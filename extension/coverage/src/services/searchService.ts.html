@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>49/49</span>
+                <span class='fraction'>54/54</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>49/49</span>
+                <span class='fraction'>54/54</span>
             </div>
         
             
@@ -152,7 +152,15 @@
 <a name='L87'></a><a href='#L87'>87</a>
 <a name='L88'></a><a href='#L88'>88</a>
 <a name='L89'></a><a href='#L89'>89</a>
-<a name='L90'></a><a href='#L90'>90</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -174,6 +182,9 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
@@ -184,6 +195,7 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -234,6 +246,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -241,13 +255,14 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { SearchQuery, SearchResult } from '../types/search';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { SearchResult } from '../types/search';
 import { parseSearchQuery } from './queryParser';
 import { getIndexedTabs } from './tabIndexer';
 import { filterTabsLocally } from './localSearch';
 import { rankTabsByRelevance } from './aiRanker';
 import { getCachedSearch, cacheSearchResults } from '../utils/searchCache';
 import { JiraSearchEnhancer } from './jira/jiraSearchEnhancer';
+import { tabs } from '../core/browserApi';
 &nbsp;
 /**
  * Main search function
@@ -263,9 +278,12 @@ export async function searchTabs(queryText: string, apiKey: string): Promise&lt;
   }
 &nbsp;
   // Try Jira-enhanced search first (for ticket patterns and project filters)
-  if (JiraSearchEnhancer.isTicketPattern(queryText) || JiraSearchEnhancer.isProjectPattern(queryText)) {
+  if (
+    JiraSearchEnhancer.isTicketPattern(queryText) ||
+    JiraSearchEnhancer.isProjectPattern(queryText)
+  ) {
     console.log('Using Jira-enhanced search');
-    const allTabs = await chrome.tabs.query({});
+    const allTabs = await tabs.getAll();
     const jiraResults = JiraSearchEnhancer.searchJiraTabs(queryText, allTabs);
 &nbsp;
     if (jiraResults.length &gt; 0) {
@@ -273,7 +291,8 @@ export async function searchTabs(queryText: string, apiKey: string): Promise&lt;
       const results: SearchResult[] = jiraResults.map(({ tab, score, reason }) =&gt; ({
         tab,
         relevanceScore: score,
-        matchedFields: ['jira-ticket'],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        matchedFields: ['jira-ticket'] as any,
         highlights: [queryText],
         matchReason: reason,
       }));
@@ -319,16 +338,18 @@ export async function searchTabs(queryText: string, apiKey: string): Promise&lt;
  * Switch to a tab
  */
 export async function switchToTab(tabId: number): Promise&lt;void&gt; {
-  const tab = await chrome.tabs.get(tabId);
-  await chrome.tabs.update(tabId, { active: true });
-  await chrome.windows.update(tab.windowId, { focused: true });
+  const tab = await tabs.getById(tabId);
+  if (tab) {
+    await tabs.switchTo(tabId);
+    await chrome.windows.update(tab.windowId, { focused: true });
+  }
 }
 &nbsp;
 /**
  * Close a tab
  */
 export async function closeTab(tabId: number): Promise&lt;void&gt; {
-  await chrome.tabs.remove(tabId);
+  await tabs.close(tabId);
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -337,7 +358,7 @@ export async function closeTab(tabId: number): Promise&lt;void&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-18T04:10:16.077Z
+                at 2025-10-20T07:11:35.047Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

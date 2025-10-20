@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.91% </span>
+                <span class="strong">84.21% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>80/91</span>
+                <span class='fraction'>80/95</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.91% </span>
+                <span class="strong">84.21% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>80/91</span>
+                <span class='fraction'>80/95</span>
             </div>
         
             
@@ -199,7 +199,11 @@
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -297,9 +301,6 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-yes">7x</span>
@@ -313,8 +314,10 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
@@ -322,10 +325,15 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -380,7 +388,7 @@ export async function filterTabsLocally(
   return candidates
     .sort((a, b) =&gt; b.score - a.score)
     .slice(0, 20)
-    .map(c =&gt; c.tab);
+    .map((c) =&gt; c.tab);
 }
 &nbsp;
 /**
@@ -430,10 +438,7 @@ function scoreKeywordMatch(keywords: string[], tab: IndexedTab): number {
 /**
  * Check if tab matches temporal constraint
  */
-function matchesTemporal(
-  temporal: NonNullable&lt;SearchQuery['temporal']&gt;,
-  tab: IndexedTab
-): boolean {
+function matchesTemporal(temporal: NonNullable&lt;SearchQuery['temporal']&gt;, tab: IndexedTab): boolean {
   const now = new Date();
   const tabDate = new Date(tab.lastAccessed);
 &nbsp;
@@ -445,26 +450,33 @@ function matchesTemporal(
       case 'today':
         return tabDay.getTime() === today.getTime();
 &nbsp;
-      case 'yesterday':
+      case 'yesterday': {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
         return tabDay.getTime() === yesterday.getTime();
+      }
 &nbsp;
-      case 'this-week':
+      case 'this-week': {
         const weekStart = new Date(today);
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
         return tabDate &gt;= weekStart;
+      }
 &nbsp;
-<span class="branch-0 cbranch-no" title="branch not covered" >      case 'this-month':</span>
+<span class="branch-0 cbranch-no" title="branch not covered" >      case 'this-month': {</span>
 <span class="cstat-no" title="statement not covered" >        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);</span>
 <span class="cstat-no" title="statement not covered" >        return tabDate &gt;= monthStart;</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
 &nbsp;
 <span class="branch-0 cbranch-no" title="branch not covered" >      default:</span>
 <span class="cstat-no" title="statement not covered" >        return true;</span>
-<span class="branch-0 cbranch-no" title="branch not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >  } else if (temporal.type === 'absolute' &amp;&amp; temporal.absolute) {</span>
+    }
+<span class="branch-0 cbranch-no" title="branch not covered" >  } else if (temporal.type === 'absolute' &amp;&amp; temporal.absolute) {</span>
 <span class="cstat-no" title="statement not covered" >    const targetDate = new Date(temporal.absolute);</span>
-<span class="cstat-no" title="statement not covered" >    const targetDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());</span>
+<span class="cstat-no" title="statement not covered" >    const targetDay = new Date(</span>
+<span class="cstat-no" title="statement not covered" >      targetDate.getFullYear(),</span>
+<span class="cstat-no" title="statement not covered" >      targetDate.getMonth(),</span>
+<span class="cstat-no" title="statement not covered" >      targetDate.getDate()</span>
+<span class="cstat-no" title="statement not covered" >    );</span>
 <span class="cstat-no" title="statement not covered" >    const tabDay = new Date(tabDate.getFullYear(), tabDate.getMonth(), tabDate.getDate());</span>
 <span class="cstat-no" title="statement not covered" >    return tabDay.getTime() === targetDay.getTime();</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
@@ -478,7 +490,7 @@ function matchesTemporal(
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-18T04:10:16.077Z
+                at 2025-10-20T07:11:35.047Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

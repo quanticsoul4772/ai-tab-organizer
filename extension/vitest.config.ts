@@ -24,8 +24,11 @@ export default defineConfig({
     alias: {
       '@components': resolve(__dirname, 'src/components'),
       '@services': resolve(__dirname, 'src/services'),
+      '@schemas': resolve(__dirname, 'src/schemas'),
       '@types': resolve(__dirname, 'src/types'),
       '@utils': resolve(__dirname, 'src/utils'),
+      '@core': resolve(__dirname, 'src/core'),
+      '@': resolve(__dirname, 'src'),
     },
   },
 });

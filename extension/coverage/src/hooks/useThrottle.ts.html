@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/24</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/24</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -98,23 +98,16 @@
 <a name='L33'></a><a href='#L33'>33</a>
 <a name='L34'></a><a href='#L34'>34</a>
 <a name='L35'></a><a href='#L35'>35</a>
-<a name='L36'></a><a href='#L36'>36</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -124,6 +117,21 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -139,32 +147,36 @@
  * Throttle a function - ensures it's called at most once per specified interval
  * Useful for scroll events, resize handlers, etc.
  */
-<span class="cstat-no" title="statement not covered" >export function useThrottle&lt;T extends (...args: any[]) =&gt; any&gt;(</span>
-<span class="cstat-no" title="statement not covered" >  callback: T,</span>
-<span class="cstat-no" title="statement not covered" >  delay: number</span>
-<span class="cstat-no" title="statement not covered" >): T {</span>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+<span class="cstat-no" title="statement not covered" >export function useThrottle&lt;T extends (...args: any[]) =&gt; any&gt;(callback: T, delay: number): T {</span>
 <span class="cstat-no" title="statement not covered" >  const lastRan = useRef&lt;number&gt;(Date.now());</span>
 <span class="cstat-no" title="statement not covered" >  const timeoutRef = useRef&lt;NodeJS.Timeout | null&gt;(null);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  const throttledFn = useCallback((...args: Parameters&lt;T&gt;) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    const now = Date.now();</span>
+<span class="cstat-no" title="statement not covered" >  const throttledFn = useCallback(</span>
+<span class="cstat-no" title="statement not covered" >    (...args: Parameters&lt;T&gt;) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      const now = Date.now();</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    if (now - lastRan.current &gt;= delay) {</span>
-      // Enough time has passed, execute immediately
-<span class="cstat-no" title="statement not covered" >      callback(...args);</span>
-<span class="cstat-no" title="statement not covered" >      lastRan.current = now;</span>
-<span class="cstat-no" title="statement not covered" >    } else {</span>
-      // Schedule execution for later
-<span class="cstat-no" title="statement not covered" >      if (timeoutRef.current) {</span>
-<span class="cstat-no" title="statement not covered" >        clearTimeout(timeoutRef.current);</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-&nbsp;
-<span class="cstat-no" title="statement not covered" >      timeoutRef.current = setTimeout(() =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      if (now - lastRan.current &gt;= delay) {</span>
+        // Enough time has passed, execute immediately
 <span class="cstat-no" title="statement not covered" >        callback(...args);</span>
-<span class="cstat-no" title="statement not covered" >        lastRan.current = Date.now();</span>
-<span class="cstat-no" title="statement not covered" >      }, delay - (now - lastRan.current));</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
-<span class="cstat-no" title="statement not covered" >  }, [callback, delay]) as T;</span>
+<span class="cstat-no" title="statement not covered" >        lastRan.current = now;</span>
+<span class="cstat-no" title="statement not covered" >      } else {</span>
+        // Schedule execution for later
+<span class="cstat-no" title="statement not covered" >        if (timeoutRef.current) {</span>
+<span class="cstat-no" title="statement not covered" >          clearTimeout(timeoutRef.current);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        timeoutRef.current = setTimeout(</span>
+<span class="cstat-no" title="statement not covered" >          () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            callback(...args);</span>
+<span class="cstat-no" title="statement not covered" >            lastRan.current = Date.now();</span>
+<span class="cstat-no" title="statement not covered" >          },</span>
+<span class="cstat-no" title="statement not covered" >          delay - (now - lastRan.current)</span>
+<span class="cstat-no" title="statement not covered" >        );</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >    },</span>
+<span class="cstat-no" title="statement not covered" >    [callback, delay]</span>
+<span class="cstat-no" title="statement not covered" >  ) as T;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  return throttledFn;</span>
 <span class="cstat-no" title="statement not covered" >}</span>
@@ -175,7 +187,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-18T04:10:16.077Z
+                at 2025-10-20T07:11:35.047Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

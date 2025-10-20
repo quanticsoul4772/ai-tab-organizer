@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.61% </span>
+                <span class="strong">94.73% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>88/94</span>
+                <span class='fraction'>90/95</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">88.88% </span>
+                <span class="strong">85.71% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>24/27</span>
+                <span class='fraction'>24/28</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">93.61% </span>
+                <span class="strong">94.73% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>88/94</span>
+                <span class='fraction'>90/95</span>
             </div>
         
             
@@ -225,7 +225,6 @@
 <span class="cline-any cline-yes">38x</span>
 <span class="cline-any cline-yes">38x</span>
 <span class="cline-any cline-yes">38x</span>
-<span class="cline-any cline-yes">38x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">38x</span>
 <span class="cline-any cline-yes">38x</span>
@@ -272,8 +271,6 @@
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -311,6 +308,9 @@
 <span class="cline-any cline-yes">46x</span>
 <span class="cline-any cline-yes">46x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">61x</span>
+<span class="cline-any cline-yes">61x</span>
+<span class="cline-any cline-yes">61x</span>
 <span class="cline-any cline-yes">61x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">61x</span>
@@ -335,7 +335,7 @@
 import type { Tab, TabSummary } from '../types';
 import { SummaryCard } from './SummaryCard';
 import { VirtualTabList } from './shared/VirtualTabList';
-import type { DensityMode } from '../types/density';
+import { useDensity } from '../context/DensityContext';
 &nbsp;
 interface TabListProps {
   tabs: Tab[];
@@ -344,7 +344,7 @@ interface TabListProps {
   onSummaryRequest?: (tab: Tab) =&gt; Promise&lt;TabSummary&gt;;
   summariesEnabled?: boolean;
   useVirtualScrolling?: boolean;
-  densityMode?: DensityMode;
+  densityMode?: string;
 }
 &nbsp;
 /**
@@ -357,9 +357,8 @@ export function TabList({
   onSummaryRequest,
   summariesEnabled = true,
   useVirtualScrolling = true,
-  densityMode = 'normal'
 }: TabListProps) {
-  console.log('TabList rendered with densityMode:', densityMode, 'tabs:', tabs.length);
+  const { densityMode } = useDensity();
 &nbsp;
   const [activeSummary, setActiveSummary] = useState&lt;TabSummary | null&gt;(null);
   const [loadingSummary, setLoadingSummary] = useState&lt;number | null&gt;(null);
@@ -368,7 +367,7 @@ export function TabList({
   const handleSummaryClick = async (tab: Tab, event: React.MouseEvent) =&gt; {
     event.stopPropagation();
 &nbsp;
-    if (!onSummaryRequest) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
+    if (!onSummaryRequest || tab.id === undefined) <span class="branch-0 cbranch-no" title="branch not covered" >return;</span>
 &nbsp;
     setLoadingSummary(tab.id);
     setSummaryError(null);
@@ -405,9 +404,7 @@ export function TabList({
           onTabClick={handleTabClickWrapper}
           onTabClose={onTabClose}
         /&gt;
-        {<span class="branch-0 cbranch-no" title="branch not covered" >activeSummary &amp;&amp; (</span>
-<span class="cstat-no" title="statement not covered" >          &lt;SummaryCard summary={activeSummary} onClose={handleCloseSummary} /&gt;</span>
-        )}
+        {<span class="branch-0 cbranch-no" title="branch not covered" >activeSummary &amp;&amp; &lt;SummaryCard summary={activeSummary} onClose={handleCloseSummary} /&gt;}</span>
         {<span class="branch-0 cbranch-no" title="branch not covered" >summaryError &amp;&amp; (</span>
 <span class="cstat-no" title="statement not covered" >          &lt;div className="summary-error"&gt;</span>
 <span class="cstat-no" title="statement not covered" >            {summaryError}</span>
@@ -431,9 +428,9 @@ export function TabList({
               className="favicon"
               alt=""
             /&gt;
-            &lt;div className="tab-info" onClick={() =&gt; onTabClick(tab.id)}&gt;
+            &lt;div className="tab-info" onClick={() =&gt; tab.id !== undefined &amp;&amp; onTabClick(tab.id)}&gt;
               &lt;div className="tab-title"&gt;{tab.title}&lt;/div&gt;
-              &lt;div className="tab-url"&gt;{new URL(tab.url).hostname}&lt;/div&gt;
+              &lt;div className="tab-url"&gt;{tab.url ? new URL(tab.url).<span class="branch-0 cbranch-no" title="branch not covered" >hostname : ''}&lt;</span>/div&gt;
             &lt;/div&gt;
             {summariesEnabled &amp;&amp; onSummaryRequest &amp;&amp; (
               &lt;button
@@ -445,7 +442,10 @@ export function TabList({
                 {loadingSummary === tab.id ? '⏳' : '💬'}
               &lt;/button&gt;
             )}
-            &lt;button onClick={() =&gt; onTabClose(tab.id)} className="close-btn"&gt;
+            &lt;button
+              onClick={() =&gt; tab.id !== undefined &amp;&amp; onTabClose(tab.id)}
+              className="close-btn"
+            &gt;
               ✕
             &lt;/button&gt;
           &lt;/div&gt;
@@ -472,7 +472,7 @@ export function TabList({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-18T04:10:16.077Z
+                at 2025-10-20T07:11:35.047Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
