@@ -34,6 +34,8 @@ export default defineConfig({
       '@schemas': resolve(__dirname, 'src/schemas'),
       '@types': resolve(__dirname, 'src/types'),
       '@utils': resolve(__dirname, 'src/utils'),
+      '@core': resolve(__dirname, 'src/core'),
+      '@': resolve(__dirname, 'src'),
     },
   },
   build: {

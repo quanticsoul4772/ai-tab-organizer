@@ -30,7 +30,9 @@
       "@services/*": ["src/services/*"],
       "@schemas/*": ["src/schemas/*"],
       "@types": ["src/types"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@core/*": ["src/core/*"],
+      "@/*": ["src/*"]
     }
   },
   "include": ["src"],

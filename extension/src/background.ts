@@ -1,6 +1,7 @@
 // Background service worker for AI Tab Organizer
 
-import { retryWithValidation, isRetryableHttpError } from '@utils/retry';
+import { initSentry, tracedRetryWithValidation, captureError } from '@core/sentry';
+import { isRetryableHttpError } from '@utils/retry';
 import {
   ClaudeResponseSchema,
   CategoryResponseSchema,
@@ -8,6 +9,10 @@ import {
   type CategoryResponse,
 } from '@schemas/index';
 import type { TabSummary, CategorySummary } from '@types';
+import { PROMPTS } from '@/prompts';
+
+// Initialize Sentry
+initSentry();
 
 // Type definitions
 interface ApiConfig {
@@ -72,7 +77,7 @@ chrome.runtime.onMessage.addListener(
       categorizeTabs(request.tabs, request.apiKey)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
-          console.error('Categorization error:', error);
+          captureError(error, { action: 'categorize', tabCount: request.tabs?.length });
           sendResponse({ success: false, error: error.message });
         });
       return true; // Keep channel open for async response
@@ -82,7 +87,7 @@ chrome.runtime.onMessage.addListener(
       summarizeTab(request.tab, request.apiKey)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
-          console.error('Tab summarization error:', error);
+          captureError(error, { action: 'summarizeTab', tabId: request.tab?.id });
           sendResponse({ success: false, error: error.message });
         });
       return true; // Keep channel open for async response
@@ -92,7 +97,11 @@ chrome.runtime.onMessage.addListener(
       summarizeCategory(request.tabs, request.categoryName, request.apiKey)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
-          console.error('Category summarization error:', error);
+          captureError(error, {
+            action: 'summarizeCategory',
+            category: request.categoryName,
+            tabCount: request.tabs?.length,
+          });
           sendResponse({ success: false, error: error.message });
         });
       return true; // Keep channel open for async response
@@ -218,15 +227,20 @@ async function categorizeTabs(
   };
 
   // Validate response with ClaudeResponseSchema first
-  const claudeResponse = await retryWithValidation(apiCall, ClaudeResponseSchema, {
-    maxRetries: API_CONFIG.MAX_RETRIES,
-    initialDelay: API_CONFIG.INITIAL_DELAY_MS,
-    jitterPercent: API_CONFIG.JITTER_PERCENT,
-    timeout: API_CONFIG.TIMEOUT_MS,
-    onRetry: (error, attempt) => {
-      console.log(`🔄 Retry attempt ${attempt}/${API_CONFIG.MAX_RETRIES}: ${error.message}`);
-    },
-  });
+  const claudeResponse = await tracedRetryWithValidation(
+    'categorize-tabs',
+    apiCall,
+    ClaudeResponseSchema,
+    {
+      maxRetries: API_CONFIG.MAX_RETRIES,
+      initialDelay: API_CONFIG.INITIAL_DELAY_MS,
+      jitterPercent: API_CONFIG.JITTER_PERCENT,
+      timeout: API_CONFIG.TIMEOUT_MS,
+      onRetry: (error: Error, attempt: number) => {
+        console.log(`🔄 Retry attempt ${attempt}/${API_CONFIG.MAX_RETRIES}: ${error.message}`);
+      },
+    }
+  );
 
   // Parse and validate the categorization result
   return parseApiResponse(claudeResponse);
@@ -236,17 +250,7 @@ async function categorizeTabs(
  * Build the prompt for Claude API
  */
 function buildPrompt(tabInfo: string): string {
-  return `Categorize these browser tabs into logical groups (Work, Research, Shopping, Social, Entertainment, Development, News, Other).
-
-CRITICAL: Your response must be ONLY a single-line JSON object. Do not include any explanations, comments, or text before or after the JSON.
-
-Format (single line only):
-{"Work":[0,1],"Research":[2,3],"Shopping":[4]}
-
-Tabs (by index):
-${tabInfo}
-
-Return only the JSON object as a single line, nothing else:`;
+  return PROMPTS.categorization.template(tabInfo);
 }
 
 /**
