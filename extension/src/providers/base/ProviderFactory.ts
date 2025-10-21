@@ -36,10 +36,10 @@ export class ProviderFactory {
 
   /**
    * Create Anthropic provider instance
-   * @param config - Provider configuration
+   * @param _config - Provider configuration (unused until implementation)
    * @returns Anthropic provider instance
    */
-  private static createAnthropicProvider(config: ProviderConfig): BaseProvider {
+  private static createAnthropicProvider(_config: ProviderConfig): BaseProvider {
     // Dynamic import to avoid circular dependencies
     // Will be implemented in Phase 2
     throw new Error('Anthropic provider not yet implemented');
@@ -47,10 +47,10 @@ export class ProviderFactory {
 
   /**
    * Create OpenAI provider instance
-   * @param config - Provider configuration
+   * @param _config - Provider configuration (unused until implementation)
    * @returns OpenAI provider instance
    */
-  private static createOpenAIProvider(config: ProviderConfig): BaseProvider {
+  private static createOpenAIProvider(_config: ProviderConfig): BaseProvider {
     // Dynamic import to avoid circular dependencies
     // Will be implemented in Phase 2
     throw new Error('OpenAI provider not yet implemented');
@@ -58,10 +58,10 @@ export class ProviderFactory {
 
   /**
    * Create Google provider instance
-   * @param config - Provider configuration
+   * @param _config - Provider configuration (unused until implementation)
    * @returns Google provider instance
    */
-  private static createGoogleProvider(config: ProviderConfig): BaseProvider {
+  private static createGoogleProvider(_config: ProviderConfig): BaseProvider {
     // Dynamic import to avoid circular dependencies
     // Will be implemented in Phase 2
     throw new Error('Google provider not yet implemented');

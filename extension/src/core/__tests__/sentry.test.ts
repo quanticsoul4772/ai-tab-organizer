@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as Sentry from '@sentry/browser';
 import { z } from 'zod';
 import { initSentry, captureError, tracedRetryWithValidation } from '../sentry';
@@ -6,11 +6,11 @@ import { initSentry, captureError, tracedRetryWithValidation } from '../sentry';
 vi.mock('@sentry/browser', () => ({
   init: vi.fn(),
   captureException: vi.fn(),
-  startSpan: vi.fn((options, callback) => callback({ setStatus: vi.fn() })),
+  startSpan: vi.fn((_options, callback) => callback({ setStatus: vi.fn() })),
 }));
 
 vi.mock('@utils/retry', () => ({
-  retryWithValidation: vi.fn((fn, schema) => fn().then((data) => schema.parse(data))),
+  retryWithValidation: vi.fn((fn, schema) => fn().then((data: unknown) => schema.parse(data))),
 }));
 
 describe('Sentry Integration', () => {
@@ -78,8 +78,8 @@ describe('Sentry Integration', () => {
 
       initSentry();
 
-      const initCall = vi.mocked(Sentry.init).mock.calls[0][0];
-      const beforeSend = initCall.beforeSend;
+      const initCall = vi.mocked(Sentry.init).mock.calls[0]?.[0];
+      const beforeSend = initCall?.beforeSend;
 
       const event = {
         request: {
@@ -90,9 +90,9 @@ describe('Sentry Integration', () => {
         },
       };
 
-      const result = beforeSend?.(event as any);
+      const result = beforeSend?.(event as unknown as Sentry.ErrorEvent, {} as Sentry.EventHint);
 
-      expect(result?.request?.headers).not.toHaveProperty('x-api-key');
+      expect((result as any)?.request?.headers).not.toHaveProperty('x-api-key');
     });
   });
 
@@ -168,8 +168,8 @@ describe('Sentry Integration', () => {
       const schema = z.object({ name: z.string() });
       const setStatusMock = vi.fn();
 
-      vi.mocked(Sentry.startSpan).mockImplementation((options, callback) =>
-        callback({ setStatus: setStatusMock })
+      vi.mocked(Sentry.startSpan).mockImplementation((_options, callback) =>
+        callback({ setStatus: setStatusMock } as any)
       );
 
       await tracedRetryWithValidation('test-op', fn, schema);
@@ -182,8 +182,8 @@ describe('Sentry Integration', () => {
       const schema = z.object({ name: z.string() });
       const setStatusMock = vi.fn();
 
-      vi.mocked(Sentry.startSpan).mockImplementation((options, callback) =>
-        callback({ setStatus: setStatusMock })
+      vi.mocked(Sentry.startSpan).mockImplementation((_options, callback) =>
+        callback({ setStatus: setStatusMock } as any)
       );
 
       await expect(tracedRetryWithValidation('test-op', fn, schema)).rejects.toThrow('Test error');

@@ -526,60 +526,65 @@ async function summarizeCategory(
   }
 
   try {
-    // Step 1: Extract content from all tabs (with rate limiting)
-    const tabsWithContent = [];
+    // Step 1: Extract content from all tabs (with parallel processing)
+    const tabsToProcess = tabs.slice(0, 10); // Limit to 10 tabs max
 
-    for (const tab of tabs.slice(0, 10)) {
-      // Limit to 10 tabs max
-      if (!tab.id || !tab.url || !tab.title) {
-        console.warn('Skipping tab with missing properties');
-        continue;
-      }
+    // Use p-limit to process 3 tabs concurrently for better performance
+    const limit = pLimit(3);
 
-      // Check if URL is accessible before attempting extraction
-      if (!isAccessibleUrl(tab.url)) {
-        console.log(`Skipping protected URL: ${tab.url}`);
-        tabsWithContent.push({
-          title: tab.title,
-          url: tab.url,
-          contentPreview: '(Protected page - cannot access)',
-        });
-        continue;
-      }
-
-      try {
-        const contentData = await extractTabContent(tab.id, tab.url);
-        if (!contentData) {
-          throw new Error('No content extracted');
+    const extractionPromises = tabsToProcess.map((tab) =>
+      limit(async () => {
+        if (!tab.id || !tab.url || !tab.title) {
+          console.warn('Skipping tab with missing properties');
+          return null;
         }
 
-        // Build content string from extracted data
-        const contentText =
-          contentData.content ||
-          [
-            ...contentData.headings.map((h) => `Heading: ${h}`),
-            ...contentData.paragraphs.slice(0, 3),
-          ].join('\n');
+        // Check if URL is accessible before attempting extraction
+        if (!isAccessibleUrl(tab.url)) {
+          console.log(`Skipping protected URL: ${tab.url}`);
+          return {
+            title: tab.title,
+            url: tab.url,
+            contentPreview: '(Protected page - cannot access)',
+          };
+        }
 
-        tabsWithContent.push({
-          title: tab.title,
-          url: tab.url,
-          contentPreview: contentText.substring(0, 500), // Limit per-tab content
-        });
-      } catch (error) {
-        console.warn(`Failed to extract content from tab ${tab.id}:`, error);
-        // Include tab with error message
-        const errorMessage = error instanceof Error ? error.message : 'Content unavailable';
-        tabsWithContent.push({
-          title: tab.title,
-          url: tab.url,
-          contentPreview: `(${errorMessage})`,
-        });
-      }
+        try {
+          const contentData = await extractTabContent(tab.id, tab.url);
+          if (!contentData) {
+            throw new Error('No content extracted');
+          }
 
-      // Small delay to avoid overwhelming the browser
-      await sleep(100);
-    }
+          // Build content string from extracted data
+          const contentText =
+            contentData.content ||
+            [
+              ...contentData.headings.map((h) => `Heading: ${h}`),
+              ...contentData.paragraphs.slice(0, 3),
+            ].join('\n');
+
+          return {
+            title: tab.title,
+            url: tab.url,
+            contentPreview: contentText.substring(0, 500), // Limit per-tab content
+          };
+        } catch (error) {
+          console.warn(`Failed to extract content from tab ${tab.id}:`, error);
+          // Include tab with error message
+          const errorMessage = error instanceof Error ? error.message : 'Content unavailable';
+          return {
+            title: tab.title,
+            url: tab.url,
+            contentPreview: `(${errorMessage})`,
+          };
+        }
+      })
+    );
+
+    const results = await Promise.all(extractionPromises);
+    const tabsWithContent = results.filter(
+      (result): result is NonNullable<typeof result> => result !== null
+    );
 
     // Step 2: Build tab list with content
     const tabList = tabsWithContent
