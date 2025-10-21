@@ -12,7 +12,6 @@ A Chrome browser extension that automatically categorizes open tabs using AI (An
 AI Tab Organizer helps you manage browser tab overload by automatically grouping tabs into categories like Work, Development, Shopping, Social, and more. It includes specialized support for Jira and Confluence, powerful search capabilities, and duplicate detection.
 
 **Version**: 0.1.0
-**Status**: Active Development
 
 ## Features
 
@@ -178,113 +177,6 @@ Multiple search formats supported:
 - **Project filter**: ENG (shows all ENG-* tickets)
 - **Text search**: login bug (searches titles and content)
 
-## Project Structure
-
-```
-ai-tab-organizer/
-├── extension/                 # Main extension codebase
-│   ├── src/
-│   │   ├── components/       # React UI components
-│   │   │   ├── shared/       # Reusable components
-│   │   │   ├── CategoryView.tsx
-│   │   │   ├── TabSearch.tsx
-│   │   │   ├── JiraView.tsx
-│   │   │   ├── SessionsView.tsx
-│   │   │   └── DuplicateDetection.tsx
-│   │   ├── services/         # Business logic
-│   │   │   ├── claudeApi.ts
-│   │   │   ├── tabManager.ts
-│   │   │   ├── sessionManager.ts
-│   │   │   ├── searchService.ts
-│   │   │   ├── summaryService.ts
-│   │   │   └── jira/         # Jira-specific services
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── types/            # TypeScript definitions
-│   │   ├── utils/            # Helper functions
-│   │   └── popup.tsx         # Main entry point
-│   ├── src/background.ts     # Service worker (TypeScript)
-│   ├── content-extractor.js  # Content extraction
-│   ├── manifest.json         # Extension manifest
-│   ├── vite.config.ts        # Build configuration
-│   └── package.json
-├── ARCHITECTURE.md           # Architecture documentation
-├── CLAUDE.md                 # AI assistant context
-└── README.md                 # This file
-```
-
-## Architecture
-
-The extension uses a three-component architecture:
-
-### 1. Popup UI (popup.tsx)
-- React application with TypeScript
-- Five view modes (search, categories, Jira, duplicates, sessions)
-- Communicates with background worker via `chrome.runtime.sendMessage()`
-- Cannot make fetch requests directly (Chrome security)
-
-### 2. Background Service Worker (TypeScript)
-- Runs in separate execution context (Manifest v3)
-- Handles all AI provider API calls (Anthropic, OpenAI, Google)
-- Provider abstraction layer with unified interface
-- Implements retry logic (max 3 retries, exponential backoff)
-- 30-second timeout per request with AbortController
-- Auto-indexes tabs for search feature
-- Listens for tab events (create, update, remove)
-
-### 3. Content Extractor (content-extractor.js)
-- Injected into tab pages via `chrome.scripting.executeScript()`
-- Extracts page content (headings, text, meta descriptions)
-- Runs in page context (can access DOM)
-- Used for summaries and content-aware search
-
-### Communication Flow
-
-```
-Popup -> chrome.runtime.sendMessage() -> Background Worker
-Background Worker -> ProviderFactory -> Selected AI Provider
-Provider -> fetch() with AbortController -> API (Claude/GPT/Gemini)
-Provider -> Unified Response -> Background Worker -> Popup
-```
-
-### Key Design Patterns
-
-1. **Service Worker for API Calls**: Background worker acts as proxy to bypass popup CSP restrictions
-2. **Token Optimization**: Sends tab indices instead of full objects to reduce API usage by 70%
-3. **Tab Indexing**: Auto-indexes tabs with content for instant client-side search
-4. **Storage-Based Config**: API key and settings stored in `chrome.storage.local`
-5. **Event-Driven Management**: Listeners on tab create/update/remove events
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
-
-## Development
-
-### Quick Start
-
-```bash
-# Install dependencies
-cd extension
-npm install
-
-# Development mode with hot reload
-npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
-
-# Watch mode for tests
-npm run test:watch
-```
-
-### Testing
-
-- 1150 passing tests with 71% code coverage
-- Comprehensive unit and integration tests
-- Performance benchmarks included
-- Run with `npm test` from extension directory
-
 ## Configuration
 
 ### Extension Permissions
@@ -361,7 +253,6 @@ npm run test:watch
 ## Troubleshooting
 
 ### Extension not loading
-- Verify `npm run build` completed successfully
 - Check `extension/dist/manifest.json` exists
 - Look for errors in `chrome://extensions/` page
 
@@ -369,49 +260,17 @@ npm run test:watch
 - Check background worker console: Right-click extension icon -> Inspect
 - Verify API key format matches selected provider (sk-ant-, sk-proj-, AIza...)
 - Verify API key is valid and has credits/quota
-- Check for network errors in background worker console
 - Try switching to a different AI provider
-
-### Tab indexing not working
-- Check background worker console for extraction errors
-- Verify `content-extractor.js` copied to dist/
-- Check for Content Security Policy restrictions on specific domains
 
 ### Jira tabs not detected
 - Extension supports Cloud, Server, and Data Center
 - URL must contain `/browse/` or `/projects/`
 - Custom domains supported if they match the pattern
-- Tab title helps but is not required
 
 ### Search not finding tabs
 - Extension only searches currently open tabs
-- Index expires after 24 hours or if URL changes
 - Pattern matching is case-insensitive for tickets
 - Project filtering requires uppercase (ENG, not eng)
-
-### Performance issues
-- Expected: 100 tabs in under 100ms
-- Expected: 1000 tabs in under 1 second
-- If slower, try closing unused tabs or reloading extension
-- Check Chrome Task Manager for memory usage
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
-
-## Tech Stack
-
-- React 18.2.0
-- TypeScript 5.3.0
-- Vite 5.0.0 (build system)
-- Tailwind CSS 3.3.6
-- Vitest 3.2.4 (testing)
-- Chrome Extension Manifest V3
-- Multi-provider AI support (Anthropic, OpenAI, Google)
 
 ## License
 
@@ -427,8 +286,6 @@ MIT License - See [LICENSE](LICENSE) for details.
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/yourusername/ai-tab-organizer/issues)
-- **Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md)
-- **AI Context**: See [CLAUDE.md](CLAUDE.md)
 
 ---
 
