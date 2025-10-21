@@ -34,12 +34,14 @@ function Popup() {
     error,
     summarySettings,
     jiraSettings,
+    providerSettings,
     setApiKey,
     setActiveView,
     setShowSettings,
     setError,
     setSummarySettings,
     setJiraSettings,
+    setProviderSettings,
     saveSettings,
     handleClearCache,
     handleTabClick,
@@ -54,6 +56,8 @@ function Popup() {
       <SettingsPanel
         apiKey={apiKey}
         onApiKeyChange={setApiKey}
+        providerSettings={providerSettings}
+        onProviderSettingsChange={setProviderSettings}
         summarySettings={summarySettings}
         onSummarySettingsChange={setSummarySettings}
         jiraSettings={jiraSettings}

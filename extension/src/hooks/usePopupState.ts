@@ -9,11 +9,13 @@ import type {
   JiraSettings,
 } from '../types';
 import type { DensityMode } from '../types/density';
+import type { ProviderSettings } from '../utils/storage';
 import { getAutoSelectedDensity } from '../types/density';
 import { storage } from '../utils/storage';
 import { tabManager } from '../services/tabManager';
 import { claudeApi } from '../services/claudeApi';
 import { summaryService } from '../services/summaryService';
+import { AIProvider } from '../providers/base/types';
 
 type View = 'categories' | 'search' | 'duplicates' | 'jira' | 'sessions' | 'settings';
 
@@ -44,6 +46,10 @@ export function usePopupState() {
   const [jiraSettings, setJiraSettings] = useState<JiraSettings>({
     smartMode: true,
   });
+  const [providerSettings, setProviderSettings] = useState<ProviderSettings>({
+    provider: AIProvider.ANTHROPIC,
+    model: 'claude-3-5-sonnet-20241022',
+  });
   const [densityMode, setDensityMode] = useState<DensityMode>('normal');
 
   useEffect(() => {
@@ -59,6 +65,7 @@ export function usePopupState() {
     await loadApiKey();
     await loadSummarySettings();
     await loadJiraSettings();
+    await loadProviderSettings();
     await loadDensityMode();
   };
 
@@ -86,6 +93,14 @@ export function usePopupState() {
   const loadJiraSettings = async () => {
     const settings = await storage.getJiraSettings();
     setJiraSettings(settings);
+  };
+
+  /**
+   * Load provider settings from storage
+   */
+  const loadProviderSettings = async () => {
+    const settings = await storage.getProviderSettings();
+    setProviderSettings(settings);
   };
 
   /**
@@ -120,6 +135,7 @@ export function usePopupState() {
     await storage.setApiKey(apiKey);
     await storage.setSummarySettings(summarySettings);
     await storage.setJiraSettings(jiraSettings);
+    await storage.setProviderSettings(providerSettings);
     setShowSettings(false);
     if (tabs.length > 0) {
       categorizeTabs(tabs);
@@ -246,6 +262,7 @@ export function usePopupState() {
     error,
     summarySettings,
     jiraSettings,
+    providerSettings,
     densityMode,
 
     // Setters
@@ -255,6 +272,7 @@ export function usePopupState() {
     setError,
     setSummarySettings,
     setJiraSettings,
+    setProviderSettings,
 
     // Handlers
     handleDensityChange,

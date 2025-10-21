@@ -85,7 +85,7 @@ describe('models', () => {
 
     it('should return first model for Google', () => {
       const defaultModel = getDefaultModel(AIProvider.GOOGLE);
-      expect(defaultModel).toBe('gemini-1.5-pro');
+      expect(defaultModel).toBe('gemini-2.0-flash-exp');
     });
 
     it('should return empty string for unknown provider', () => {
@@ -110,9 +110,9 @@ describe('models', () => {
     });
 
     it('should find Google model', () => {
-      const model = getModelById('gemini-1.5-pro');
+      const model = getModelById('gemini-2.0-flash-exp');
       expect(model).toBeDefined();
-      expect(model?.name).toBe('Gemini 1.5 Pro');
+      expect(model?.name).toBe('Gemini 2.0 Flash');
       expect(model?.provider).toBe(AIProvider.GOOGLE);
     });
 
@@ -153,7 +153,7 @@ describe('models', () => {
     });
 
     it('should return true for supported Google model', () => {
-      expect(isModelSupported('gemini-1.5-pro')).toBe(true);
+      expect(isModelSupported('gemini-2.0-flash-exp')).toBe(true);
     });
 
     it('should return false for unsupported model', () => {
@@ -171,7 +171,7 @@ describe('models', () => {
     });
 
     it('should return Google for Gemini model', () => {
-      expect(getProviderForModel('gemini-1.5-pro')).toBe(AIProvider.GOOGLE);
+      expect(getProviderForModel('gemini-2.0-flash-exp')).toBe(AIProvider.GOOGLE);
     });
 
     it('should return undefined for unknown model', () => {
@@ -191,8 +191,8 @@ describe('models', () => {
     });
 
     it('should format Google model', () => {
-      const model = getModelById('gemini-1.5-pro')!;
-      expect(formatModelDisplay(model)).toBe('Gemini 1.5 Pro (1000K context)');
+      const model = getModelById('gemini-2.0-flash-exp')!;
+      expect(formatModelDisplay(model)).toBe('Gemini 2.0 Flash (1000K context)');
     });
   });
 
@@ -214,13 +214,14 @@ describe('models', () => {
     });
 
     it('should calculate cost for large token counts', () => {
-      const model = getModelById('gemini-1.5-pro')!;
+      const model = getModelById('gemini-2.0-flash-exp')!;
       const cost = calculateCost(model, 100000, 50000);
 
-      // 100K input = 100K/1000 * $0.00125 = $0.125
-      // 50K output = 50K/1000 * $0.005 = $0.25
-      // Total = $0.375
-      expect(cost).toBeCloseTo(0.375, 3);
+      // Gemini 2.0 Flash is free (experimental)
+      // 100K input = 100K/1000 * $0.0 = $0.0
+      // 50K output = 50K/1000 * $0.0 = $0.0
+      // Total = $0.0
+      expect(cost).toBe(0);
     });
   });
 
@@ -257,8 +258,8 @@ describe('models', () => {
       const models = getBudgetModels();
       const modelIds = models.map((m) => m.id);
 
-      // Gemini 1.5 Flash-8B should be among the cheapest
-      expect(modelIds).toContain('gemini-1.5-flash-8b');
+      // Gemini 2.0 Flash (free) should be the cheapest
+      expect(modelIds).toContain('gemini-2.0-flash-exp');
     });
   });
 

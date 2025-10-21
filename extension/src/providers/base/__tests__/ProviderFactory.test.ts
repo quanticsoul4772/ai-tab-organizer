@@ -16,22 +16,22 @@ describe('ProviderFactory', () => {
   };
 
   describe('create', () => {
-    it('should throw for unimplemented Anthropic provider', () => {
-      expect(() => ProviderFactory.create(AIProvider.ANTHROPIC, mockConfig)).toThrow(
-        'Anthropic provider not yet implemented'
-      );
+    it('should create Anthropic provider', () => {
+      const provider = ProviderFactory.create(AIProvider.ANTHROPIC, mockConfig);
+      expect(provider).toBeDefined();
+      expect(provider.provider).toBe(AIProvider.ANTHROPIC);
     });
 
-    it('should throw for unimplemented OpenAI provider', () => {
-      expect(() => ProviderFactory.create(AIProvider.OPENAI, mockConfig)).toThrow(
-        'OpenAI provider not yet implemented'
-      );
+    it('should create OpenAI provider', () => {
+      const provider = ProviderFactory.create(AIProvider.OPENAI, mockConfig);
+      expect(provider).toBeDefined();
+      expect(provider.provider).toBe(AIProvider.OPENAI);
     });
 
-    it('should throw for unimplemented Google provider', () => {
-      expect(() => ProviderFactory.create(AIProvider.GOOGLE, mockConfig)).toThrow(
-        'Google provider not yet implemented'
-      );
+    it('should create Google provider', () => {
+      const provider = ProviderFactory.create(AIProvider.GOOGLE, mockConfig);
+      expect(provider).toBeDefined();
+      expect(provider.provider).toBe(AIProvider.GOOGLE);
     });
 
     it('should throw for unsupported provider', () => {
@@ -151,9 +151,7 @@ describe('ProviderFactory', () => {
       });
 
       it('should reject Anthropic format', () => {
-        expect(ProviderFactory.validateApiKeyFormat(AIProvider.OPENAI, 'sk-ant-1234')).toBe(
-          false
-        );
+        expect(ProviderFactory.validateApiKeyFormat(AIProvider.OPENAI, 'sk-ant-1234')).toBe(false);
       });
 
       it('should reject incorrect format', () => {
@@ -172,9 +170,9 @@ describe('ProviderFactory', () => {
     });
 
     it('should allow any format for unknown provider', () => {
-      expect(
-        ProviderFactory.validateApiKeyFormat('unknown' as AIProvider, 'any-format')
-      ).toBe(true);
+      expect(ProviderFactory.validateApiKeyFormat('unknown' as AIProvider, 'any-format')).toBe(
+        true
+      );
     });
   });
 });

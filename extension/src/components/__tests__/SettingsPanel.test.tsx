@@ -2,13 +2,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SettingsPanel } from '../SettingsPanel';
 import type { SummarySettings, JiraSettings } from '../../types';
+import type { ProviderSettings } from '../../utils/storage';
+import { AIProvider } from '../../providers/base/types';
 
 describe('SettingsPanel', () => {
   const mockOnApiKeyChange = vi.fn();
+  const mockOnProviderSettingsChange = vi.fn();
   const mockOnSummarySettingsChange = vi.fn();
   const mockOnJiraSettingsChange = vi.fn();
   const mockOnSave = vi.fn();
   const mockOnClearCache = vi.fn();
+
+  const defaultProviderSettings: ProviderSettings = {
+    provider: AIProvider.ANTHROPIC,
+    model: 'claude-3-5-sonnet-20241022',
+  };
 
   const defaultSummarySettings: SummarySettings = {
     enabled: true,
@@ -29,6 +37,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -39,7 +49,7 @@ describe('SettingsPanel', () => {
       );
 
       expect(screen.getByText('Settings')).toBeInTheDocument();
-      expect(screen.getByText('API Configuration')).toBeInTheDocument();
+      expect(screen.getByText('AI Provider Configuration')).toBeInTheDocument();
       expect(screen.getByText('Summary Features')).toBeInTheDocument();
       expect(screen.getByText('Jira/Confluence Integration')).toBeInTheDocument();
     });
@@ -49,6 +59,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey="sk-ant-test123"
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -68,6 +80,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -77,7 +91,7 @@ describe('SettingsPanel', () => {
         />
       );
 
-      const link = screen.getByText('console.anthropic.com');
+      const link = screen.getByText('https://console.anthropic.com');
       expect(link).toHaveAttribute('href', 'https://console.anthropic.com');
       expect(link).toHaveAttribute('target', '_blank');
       expect(link).toHaveAttribute('rel', 'noopener noreferrer');
@@ -88,6 +102,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -107,6 +123,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -127,6 +145,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -149,6 +169,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -174,6 +196,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -197,6 +221,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -220,6 +246,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={{ enabled: true, cacheDuration: 72 }}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -239,6 +267,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -259,6 +289,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -280,6 +312,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -305,6 +339,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={{ smartMode: true }}
@@ -325,6 +361,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey="sk-ant-test"
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -347,6 +385,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={defaultSummarySettings}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -365,6 +405,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={{ enabled: false, cacheDuration: 24 }}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}
@@ -383,6 +425,8 @@ describe('SettingsPanel', () => {
         <SettingsPanel
           apiKey=""
           onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
           summarySettings={{ enabled: true, cacheDuration: 168 }}
           onSummarySettingsChange={mockOnSummarySettingsChange}
           jiraSettings={defaultJiraSettings}

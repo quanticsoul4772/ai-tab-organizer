@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { AIProvider } from '../../providers/base/types';
 
 /* UNUSED
 // Helper to create mock Tab objects
@@ -22,8 +23,22 @@ import { storage } from '../../utils/storage';
 
 import type { Tab } from '../../types';
 
-// Mock storage
-vi.mock('../../utils/storage');
+// Mock storage with provider settings
+vi.mock('../../utils/storage', () => ({
+  storage: {
+    getCachedTabSummary: vi.fn(),
+    cacheTabSummary: vi.fn(),
+    getCachedCategorySummary: vi.fn(),
+    cacheCategorySummary: vi.fn(),
+    clearSummaryCache: vi.fn(),
+    removeCachedTabSummary: vi.fn(),
+    removeCachedCategorySummary: vi.fn(),
+    getProviderSettings: vi.fn().mockResolvedValue({
+      provider: AIProvider.ANTHROPIC,
+      model: 'claude-3-5-sonnet-20241022',
+    }),
+  },
+}));
 
 // Mock browserApi
 vi.mock('../../core/browserApi', () => ({
@@ -106,6 +121,8 @@ describe('summaryService', () => {
       expect(runtime.sendMessage).toHaveBeenCalledWith('summarizeTab', {
         tab: mockTab,
         apiKey: 'test-api-key',
+        provider: AIProvider.ANTHROPIC,
+        model: 'claude-3-5-sonnet-20241022',
       });
       expect(storage.cacheTabSummary).toHaveBeenCalledWith(newSummary);
     });
@@ -223,6 +240,8 @@ describe('summaryService', () => {
         tabs: mockTabs,
         categoryName: 'Work',
         apiKey: 'test-api-key',
+        provider: AIProvider.ANTHROPIC,
+        model: 'claude-3-5-sonnet-20241022',
       });
       expect(storage.cacheCategorySummary).toHaveBeenCalledWith(newSummary);
     });

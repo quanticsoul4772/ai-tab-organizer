@@ -5,12 +5,13 @@ import { BACKGROUND_ACTIONS } from '../constants/actions';
 
 /**
  * Service for managing tab and category summarization
+ * Supports multiple AI providers via provider settings
  */
 export const summaryService = {
   /**
    * Summarize an individual tab
    * @param tab - Tab to summarize
-   * @param apiKey - Anthropic API key
+   * @param apiKey - API key for the selected provider
    * @returns Promise resolving to tab summary
    */
   async summarizeTab(tab: Tab, apiKey: string): Promise<TabSummary> {
@@ -21,10 +22,15 @@ export const summaryService = {
       return cached;
     }
 
+    // Get provider settings from storage
+    const providerSettings = await storage.getProviderSettings();
+
     // Call background worker to generate summary
     const summary = await runtime.sendMessage<TabSummary>(BACKGROUND_ACTIONS.SUMMARIZE_TAB, {
       tab,
       apiKey,
+      provider: providerSettings.provider,
+      model: providerSettings.model,
     });
 
     // Cache the summary
@@ -36,7 +42,7 @@ export const summaryService = {
    * Summarize a category of tabs
    * @param category - Category name
    * @param tabs - Array of tabs in the category
-   * @param apiKey - Anthropic API key
+   * @param apiKey - API key for the selected provider
    * @returns Promise resolving to category summary
    */
   async summarizeCategory(category: string, tabs: Tab[], apiKey: string): Promise<CategorySummary> {
@@ -47,10 +53,19 @@ export const summaryService = {
       return cached;
     }
 
+    // Get provider settings from storage
+    const providerSettings = await storage.getProviderSettings();
+
     // Call background worker to generate summary
     const summary = await runtime.sendMessage<CategorySummary>(
       BACKGROUND_ACTIONS.SUMMARIZE_CATEGORY,
-      { tabs, categoryName: category, apiKey }
+      {
+        tabs,
+        categoryName: category,
+        apiKey,
+        provider: providerSettings.provider,
+        model: providerSettings.model,
+      }
     );
 
     // Cache the summary

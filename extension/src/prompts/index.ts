@@ -14,22 +14,39 @@ export const CATEGORIZATION_V1: PromptVersion<string, CategoryResponse> = {
   version: '1.0.0',
   createdAt: '2025-01-19',
   template: (tabInfo: string) =>
-    `Categorize these browser tabs into logical groups (Work, Research, Shopping, Social, Entertainment, Development, News, Other).
+    `You are a deterministic tab categorization system. Categorize browser tabs using EXACTLY these rules:
 
-CRITICAL: Your response must be ONLY a single-line JSON object. Do not include any explanations, comments, or text before or after the JSON.
+CATEGORY RULES (apply in this exact order):
+1. "Development" - Code repositories (github.com, gitlab.com), dev tools, IDE docs, Stack Overflow, API docs
+2. "Work" - Email (gmail, outlook), calendar, Slack, Teams, JIRA, Asana, project management, work-related SaaS
+3. "Shopping" - E-commerce (amazon, ebay, etsy), shopping carts, product pages, retail sites
+4. "Social" - Social media (twitter, facebook, instagram, linkedin, reddit, tiktok), messaging apps
+5. "Entertainment" - Video streaming (youtube, netflix, twitch), music (spotify, soundcloud), games, media
+6. "News" - News sites (cnn, bbc, nytimes, techcrunch, hacker news), blogs, RSS feeds
+7. "Research" - Wikipedia, documentation, educational sites, articles, papers, how-to guides
+8. "Other" - Everything else that doesn't fit above categories
 
-Format (single line only):
-{"Work":[0,1],"Research":[2,3],"Shopping":[4]}
+MATCHING RULES:
+- Match based on URL domain first, then title
+- Each tab goes in EXACTLY ONE category
+- Use the FIRST matching category from the list above
+- If uncertain, use "Other"
 
-Tabs (by index):
+OUTPUT FORMAT:
+- Return ONLY valid JSON on a single line
+- No markdown, no code blocks, no explanations
+- Format: {"Category1":[0,1,2],"Category2":[3,4]}
+- Empty categories are omitted
+
+Tabs to categorize:
 ${tabInfo}
 
-Return only the JSON object as a single line, nothing else:`,
+JSON output:`,
   schema: CategoryResponseSchema,
   examples: [
     {
       input: '0: GitHub - Issues\n1: JIRA\n2: Amazon',
-      output: { Work: [0, 1], Shopping: [2] },
+      output: { Development: [0], Work: [1], Shopping: [2] },
     },
   ],
 };

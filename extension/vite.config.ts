@@ -24,8 +24,8 @@ export default defineConfig({
         copyFileSync('jira-content-extractor.js', 'dist/jira-content-extractor.js');
 
         console.log('✅ Extension files copied to dist/');
-      }
-    }
+      },
+    },
   ],
   resolve: {
     alias: {
@@ -47,9 +47,40 @@ export default defineConfig({
       },
       output: {
         entryFileNames: (chunkInfo) => {
-          return chunkInfo.name === 'background' ? '[name].js' : 'assets/[name]-[hash].js';
+          if (chunkInfo.name === 'background') {
+            return '[name].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        format: 'es',
+        manualChunks: (id, api) => {
+          // Check if this module is imported by background.ts
+          const moduleInfo = api.getModuleInfo(id);
+          if (!moduleInfo) return;
+
+          // Check all importers recursively
+          const isUsedByBackground = (moduleId) => {
+            const info = api.getModuleInfo(moduleId);
+            if (!info) return false;
+
+            // If this is the background entry, we found it
+            if (moduleId.includes('background.ts')) return true;
+
+            // Check all importers
+            for (const importer of info.importers) {
+              if (isUsedByBackground(importer)) return true;
+            }
+            return false;
+          };
+
+          // If used by background, inline it (return undefined)
+          if (isUsedByBackground(id)) {
+            return undefined;
+          }
         },
       },
-    }
-  }
+    },
+    minify: 'esbuild',
+  },
 });

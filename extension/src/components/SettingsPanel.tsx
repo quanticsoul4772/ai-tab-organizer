@@ -1,8 +1,18 @@
 import type { SummarySettings, JiraSettings } from '../types';
+import type { ProviderSettings } from '../utils/storage';
+import { AIProvider } from '../providers/base/types';
+import {
+  getProviderOptions,
+  getModelsForProvider,
+  PROVIDER_INFO,
+  validateApiKey,
+} from '../constants/providers';
 
 interface SettingsPanelProps {
   apiKey: string;
   onApiKeyChange: (key: string) => void;
+  providerSettings: ProviderSettings;
+  onProviderSettingsChange: (settings: ProviderSettings) => void;
   summarySettings: SummarySettings;
   onSummarySettingsChange: (settings: SummarySettings) => void;
   jiraSettings: JiraSettings;
@@ -17,6 +27,8 @@ interface SettingsPanelProps {
 export function SettingsPanel({
   apiKey,
   onApiKeyChange,
+  providerSettings,
+  onProviderSettingsChange,
   summarySettings,
   onSummarySettingsChange,
   jiraSettings,
@@ -24,26 +36,92 @@ export function SettingsPanel({
   onSave,
   onClearCache,
 }: SettingsPanelProps) {
+  const providerInfo = PROVIDER_INFO[providerSettings.provider];
+  const modelOptions = getModelsForProvider(providerSettings.provider);
+
+  const handleProviderChange = (newProvider: AIProvider) => {
+    // When provider changes, reset to the first available model for that provider
+    const newModels = getModelsForProvider(newProvider);
+    onProviderSettingsChange({
+      provider: newProvider,
+      model: newModels[0]?.value || '',
+    });
+  };
+
+  const handleModelChange = (newModel: string) => {
+    onProviderSettingsChange({
+      ...providerSettings,
+      model: newModel,
+    });
+  };
+
+  // Validate API key format for current provider
+  const isValidApiKeyFormat = apiKey ? validateApiKey(providerSettings.provider, apiKey) : true;
+
   return (
     <div className="settings">
       <h2>Settings</h2>
 
       <div className="settings-section">
-        <h3>API Configuration</h3>
-        <p>Enter your Claude API key to enable AI categorization:</p>
-        <input
-          type="password"
-          value={apiKey}
-          onChange={(e) => onApiKeyChange(e.target.value)}
-          placeholder="sk-ant-..."
-          className="api-input"
-        />
-        <p className="help">
-          Get your API key from{' '}
-          <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer">
-            console.anthropic.com
-          </a>
-        </p>
+        <h3>AI Provider Configuration</h3>
+
+        <div className="settings-field">
+          <label htmlFor="provider">AI Provider:</label>
+          <select
+            id="provider"
+            value={providerSettings.provider}
+            onChange={(e) => handleProviderChange(e.target.value as AIProvider)}
+            className="settings-select"
+          >
+            {getProviderOptions().map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p className="settings-help">{providerInfo.description}</p>
+        </div>
+
+        <div className="settings-field">
+          <label htmlFor="model">Model:</label>
+          <select
+            id="model"
+            value={providerSettings.model}
+            onChange={(e) => handleModelChange(e.target.value)}
+            className="settings-select"
+          >
+            {modelOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="settings-field">
+          <label htmlFor="apiKey">API Key:</label>
+          <input
+            id="apiKey"
+            type="password"
+            value={apiKey}
+            onChange={(e) => onApiKeyChange(e.target.value)}
+            placeholder={providerInfo.apiKeyPlaceholder}
+            className={`api-input ${!isValidApiKeyFormat ? 'invalid' : ''}`}
+            aria-invalid={!isValidApiKeyFormat}
+          />
+          {!isValidApiKeyFormat && (
+            <p className="error-message">
+              Invalid API key format for {providerInfo.name}. Expected format:{' '}
+              {providerInfo.apiKeyPlaceholder}
+            </p>
+          )}
+          <p className="help">
+            Get your API key from{' '}
+            <a href={providerInfo.consoleUrl} target="_blank" rel="noopener noreferrer">
+              {providerInfo.consoleUrl}
+            </a>
+          </p>
+        </div>
       </div>
 
       <div className="settings-section">

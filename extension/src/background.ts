@@ -11,6 +11,8 @@ import {
 } from '@schemas/index';
 import type { TabSummary, CategorySummary } from '@types';
 import { PROMPTS } from '@/prompts';
+import { ProviderFactory } from '@/providers/base/ProviderFactory';
+import { AIProvider, type ProviderConfig } from '@/providers/base/types';
 
 // Initialize Sentry
 initSentry();
@@ -32,6 +34,8 @@ interface BackgroundRequest {
   tabs?: chrome.tabs.Tab[];
   tab?: chrome.tabs.Tab;
   apiKey?: string;
+  provider?: AIProvider;
+  model?: string;
   categoryName?: string;
   tabId?: number;
   url?: string;
@@ -78,7 +82,7 @@ chrome.runtime.onMessage.addListener(
     sendResponse: (response: BackgroundResponse) => void
   ) => {
     if (request.action === 'categorize') {
-      categorizeTabs(request.tabs, request.apiKey)
+      categorizeTabs(request.tabs, request.apiKey, request.provider, request.model)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
           captureError(error, { action: 'categorize', tabCount: request.tabs?.length });
@@ -88,7 +92,7 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === 'summarizeTab') {
-      summarizeTab(request.tab, request.apiKey)
+      summarizeTab(request.tab, request.apiKey, request.provider, request.model)
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
           captureError(error, { action: 'summarizeTab', tabId: request.tab?.id });
@@ -98,7 +102,13 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (request.action === 'summarizeCategory') {
-      summarizeCategory(request.tabs, request.categoryName, request.apiKey)
+      summarizeCategory(
+        request.tabs,
+        request.categoryName,
+        request.apiKey,
+        request.provider,
+        request.model
+      )
         .then((result) => sendResponse({ success: true, data: result }))
         .catch((error) => {
           captureError(error, {
@@ -176,58 +186,63 @@ chrome.runtime.onMessage.addListener(
 );
 
 /**
- * Categorize tabs using Claude API with retry logic and validation
+ * Categorize tabs using configured AI provider with retry logic and validation
  */
 async function categorizeTabs(
   tabs: chrome.tabs.Tab[] | undefined,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  provider?: AIProvider,
+  model?: string
 ): Promise<CategoryResponse> {
   if (!tabs || !apiKey) {
     throw new Error('Missing required parameters');
   }
+
+  // Use default provider (Anthropic) if not specified
+  const selectedProvider = provider || AIProvider.ANTHROPIC;
+  const selectedModel = model || getDefaultModel(selectedProvider);
+
+  // Create provider configuration
+  const config: ProviderConfig = {
+    apiKey,
+    model: selectedModel,
+    maxTokens: API_CONFIG.MAX_TOKENS,
+    timeout: API_CONFIG.TIMEOUT_MS,
+    maxRetries: API_CONFIG.MAX_RETRIES,
+  };
+
+  // Create provider instance
+  const providerInstance = ProviderFactory.create(selectedProvider, config);
+
   const tabInfo = tabs.map((t, i) => `${i}: ${t.title} - ${t.url}`).join('\n');
 
   // Use retryWithValidation for automatic retry with exponential backoff and schema validation
   const apiCall = async () => {
-    const response = await fetch(API_CONFIG.BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': API_CONFIG.VERSION,
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: API_CONFIG.MODEL,
-        max_tokens: API_CONFIG.MAX_TOKENS,
-        messages: [
-          {
-            role: 'user',
-            content: buildPrompt(tabInfo),
-          },
-        ],
-      }),
+    const response = await providerInstance.complete({
+      messages: [
+        {
+          role: 'user',
+          content: buildPrompt(tabInfo),
+        },
+      ],
+      maxTokens: API_CONFIG.MAX_TOKENS,
     });
 
-    // Check for HTTP errors
-    if (!response.ok) {
-      const errorText = await response.text();
-      const error = new Error(`API Error: ${response.status} - ${errorText}`);
-
-      // Don't retry on authentication errors (401, 403)
-      if (response.status === 401 || response.status === 403) {
-        throw error;
-      }
-
-      // Throw retryable error for 429, 5xx
-      if (isRetryableHttpError(response.status)) {
-        throw error;
-      }
-
-      throw error;
-    }
-
-    return response.json();
+    // Transform to Claude-compatible response format for parsing
+    // All providers return UnifiedResponse, we need to convert to ClaudeResponse for validation
+    return {
+      id: 'msg-generated',
+      type: 'message',
+      role: 'assistant',
+      content: [{ type: 'text', text: response.content }],
+      model: response.model,
+      stop_reason: 'end_turn',
+      stop_sequence: null,
+      usage: {
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
+      },
+    };
   };
 
   // Validate response with ClaudeResponseSchema first
@@ -248,6 +263,22 @@ async function categorizeTabs(
 
   // Parse and validate the categorization result
   return parseApiResponse(claudeResponse);
+}
+
+/**
+ * Get default model for a provider
+ */
+function getDefaultModel(provider: AIProvider): string {
+  switch (provider) {
+    case AIProvider.ANTHROPIC:
+      return 'claude-3-5-sonnet-20241022';
+    case AIProvider.OPENAI:
+      return 'gpt-4o';
+    case AIProvider.GOOGLE:
+      return 'gemini-2.0-flash-exp';
+    default:
+      return 'claude-3-5-sonnet-20241022';
+  }
 }
 
 /**
@@ -403,14 +434,18 @@ async function extractTabContent(tabId: number, url: string): Promise<ExtractedC
 }
 
 /**
- * Summarize an individual tab using Claude API with extracted content
+ * Summarize an individual tab using configured AI provider with extracted content
  * @param {Object} tab - Tab object with id, title, url
- * @param {string} apiKey - Anthropic API key
+ * @param {string} apiKey - API key
+ * @param {AIProvider} provider - AI provider to use
+ * @param {string} model - Model to use
  * @returns {Promise<Object>} Tab summary
  */
 async function summarizeTab(
   tab: chrome.tabs.Tab | undefined,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  provider?: AIProvider,
+  model?: string
 ): Promise<TabSummary> {
   if (!tab || !apiKey || !tab.id || !tab.url || !tab.title) {
     throw new Error('Missing required parameters');
@@ -428,6 +463,22 @@ async function summarizeTab(
       tokens: 0,
     };
   }
+
+  // Use default provider (Anthropic) if not specified
+  const selectedProvider = provider || AIProvider.ANTHROPIC;
+  const selectedModel = model || getDefaultModel(selectedProvider);
+
+  // Create provider configuration
+  const config: ProviderConfig = {
+    apiKey,
+    model: selectedModel,
+    maxTokens: 300,
+    timeout: API_CONFIG.TIMEOUT_MS,
+    maxRetries: API_CONFIG.MAX_RETRIES,
+  };
+
+  // Create provider instance
+  const providerInstance = ProviderFactory.create(selectedProvider, config);
 
   try {
     // Step 1: Extract content from the tab
@@ -458,41 +509,19 @@ ${contentData.metaDescription ? `Meta Description: ${contentData.metaDescription
 
 Provide a concise, actionable summary.`;
 
-    // Step 3: Call Claude API with content
-    const response = await fetch(API_CONFIG.BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': API_CONFIG.VERSION,
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: API_CONFIG.MODEL,
-        max_tokens: 300,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
+    // Step 3: Call provider API with content
+    const response = await providerInstance.complete({
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      maxTokens: 300,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-
-    // Validate response structure
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error('Invalid API response format');
-    }
-
-    const summary = data.content[0].text.trim();
-    const tokens = (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0);
+    const summary = response.content.trim();
+    const tokens = response.usage.totalTokens;
 
     // Step 4: Return structured summary
     return {
@@ -510,20 +539,40 @@ Provide a concise, actionable summary.`;
 }
 
 /**
- * Summarize a category of tabs using Claude API with extracted content
+ * Summarize a category of tabs using configured AI provider with extracted content
  * @param {Array} tabs - Array of tab objects
  * @param {string} categoryName - Category name
- * @param {string} apiKey - Anthropic API key
+ * @param {string} apiKey - API key
+ * @param {AIProvider} provider - AI provider to use
+ * @param {string} model - Model to use
  * @returns {Promise<Object>} Category summary
  */
 async function summarizeCategory(
   tabs: chrome.tabs.Tab[] | undefined,
   categoryName: string | undefined,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  provider?: AIProvider,
+  model?: string
 ): Promise<CategorySummary> {
   if (!tabs || !categoryName || !apiKey) {
     throw new Error('Missing required parameters');
   }
+
+  // Use default provider (Anthropic) if not specified
+  const selectedProvider = provider || AIProvider.ANTHROPIC;
+  const selectedModel = model || getDefaultModel(selectedProvider);
+
+  // Create provider configuration
+  const config: ProviderConfig = {
+    apiKey,
+    model: selectedModel,
+    maxTokens: 500,
+    timeout: API_CONFIG.TIMEOUT_MS,
+    maxRetries: API_CONFIG.MAX_RETRIES,
+  };
+
+  // Create provider instance
+  const providerInstance = ProviderFactory.create(selectedProvider, config);
 
   try {
     // Step 1: Extract content from all tabs (with parallel processing)
@@ -604,41 +653,19 @@ ${tabList}
 
 Provide a cohesive summary that captures the essence of this tab collection.`;
 
-    // Step 4: Call Claude API
-    const response = await fetch(API_CONFIG.BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': API_CONFIG.VERSION,
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: API_CONFIG.MODEL,
-        max_tokens: 500,
-        messages: [
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-      }),
+    // Step 4: Call provider API
+    const response = await providerInstance.complete({
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      maxTokens: 500,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API Error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-
-    // Validate response structure
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      throw new Error('Invalid API response format');
-    }
-
-    const summary = data.content[0].text.trim();
-    const tokens = (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0);
+    const summary = response.content.trim();
+    const tokens = response.usage.totalTokens;
 
     return {
       category: categoryName,

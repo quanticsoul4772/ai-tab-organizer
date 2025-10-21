@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { AIProvider } from '../../providers/base/types';
 
 // Helper to create mock Tab objects
 function createMockTab(partial: Partial<chrome.tabs.Tab>): chrome.tabs.Tab {
@@ -24,6 +25,16 @@ import type { Tab } from '../../types';
 vi.mock('../../core/browserApi', () => ({
   runtime: {
     sendMessage: vi.fn(),
+  },
+}));
+
+// Mock the storage module
+vi.mock('../../utils/storage', () => ({
+  storage: {
+    getProviderSettings: vi.fn().mockResolvedValue({
+      provider: AIProvider.ANTHROPIC,
+      model: 'claude-3-5-sonnet-20241022',
+    }),
   },
 }));
 
@@ -61,6 +72,8 @@ describe('claudeApi', () => {
       expect(runtime.sendMessage).toHaveBeenCalledWith('categorize', {
         tabs,
         apiKey: 'test-api-key',
+        provider: AIProvider.ANTHROPIC,
+        model: 'claude-3-5-sonnet-20241022',
       });
     });
 
@@ -106,7 +119,11 @@ describe('claudeApi', () => {
 
       expect(runtime.sendMessage).toHaveBeenCalledWith(
         'categorize',
-        expect.objectContaining({ apiKey: 'my-secret-key' })
+        expect.objectContaining({
+          apiKey: 'my-secret-key',
+          provider: AIProvider.ANTHROPIC,
+          model: 'claude-3-5-sonnet-20241022',
+        })
       );
     });
 
@@ -123,7 +140,11 @@ describe('claudeApi', () => {
 
       expect(runtime.sendMessage).toHaveBeenCalledWith(
         'categorize',
-        expect.objectContaining({ tabs })
+        expect.objectContaining({
+          tabs,
+          provider: AIProvider.ANTHROPIC,
+          model: 'claude-3-5-sonnet-20241022',
+        })
       );
     });
 

@@ -15,9 +15,9 @@ describe('CATEGORIZATION_V1', () => {
     const tabInfo = '0: GitHub\n1: JIRA\n2: Amazon';
     const prompt = CATEGORIZATION_V1.template(tabInfo);
 
-    expect(prompt).toContain('Categorize these browser tabs');
+    expect(prompt).toContain('deterministic tab categorization');
     expect(prompt).toContain(tabInfo);
-    expect(prompt).toContain('single-line JSON object');
+    expect(prompt).toContain('valid JSON');
   });
 
   it('includes categorization instructions', () => {
@@ -32,7 +32,7 @@ describe('CATEGORIZATION_V1', () => {
   it('includes JSON format example', () => {
     const prompt = CATEGORIZATION_V1.template('test');
 
-    expect(prompt).toMatch(/\{"Work":\[0,1\]/);
+    expect(prompt).toMatch(/\{"Category1":\[0,1,2\]/);
   });
 
   it('has valid schema', () => {
@@ -50,7 +50,7 @@ describe('CATEGORIZATION_V1', () => {
 
     const example = CATEGORIZATION_V1.examples[0];
     expect(example.input).toBe('0: GitHub - Issues\n1: JIRA\n2: Amazon');
-    expect(example.output).toEqual({ Work: [0, 1], Shopping: [2] });
+    expect(example.output).toEqual({ Development: [0], Work: [1], Shopping: [2] });
   });
 
   it('example output passes schema validation', () => {

@@ -4,6 +4,9 @@
 
 import { BaseProvider } from './BaseProvider';
 import { AIProvider, ProviderConfig } from './types';
+import { AnthropicProvider } from '../anthropic/AnthropicProvider';
+import { OpenAIProvider } from '../openai/OpenAIProvider';
+import { GeminiProvider } from '../google/GeminiProvider';
 
 /**
  * Provider factory class
@@ -20,51 +23,17 @@ export class ProviderFactory {
   static create(provider: AIProvider, config: ProviderConfig): BaseProvider {
     switch (provider) {
       case AIProvider.ANTHROPIC:
-        // Lazy load to avoid circular dependencies
-        return ProviderFactory.createAnthropicProvider(config);
+        return new AnthropicProvider(config);
 
       case AIProvider.OPENAI:
-        return ProviderFactory.createOpenAIProvider(config);
+        return new OpenAIProvider(config);
 
       case AIProvider.GOOGLE:
-        return ProviderFactory.createGoogleProvider(config);
+        return new GeminiProvider(config);
 
       default:
         throw new Error(`Unsupported provider: ${provider}`);
     }
-  }
-
-  /**
-   * Create Anthropic provider instance
-   * @param _config - Provider configuration (unused until implementation)
-   * @returns Anthropic provider instance
-   */
-  private static createAnthropicProvider(_config: ProviderConfig): BaseProvider {
-    // Dynamic import to avoid circular dependencies
-    // Will be implemented in Phase 2
-    throw new Error('Anthropic provider not yet implemented');
-  }
-
-  /**
-   * Create OpenAI provider instance
-   * @param _config - Provider configuration (unused until implementation)
-   * @returns OpenAI provider instance
-   */
-  private static createOpenAIProvider(_config: ProviderConfig): BaseProvider {
-    // Dynamic import to avoid circular dependencies
-    // Will be implemented in Phase 2
-    throw new Error('OpenAI provider not yet implemented');
-  }
-
-  /**
-   * Create Google provider instance
-   * @param _config - Provider configuration (unused until implementation)
-   * @returns Google provider instance
-   */
-  private static createGoogleProvider(_config: ProviderConfig): BaseProvider {
-    // Dynamic import to avoid circular dependencies
-    // Will be implemented in Phase 2
-    throw new Error('Google provider not yet implemented');
   }
 
   /**

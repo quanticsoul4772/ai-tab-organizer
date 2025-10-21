@@ -9,9 +9,16 @@ import type { DensityMode } from '../types/density';
 import type { GroupStates } from '../types/groupState';
 import type { Session, SessionListItem } from '../types/session';
 import { storage as browserStorage } from '../core/browserApi';
+import { AIProvider } from '../providers/base/types';
+
+interface ProviderSettings {
+  provider: AIProvider;
+  model: string;
+}
 
 const STORAGE_KEYS = {
   API_KEY: 'anthropicApiKey',
+  PROVIDER_SETTINGS: 'providerSettings',
   SUMMARY_CACHE: 'summaryCache',
   SUMMARY_SETTINGS: 'summarySettings',
   JIRA_SETTINGS: 'jiraSettings',
@@ -283,4 +290,48 @@ export const storage = {
 
     await this.saveSession(updatedSession);
   },
+
+  /**
+   * Get provider settings
+   */
+  async getProviderSettings(): Promise<ProviderSettings> {
+    const settings = await browserStorage.get<ProviderSettings>(STORAGE_KEYS.PROVIDER_SETTINGS, {
+      provider: AIProvider.ANTHROPIC,
+      model: 'claude-3-5-sonnet-20241022',
+    });
+    const result = settings ?? {
+      provider: AIProvider.ANTHROPIC,
+      model: 'claude-3-5-sonnet-20241022',
+    };
+
+    // Migrate old Gemini model names to Gemini 2.0
+    if (result.provider === AIProvider.GOOGLE) {
+      const modelMigrations: Record<string, string> = {
+        'gemini-1.5-pro': 'gemini-2.0-flash-exp',
+        'gemini-1.5-pro-latest': 'gemini-2.0-flash-exp',
+        'gemini-1.5-flash': 'gemini-2.0-flash-exp',
+        'gemini-1.5-flash-latest': 'gemini-2.0-flash-exp',
+        'gemini-1.0-pro': 'gemini-2.0-flash-exp',
+        'gemini-1.0-pro-latest': 'gemini-2.0-flash-exp',
+      };
+
+      if (result.model in modelMigrations) {
+        result.model = modelMigrations[result.model];
+        // Persist the migrated settings
+        await this.setProviderSettings(result);
+      }
+    }
+
+    return result;
+  },
+
+  /**
+   * Save provider settings
+   */
+  async setProviderSettings(settings: ProviderSettings): Promise<void> {
+    await browserStorage.set(STORAGE_KEYS.PROVIDER_SETTINGS, settings);
+  },
 };
+
+// Export ProviderSettings type for use in other modules
+export type { ProviderSettings };
