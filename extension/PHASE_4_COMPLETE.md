@@ -145,17 +145,11 @@ Provider transforms request/response appropriately
 Results displayed in UI
 ```
 
-### Migration Strategy
+### Provider Defaults
 
-- **Old Gemini models**: Automatically migrated to `gemini-2.0-flash-exp`
-- **Storage key**: `providerSettings` separate from `anthropicApiKey`
-- **Backward compatibility**: Old `anthropicApiKey` still works, new users get multi-provider from start
-- **Model mapping**:
-  ```typescript
-  gemini-1.5-pro → gemini-2.0-flash-exp
-  gemini-1.5-flash → gemini-2.0-flash-exp
-  gemini-1.0-pro → gemini-2.0-flash-exp
-  ```
+- **Default provider**: Anthropic Claude
+- **Default model**: claude-3-5-sonnet-20241022
+- **Storage key**: `providerSettings` stores provider and model selection
 
 ## Key Files Modified
 
@@ -173,11 +167,11 @@ Results displayed in UI
 - [x] API key validation works for all providers
 - [x] Provider-specific help text and links display
 - [x] Settings persist across browser sessions
-- [x] Model migration from old Gemini models works
+- [x] Provider settings persist correctly
 - [x] Service calls include provider and model params
 - [x] Background worker receives correct provider config
 - [x] All 1347 tests pass
-- [x] No breaking changes for existing users
+- [x] Clean implementation without legacy code
 
 ## User Experience
 
@@ -189,13 +183,11 @@ Results displayed in UI
 4. Enters API key with format validation
 5. Clicks "Save Settings" → tabs are categorized
 
-### Existing User
+### Returning User
 
-1. Opens extension → migration runs automatically
-2. Old Gemini models → gemini-2.0-flash-exp
-3. Settings panel shows current provider/model
-4. Can switch providers/models anytime
-5. All existing API keys continue to work
+1. Opens extension → previous settings loaded
+2. Settings panel shows current provider/model
+3. Can switch providers/models anytime
 
 ### Provider Switching
 
@@ -240,7 +232,7 @@ Phase 4 is **complete**. Ready for Phase 5 (Testing & Polish):
 - [ ] Manual testing with all three providers
 - [ ] Provider-specific error handling improvements
 - [ ] Update user documentation
-- [ ] Add migration guide for existing users
+- [ ] Add setup screenshots
 - [ ] Create demo video/screenshots
 - [ ] Performance benchmarking across providers
 - [ ] A/B testing between providers (optional)
@@ -250,8 +242,8 @@ Phase 4 is **complete**. Ready for Phase 5 (Testing & Polish):
 - All UI components are fully tested
 - API key validation prevents common mistakes
 - Provider descriptions help users choose
-- Migration logic handles old Gemini models gracefully
-- No breaking changes for existing Anthropic users
+- Clean provider implementation
+- No legacy migration overhead
 - Ready for production deployment
 
 ---

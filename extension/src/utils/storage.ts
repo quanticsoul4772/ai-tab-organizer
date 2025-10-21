@@ -299,30 +299,12 @@ export const storage = {
       provider: AIProvider.ANTHROPIC,
       model: 'claude-3-5-sonnet-20241022',
     });
-    const result = settings ?? {
-      provider: AIProvider.ANTHROPIC,
-      model: 'claude-3-5-sonnet-20241022',
-    };
-
-    // Migrate old Gemini model names to Gemini 2.0
-    if (result.provider === AIProvider.GOOGLE) {
-      const modelMigrations: Record<string, string> = {
-        'gemini-1.5-pro': 'gemini-2.0-flash-exp',
-        'gemini-1.5-pro-latest': 'gemini-2.0-flash-exp',
-        'gemini-1.5-flash': 'gemini-2.0-flash-exp',
-        'gemini-1.5-flash-latest': 'gemini-2.0-flash-exp',
-        'gemini-1.0-pro': 'gemini-2.0-flash-exp',
-        'gemini-1.0-pro-latest': 'gemini-2.0-flash-exp',
-      };
-
-      if (result.model in modelMigrations) {
-        result.model = modelMigrations[result.model];
-        // Persist the migrated settings
-        await this.setProviderSettings(result);
+    return (
+      settings ?? {
+        provider: AIProvider.ANTHROPIC,
+        model: 'claude-3-5-sonnet-20241022',
       }
-    }
-
-    return result;
+    );
   },
 
   /**

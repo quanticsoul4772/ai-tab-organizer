@@ -1,6 +1,6 @@
 # AI Tab Organizer
 
-A Chrome browser extension that automatically categorizes open tabs using Claude AI.
+A Chrome browser extension that automatically categorizes open tabs using AI (Anthropic Claude, OpenAI GPT, or Google Gemini).
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
@@ -17,7 +17,8 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 ## Features
 
 ### Core Capabilities
-- Automatic tab categorization using Claude AI
+- **Multi-provider AI support**: Choose Anthropic Claude, OpenAI GPT, or Google Gemini
+- Automatic tab categorization with your preferred AI model
 - Session management with workspace awareness
 - Collapsible category groups with smart defaults
 - Visual status indicators with activity tracking
@@ -100,7 +101,10 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
 
 ### Prerequisites
 - Chrome 88 or newer (or Chromium-based browser)
-- Anthropic Claude API key ([Get one here](https://console.anthropic.com))
+- API key from one of the following providers:
+  - **Anthropic Claude**: [Get API key](https://console.anthropic.com)
+  - **OpenAI GPT**: [Get API key](https://platform.openai.com/api-keys)
+  - **Google Gemini**: [Get API key](https://aistudio.google.com/apikey)
 
 ### From Source
 
@@ -126,9 +130,13 @@ AI Tab Organizer helps you manage browser tab overload by automatically grouping
    - Click "Load unpacked"
    - Select the `extension/dist` folder
 
-5. Configure API key
+5. Configure your AI provider
    - Click the extension icon
-   - Enter your Claude API key in settings
+   - Open Settings (gear icon)
+   - Select your AI provider (Anthropic, OpenAI, or Google)
+   - Choose a model (defaults provided for each provider)
+   - Enter your API key
+   - Click "Save Settings"
    - Start organizing your tabs
 
 ## Usage
@@ -216,7 +224,8 @@ The extension uses a three-component architecture:
 
 ### 2. Background Service Worker (TypeScript)
 - Runs in separate execution context (Manifest v3)
-- Handles all API calls to Anthropic Claude
+- Handles all AI provider API calls (Anthropic, OpenAI, Google)
+- Provider abstraction layer with unified interface
 - Implements retry logic (max 3 retries, exponential backoff)
 - 30-second timeout per request with AbortController
 - Auto-indexes tabs for search feature
@@ -232,8 +241,9 @@ The extension uses a three-component architecture:
 
 ```
 Popup -> chrome.runtime.sendMessage() -> Background Worker
-Background Worker -> fetch() with AbortController -> Anthropic API
-Background Worker -> response -> Popup updates UI
+Background Worker -> ProviderFactory -> Selected AI Provider
+Provider -> fetch() with AbortController -> API (Claude/GPT/Gemini)
+Provider -> Unified Response -> Background Worker -> Popup
 ```
 
 ### Key Design Patterns
@@ -284,6 +294,8 @@ npm run test:watch
   "permissions": ["tabs", "storage", "scripting", "activeTab", "bookmarks"],
   "host_permissions": [
     "https://api.anthropic.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
     "<all_urls>"
   ]
 }
@@ -295,11 +307,23 @@ npm run test:watch
 - `scripting` - Inject content extractors for summaries
 - `activeTab` - Interact with currently active tab
 - `bookmarks` - Create bookmark folders for "Bookmark All" feature
-- `host_permissions` - Call Anthropic API and extract content from any site
+- `host_permissions` - Call AI provider APIs (Anthropic, OpenAI, Google) and extract content from any site
 
-### API Configuration
+### AI Provider Configuration
 
-- **Model**: claude-3-5-sonnet-20241022
+**Supported Providers**:
+- **Anthropic Claude** (default)
+  - claude-3-5-sonnet-20241022 (recommended)
+  - claude-3-5-haiku-20241022 (faster, cheaper)
+  - claude-3-opus-20240229 (most capable)
+- **OpenAI GPT**
+  - gpt-4o (recommended)
+  - gpt-4o-mini (faster, cheaper)
+  - gpt-4-turbo, gpt-4
+- **Google Gemini**
+  - gemini-2.0-flash-exp (free experimental)
+
+**Request Settings**:
 - **Timeout**: 30 seconds
 - **Max Retries**: 3 attempts
 - **Retry Delay**: 1 second with exponential backoff
@@ -317,9 +341,10 @@ npm run test:watch
 
 ## Privacy and Security
 
+- **BYOK (Bring Your Own Key)**: You control your API keys
 - API keys stored locally in Chrome (encrypted by Chrome)
 - No telemetry or analytics
-- Direct API communication with Anthropic
+- Direct API communication with your chosen provider
 - No data passes through external servers
 - Content extraction happens locally in browser
 - Cache stored locally with configurable TTL
@@ -342,9 +367,10 @@ npm run test:watch
 
 ### Categorization fails
 - Check background worker console: Right-click extension icon -> Inspect
-- Verify API key is valid in chrome.storage.local
-- Check for network errors
-- Verify Anthropic account has available credits
+- Verify API key format matches selected provider (sk-ant-, sk-proj-, AIza...)
+- Verify API key is valid and has credits/quota
+- Check for network errors in background worker console
+- Try switching to a different AI provider
 
 ### Tab indexing not working
 - Check background worker console for extraction errors
@@ -385,7 +411,7 @@ npm run test:watch
 - Tailwind CSS 3.3.6
 - Vitest 3.2.4 (testing)
 - Chrome Extension Manifest V3
-- Anthropic Claude API (claude-3-5-sonnet-20241022)
+- Multi-provider AI support (Anthropic, OpenAI, Google)
 
 ## License
 
@@ -393,7 +419,7 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- Powered by [Anthropic Claude](https://www.anthropic.com/)
+- AI providers: [Anthropic](https://www.anthropic.com/), [OpenAI](https://openai.com/), [Google](https://ai.google.dev/)
 - Built with [Vite](https://vitejs.dev/)
 - UI framework: [React](https://react.dev/)
 - Testing: [Vitest](https://vitest.dev/)
@@ -406,4 +432,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-Note: This extension requires a Claude API key from Anthropic. API usage is subject to Anthropic's pricing and terms of service.
+**Note**: This extension requires an API key from one of the supported providers (Anthropic, OpenAI, or Google). API usage is subject to each provider's pricing and terms of service.
