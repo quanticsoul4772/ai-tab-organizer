@@ -379,6 +379,414 @@ describe('SettingsPanel', () => {
     });
   });
 
+  describe('Provider Selection', () => {
+    it('should render provider selection dropdown', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const providerSelect = screen.getByLabelText('AI Provider:');
+      expect(providerSelect).toBeInTheDocument();
+      expect(providerSelect).toHaveValue(AIProvider.ANTHROPIC);
+    });
+
+    it('should call onProviderSettingsChange when provider changes', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const providerSelect = screen.getByLabelText('AI Provider:');
+      fireEvent.change(providerSelect, { target: { value: AIProvider.OPENAI } });
+
+      expect(mockOnProviderSettingsChange).toHaveBeenCalledWith({
+        provider: AIProvider.OPENAI,
+        model: 'gpt-4o', // First model for OpenAI
+      });
+    });
+
+    it('should change to Google provider and default to Gemini model', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const providerSelect = screen.getByLabelText('AI Provider:');
+      fireEvent.change(providerSelect, { target: { value: AIProvider.GOOGLE } });
+
+      expect(mockOnProviderSettingsChange).toHaveBeenCalledWith({
+        provider: AIProvider.GOOGLE,
+        model: 'gemini-2.0-flash-exp', // First model for Google
+      });
+    });
+
+    it('should display all provider options', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(screen.getByText('Anthropic Claude')).toBeInTheDocument();
+      expect(screen.getByText('OpenAI GPT')).toBeInTheDocument();
+      expect(screen.getByText('Google Gemini')).toBeInTheDocument();
+    });
+  });
+
+  describe('Model Selection', () => {
+    it('should render model selection dropdown', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const modelSelect = screen.getByLabelText('Model:');
+      expect(modelSelect).toBeInTheDocument();
+      expect(modelSelect).toHaveValue('claude-3-5-sonnet-20241022');
+    });
+
+    it('should call onProviderSettingsChange when model changes', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const modelSelect = screen.getByLabelText('Model:');
+      fireEvent.change(modelSelect, { target: { value: 'claude-3-5-haiku-20241022' } });
+
+      expect(mockOnProviderSettingsChange).toHaveBeenCalledWith({
+        provider: AIProvider.ANTHROPIC,
+        model: 'claude-3-5-haiku-20241022',
+      });
+    });
+
+    it('should display correct models for OpenAI provider', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{ provider: AIProvider.OPENAI, model: 'gpt-4o' }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(screen.getByText(/GPT-4o \(Recommended\)/)).toBeInTheDocument();
+      expect(screen.getByText(/GPT-4o Mini/)).toBeInTheDocument();
+    });
+
+    it('should display correct model for Google provider', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{
+            provider: AIProvider.GOOGLE,
+            model: 'gemini-2.0-flash-exp',
+          }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(screen.getByText(/Gemini 2.0 Flash/)).toBeInTheDocument();
+    });
+  });
+
+  describe('API Key Validation', () => {
+    it('should show error for invalid Anthropic API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="invalid-key"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('sk-ant-...');
+      expect(apiInput).toHaveClass('invalid');
+      expect(apiInput).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.getByText(/Invalid API key format/)).toBeInTheDocument();
+    });
+
+    it('should not show error for valid Anthropic API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="sk-ant-valid123"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('sk-ant-...');
+      expect(apiInput).not.toHaveClass('invalid');
+      expect(apiInput).toHaveAttribute('aria-invalid', 'false');
+      expect(screen.queryByText(/Invalid API key format/)).not.toBeInTheDocument();
+    });
+
+    it('should validate OpenAI API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="sk-test123"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{ provider: AIProvider.OPENAI, model: 'gpt-4o' }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('sk-proj-...');
+      expect(apiInput).not.toHaveClass('invalid');
+    });
+
+    it('should show error for invalid OpenAI API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="invalid-key"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{ provider: AIProvider.OPENAI, model: 'gpt-4o' }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('sk-proj-...');
+      expect(apiInput).toHaveClass('invalid');
+      expect(screen.getByText(/Invalid API key format/)).toBeInTheDocument();
+    });
+
+    it('should validate Google API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="AIzaTest123"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{
+            provider: AIProvider.GOOGLE,
+            model: 'gemini-2.0-flash-exp',
+          }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('AIza...');
+      expect(apiInput).not.toHaveClass('invalid');
+    });
+
+    it('should show error for invalid Google API key format', () => {
+      render(
+        <SettingsPanel
+          apiKey="invalid-key"
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{
+            provider: AIProvider.GOOGLE,
+            model: 'gemini-2.0-flash-exp',
+          }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('AIza...');
+      expect(apiInput).toHaveClass('invalid');
+      expect(screen.getByText(/Invalid API key format/)).toBeInTheDocument();
+    });
+
+    it('should not show error for empty API key', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      const apiInput = screen.getByPlaceholderText('sk-ant-...');
+      expect(apiInput).not.toHaveClass('invalid');
+      expect(screen.queryByText(/Invalid API key format/)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Provider-Specific UI', () => {
+    it('should display Anthropic description and console URL', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={defaultProviderSettings}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(screen.getByText(/Claude 3.5 Sonnet excels at complex reasoning/)).toBeInTheDocument();
+      expect(screen.getByText('https://console.anthropic.com')).toBeInTheDocument();
+    });
+
+    it('should display OpenAI description and console URL', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{ provider: AIProvider.OPENAI, model: 'gpt-4o' }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(
+        screen.getByText(/GPT-4o offers strong performance with multimodal capabilities/)
+      ).toBeInTheDocument();
+      expect(screen.getByText('https://platform.openai.com/api-keys')).toBeInTheDocument();
+    });
+
+    it('should display Google description and console URL', () => {
+      render(
+        <SettingsPanel
+          apiKey=""
+          onApiKeyChange={mockOnApiKeyChange}
+          providerSettings={{
+            provider: AIProvider.GOOGLE,
+            model: 'gemini-2.0-flash-exp',
+          }}
+          onProviderSettingsChange={mockOnProviderSettingsChange}
+          summarySettings={defaultSummarySettings}
+          onSummarySettingsChange={mockOnSummarySettingsChange}
+          jiraSettings={defaultJiraSettings}
+          onJiraSettingsChange={mockOnJiraSettingsChange}
+          onSave={mockOnSave}
+          onClearCache={mockOnClearCache}
+        />
+      );
+
+      expect(
+        screen.getByText(/Gemini 1.5 Pro features a massive 1M token context window/)
+      ).toBeInTheDocument();
+      expect(screen.getByText('https://aistudio.google.com/apikey')).toBeInTheDocument();
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle empty API key', () => {
       render(
