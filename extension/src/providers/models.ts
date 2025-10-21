@@ -68,31 +68,13 @@ export const AVAILABLE_MODELS: Record<AIProvider, AIModel[]> = {
   ],
   [AIProvider.GOOGLE]: [
     {
-      id: 'gemini-1.5-pro',
-      name: 'Gemini 1.5 Pro',
+      id: 'gemini-2.0-flash-exp',
+      name: 'Gemini 2.0 Flash',
       provider: AIProvider.GOOGLE,
       contextWindow: 1000000,
       maxOutputTokens: 8192,
-      costPer1kInput: 0.00125,
-      costPer1kOutput: 0.005,
-    },
-    {
-      id: 'gemini-1.5-flash',
-      name: 'Gemini 1.5 Flash',
-      provider: AIProvider.GOOGLE,
-      contextWindow: 1000000,
-      maxOutputTokens: 8192,
-      costPer1kInput: 0.000075,
-      costPer1kOutput: 0.0003,
-    },
-    {
-      id: 'gemini-1.5-flash-8b',
-      name: 'Gemini 1.5 Flash-8B',
-      provider: AIProvider.GOOGLE,
-      contextWindow: 1000000,
-      maxOutputTokens: 8192,
-      costPer1kInput: 0.0000375,
-      costPer1kOutput: 0.00015,
+      costPer1kInput: 0.0,
+      costPer1kOutput: 0.0,
     },
   ],
 };
@@ -189,7 +171,7 @@ export function getRecommendedModels(): AIModel[] {
   return [
     getModelById('claude-3-5-sonnet-20241022')!,
     getModelById('gpt-4o')!,
-    getModelById('gemini-1.5-flash')!,
+    getModelById('gemini-2.0-flash-exp')!,
   ].filter((m) => m !== undefined);
 }
 
